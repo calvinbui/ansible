@@ -1,0 +1,218 @@
+---
+
+- hosts: homeserver
+
+  vars:
+    application: woodpecker
+
+    woodpecker_mattermost_webhook_id: !vault |
+      $ANSIBLE_VAULT;1.1;AES256
+      38623437646465643161636435383930346439366261383461656237373365306439393431653062
+      6463633737323265636236303964303938343034333164640a653836363463346137396339323062
+      63636136313639636131323264643536373737333830366639653461346133323438373561313638
+      6665656334346432610a636564323662656562643864303530306631313235366435393835316332
+      63336161306230613935393662663234633834313764306139303431353835373332
+
+    woodpecker_global_env:
+      S3_ENDPOINT: "s3.{{ common_tld }}"
+      AWS_ACCESS_KEY_ID: "sLQTGRJdx5uAFt6yk2qc"
+      AWS_SECRET_ACCESS_KEY: !vault |
+        $ANSIBLE_VAULT;1.1;AES256
+        39353036316665396436333232623065346631336137663130323733633336643737333735643338
+        3031643664643339376664663465633035373933303663390a343632613864366136306337613265
+        39323133363638316438396436663133323535303065313938343432313036613066663536346533
+        3830633335626331300a656262303565303264366539393263613833616562333266613462313965
+        39353264356339613339646233363862353961346364633030643634373063396361616265393062
+        3332363232663538653361623532383839306263323235643438
+
+      MATTERMOST_WEBHOOK_URL: "https://mattermost.{{ common_tld }}/hooks/{{ woodpecker_mattermost_webhook_id }}"
+
+      ANSIBLE_VAULT_PASSWORD: >-
+        {{
+          lookup('file', lookup('config', 'DEFAULT_VAULT_PASSWORD_FILE'), errors='ignore')
+          | default(lookup('env', 'ANSIBLE_VAULT_PASSWORD'))
+          | mandatory('Vault password not found in file or ANSIBLE_VAULT_PASSWORD env var')
+        }}
+
+
+    container_network: "{{ networks.user }}"
+
+  handlers:
+    - name: Restart
+      containers.podman.podman_container:
+        name: "{{ application }}"
+        force_restart: true
+
+  tasks:
+    - name: Create config folders
+      ansible.builtin.file:
+        path: "{{ config_directory }}/{{ item }}"
+        state: directory
+        owner: "{{ common_user }}"
+        group: "{{ common_group }}"
+        mode: "0771"
+      loop:
+        - server
+        - agent
+        - docker
+
+    - name: Create postgres container
+      ansible.builtin.include_role:
+        name: postgres
+      vars:
+        postgres_version: 17.6
+        postgres_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          32663832323065633938353162623164393033613838343836643531396336353063616364306562
+          3966383061623863353634643436623764356562366362370a353839353061653565386539373366
+          32326465353562643434376262386164383339666463636537346335633362613661326162626439
+          3132636435346331630a653064376462316366303034626137623535313934316661303363636133
+          62656134393663356437386463643733316234346463356630313432663934383931653662353638
+          3534366335383866616339646262373163376434373330303832
+
+    - name: Create server container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        container_name: "{{ application }}-server"
+        image: quay.io/woodpeckerci/woodpecker-server:v3.11.0
+        env:
+          WOODPECKER_OPEN: "false"
+          WOODPECKER_ADMIN: "{{ common_user }}"
+
+          WOODPECKER_DATABASE_DRIVER: "postgres"
+          WOODPECKER_DATABASE_DATASOURCE: "{{ _postgres_url }}?sslmode=disable"
+
+          WOODPECKER_HOST: "https://{{ application }}.{{ common_tld }}"
+
+          WOODPECKER_DEFAULT_APPROVAL_MODE: "none"
+          WOODPECKER_DEFAULT_CANCEL_PREVIOUS_PIPELINE_EVENTS: ""
+
+          WOODPECKER_FORGEJO: "true"
+          WOODPECKER_FORGEJO_URL: "https://forgejo.{{ common_tld }}"
+          WOODPECKER_FORGEJO_CLIENT: "a2c3262c-2a53-44a2-9c38-cee8c9af542e"
+          WOODPECKER_FORGEJO_SECRET: !vault |
+            $ANSIBLE_VAULT;1.1;AES256
+            66626534396436623865373335333038306633396637356130316237613438306530303638316335
+            3935653765356330376265316437613061653262373630310a373462333633383730343764373437
+            64313439383361343466326465326138313166653631396238346337346565393432623062636336
+            6362666133333663650a656535373665353635626264383934393836636132363433343764656531
+            34356661326532316534366631613739343439666262353963663632666563396332316238343137
+            39303331363634346538333334653164353466396230353834636232353639353265626231643537
+            323263383963393562616438636434663539
+
+          WOODPECKER_AGENT_SECRET: &_woodpecker_agent_secret !vault |
+            $ANSIBLE_VAULT;1.1;AES256
+            36303635303630323963613031626530333432323836326462353033636133363663306534656538
+            6636643030663537356539626538386563326162666461610a356365393564343836393034373264
+            31323238646432656662373464613734623139363630336266386334373765363232373934313332
+            6238666431333139610a373131323263636636313936373439343736663762343565396431326662
+            32633538653564633566386533383066336431663164613265313232633632666463393763346465
+            34346564333665393237326166303861623765333538333134383632323538313430316131316666
+            63323732323339303561643535386263393633373536636435646630636632396665653230363631
+            33663766343465626131
+
+          WOODPECKER_ENABLE_SWAGGER: "false"
+          WOODPECKER_DISABLE_VERSION_CHECK: "true"
+
+          WOODPECKER_ENVIRONMENT: >-
+            {{
+              woodpecker_global_env.items()
+              | ansible.builtin.map('join', ':')
+              | ansible.builtin.join(',')
+            }}
+        volumes:
+          - "{{ config_directory }}/server:/var/lib/woodpecker/"
+        traefik:
+          - port: 8000
+            rule: Host(`{{ application }}.{{ common_tld }}`)
+        homepage:
+          group: Programming
+          weight: 400
+          description: "CI"
+          href: "https://{{ application }}.{{ common_tld }}"
+        blackbox:
+          path: /health
+
+    - name: Create SSH folder
+      ansible.builtin.file:
+        path: "{{ config_directory }}/ssh"
+        state: directory
+        owner: "{{ common_user }}"
+        group: "{{ common_group }}"
+        mode: "0700"
+
+    - name: Create SSH key
+      community.crypto.openssh_keypair:
+        path: "{{ config_directory }}/ssh/id_ed25519"
+        type: ed25519
+        owner: "1000"
+        group: "1000"
+      register: _woodpecker_ssh_key
+
+    - name: Set SSH variable
+      ansible.builtin.set_fact:
+        woodpecker_public_ssh_key: "{{ _woodpecker_ssh_key.public_key }}"
+        woodpecker_authorized_keys_comment: "{{ application }}"
+
+    - name: Allow SSH
+      ansible.posix.authorized_key:
+        user: "{{ common_user }}"
+        state: present
+        key: "{{ woodpecker_public_ssh_key }}"
+        comment: "{{ application }}"
+
+    - name: Copy Dockerfile
+      ansible.builtin.copy:
+        src: "{{ files_directory }}/docker/"
+        dest: "{{ config_directory }}/docker"
+        owner: "{{ common_user }}"
+        group: "{{ common_group }}"
+        mode: "0644"
+      register: _woodpecker_agent_dockerfile
+
+    - name: Build agent image
+      containers.podman.podman_image:
+        name: "{{ application }}-agent"
+        path: "{{ config_directory }}/docker"
+        state: build
+        force: "{{ true if _woodpecker_agent_dockerfile.changed else false }}"
+
+    - name: Create agent container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        container_name: "{{ application }}-agent"
+        image: "{{ application }}-agent"
+        env:
+          WOODPECKER_HOSTNAME: "{{ application }}-agent"
+
+          WOODPECKER_MAX_WORKFLOWS: "4"
+
+          WOODPECKER_SERVER: "{{ application }}-server:9000"
+          WOODPECKER_AGENT_SECRET: *_woodpecker_agent_secret
+
+          WOODPECKER_BACKEND: "local"
+        volumes:
+          - "{{ config_directory }}/agent:/etc/woodpecker"
+          - "{{ config_directory }}/ssh:/home/woodpecker/.ssh"
+
+- hosts: nvr
+  gather_facts: false
+  tasks:
+    - name: Set authorized keys
+      ansible.posix.authorized_key:
+        user: root
+        state: present
+        key: "{{ hostvars['homeserver.' + common_local_tld].woodpecker_public_ssh_key }}"
+        comment: "{{ hostvars['homeserver.' + common_local_tld].woodpecker_authorized_keys_comment }}"
+
+- hosts: octopi
+  gather_facts: false
+  tasks:
+    - name: Set authorized keys
+      ansible.posix.authorized_key:
+        user: pi
+        state: present
+        key: "{{ hostvars['homeserver.' + common_local_tld].woodpecker_public_ssh_key }}"
+        comment: "{{ hostvars['homeserver.' + common_local_tld].woodpecker_authorized_keys_comment }}"

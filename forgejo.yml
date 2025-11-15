@@ -156,6 +156,8 @@
 
           FORGEJO__service.explore__REQUIRE_SIGNIN_VIEW: "true"
 
+          FORGEJO__webhook__ALLOWED_HOST_LIST: "*.{{ common_tld }},*.{{ common_local_tld }}"
+
           FORGEJO__mailer__ENABLED: "true"
           FORGEJO__mailer__PROTOCOL: "smtp+starttls"
           FORGEJO__mailer__SMTP_ADDR: "{{ common_email_server }}"
