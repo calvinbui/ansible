@@ -46,6 +46,7 @@ COPY --from=plugin-s3 /bin/plugin-s3 .
 COPY --from=opentofu /usr/local/bin/tofu .
 COPY --from=tflint /usr/local/bin/tflint .
 COPY --from=tfsec /usr/bin/tfsec .
+COPY --chmod=0755 mattermost-notify.sh mattermost-notify
 
 USER woodpecker
 ENTRYPOINT ["/usr/local/bin/woodpecker-agent"]
