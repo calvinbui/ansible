@@ -5,7 +5,7 @@ set -eo pipefail
 allplaybooks=( )
 
 # playbook updates
-mapfile -t allplaybooks < <(git show --name-only --diff-filter=ACMRTU HEAD | grep -E "^(\w|-|_)+.y*ml" | grep -v requirements.yml)
+mapfile -t allplaybooks < <(echo "$CI_PIPELINE_FILES" | jq -r '.[]' | grep -E '^[^/]+\.yml$' | grep -v '^requirements\.yml$')
 echo "Playbooks changed: ${allplaybooks[*]}"
 
 # role updates
@@ -31,10 +31,9 @@ else
   echo "Playbooks to run: ${allplaybooks[*]}"
 fi
 
-if [ ! -f ~/.vault_pass.txt ]; then
-  echo "Put vault key"
-  echo "$ANSIBLE_VAULT_PASSWORD" > ~/.vault_pass.txt
-fi
+echo "Put vault key"
+echo "$ANSIBLE_VAULT_PASSWORD" > ~/.vault_pass.txt
+trap 'rm -f ~/.vault_pass.txt' EXIT
 
 # shellcheck disable=SC2068
 # i want it to split
