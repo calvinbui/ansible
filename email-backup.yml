@@ -182,7 +182,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: docker.io/dovecot/dovecot:2.4.1
+        image: docker.io/dovecot/dovecot:2.4.2
         user: root
         volumes:
           - "{{ config_directory }}/conf:/etc/dovecot"
