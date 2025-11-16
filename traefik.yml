@@ -44,7 +44,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: public.ecr.aws/docker/library/traefik:v3.5.2
+        image: public.ecr.aws/docker/library/traefik:3.6.1
         ip: "{{ traefik_ip }}"
         restart_policy: always
         env:
