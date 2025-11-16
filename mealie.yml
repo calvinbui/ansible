@@ -33,7 +33,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/mealie-recipes/mealie:v3.2.1
+        image: ghcr.io/mealie-recipes/mealie:v3.5.0
         env:
           # https://docs.mealie.io/documentation/getting-started/installation/backend-config/
 
