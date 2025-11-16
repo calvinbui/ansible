@@ -20,7 +20,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/advplyr/audiobookshelf:2.29.0
+        image: ghcr.io/advplyr/audiobookshelf:2.30.0
         volumes:
           - "{{ common_directory_audiobooks }}:/audiobooks"
           # - "{{ common_directory_podcasts }}:/podcasts"
