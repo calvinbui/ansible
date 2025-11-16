@@ -39,7 +39,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: lscr.io/linuxserver/bazarr:1.5.2
+        image: lscr.io/linuxserver/bazarr:1.5.3
         volumes:
           - "{{ config_directory }}/config:/config"
           - "{{ common_directory_tv }}:{{ common_mounted_directory_tv }}"
