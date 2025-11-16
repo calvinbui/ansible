@@ -22,11 +22,13 @@
 
   timezone: 'Australia/Sydney',
 
-  reviewers: ['calvinbui'],
+  reviewers: ['calvin'],
 
   commitMessagePrefix: '{{depName}}:',
   commitMessageAction: 'update',
   commitMessageTopic: 'version',
+
+  separateMajorMinor: false,
 
   /*
     Renovate will evaluate all packageRules and not stop once it gets a first match
