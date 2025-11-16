@@ -58,7 +58,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-mercure"
-        image: docker.io/dunglas/mercure:v0.20.2
+        image: docker.io/dunglas/mercure:v0.21.2
         env:
           SERVER_NAME: ":80"
           MERCURE_PUBLISHER_JWT_KEY: "{{ shlink_mercure_jwt }}"
