@@ -20,7 +20,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: docker.io/portainer/portainer-ee:2.33.1
+        image: docker.io/portainer/portainer-ee:2.35.0
         traefik:
           - port: 9000
         homepage:
