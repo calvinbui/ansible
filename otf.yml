@@ -33,7 +33,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: docker.io/leg100/otfd:0.4.1
+        image: docker.io/leg100/otfd:0.4.9
         env:
           OTF_HOSTNAME: "{{ application }}.{{ common_tld }}"
 
