@@ -12,7 +12,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/amir20/dozzle:v8.13.14
+        image: ghcr.io/amir20/dozzle:v8.14.8
         volumes:
           - /run/podman/podman.sock:/var/run/docker.sock:ro
         env:
