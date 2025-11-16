@@ -157,7 +157,7 @@
         name: podman_container
       vars:
         container_name: "borgmatic-{{ item.name }}"
-        image: ghcr.io/borgmatic-collective/borgmatic:2.0.7
+        image: ghcr.io/borgmatic-collective/borgmatic:2.0.11
         volumes:
           # data to backup. mount as rw when a restore is needed
           - "{{ item.source }}:/mnt/source:ro"
