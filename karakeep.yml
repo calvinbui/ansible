@@ -47,7 +47,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/karakeep-app/karakeep:0.27.1
+        image: ghcr.io/karakeep-app/karakeep:0.28.0
         env:
           DATA_DIR: /data
 
