@@ -47,7 +47,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/home-assistant/home-assistant:2025.9.3
+        image: ghcr.io/home-assistant/home-assistant:2025.11.2
         ip: "{{ container_network.subnet | ansible.utils.nthhost(100) }}"
         env:
           TZ: "{{ common_timezone }}"
