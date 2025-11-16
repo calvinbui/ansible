@@ -62,7 +62,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: docker.io/outlinewiki/outline:0.87.4
+        image: docker.io/outlinewiki/outline:1.0.1
         volumes:
           - "{{ config_directory }}/storage:/var/lib/outline/data"
         env:
