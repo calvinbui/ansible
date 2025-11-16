@@ -237,7 +237,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-ai"
-        image: ghcr.io/clusterzx/paperless-ai:3.0.7
+        image: ghcr.io/clusterzx/paperless-ai:3.0.9
         stop_signal: "{{ signal_map['SIGKILL'] }}"
         env:
           PUID: "{{ common_user_id }}"
