@@ -20,7 +20,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/actualbudget/actual:25.9.0
+        image: ghcr.io/actualbudget/actual:25.11.0
         volumes:
           - "{{ config_directory }}:/data"
         traefik:
