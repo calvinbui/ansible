@@ -2,7 +2,7 @@
 
 collections:
   - name: oxlorg.opnsense
-    version: 25.7.3
+    version: 25.7.7
 
 roles:
   - name: mrlesmithjr.netplan
