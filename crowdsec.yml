@@ -166,7 +166,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/crowdsecurity/crowdsec:v1.7.0
+        image: ghcr.io/crowdsecurity/crowdsec:v1.7.3
         env:
           # General
           TZ: "{{ common_timezone }}"
