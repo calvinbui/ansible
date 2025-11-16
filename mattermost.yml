@@ -54,7 +54,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: docker.io/mattermost/mattermost-team-edition:10.12.0
+        image: docker.io/mattermost/mattermost-team-edition:11.1.0
         volumes:
           - "{{ config_directory }}/config/config:/mattermost/config"
           - "{{ config_directory }}/config/data:/mattermost/data"
