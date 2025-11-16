@@ -67,7 +67,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: quay.io/prometheus/node-exporter:v1.9.1
+        image: quay.io/prometheus/node-exporter:v1.10.2
         command:
           - --path.rootfs=/host
           - --path.udev.data=/host/run/udev/data
