@@ -20,7 +20,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: docker.io/emqx/emqx:5.10.1
+        image: docker.io/emqx/emqx:6.0.1
         ip: "{{ container_network.subnet | ansible.utils.nthhost(101) }}"
         env:
           # https://docs.emqx.com/en/emqx/v5.8.3/hocon
