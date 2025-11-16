@@ -12,7 +12,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: docker.io/clidey/whodb:0.61.0
+        image: docker.io/clidey/whodb:0.75.0
         env:
           WHODB_OPENAI_API_KEY: "{{ openai_api_key }}"
         traefik:
