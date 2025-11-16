@@ -23,7 +23,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/wizarrrr/wizarr:v2025.9.4
+        image: ghcr.io/wizarrrr/wizarr:v2025.11.2
         env:
           PUID: "{{ common_user_id | ansible.builtin.string }}"
           PGID: "{{ common_group_id | ansible.builtin.string }}"
