@@ -143,7 +143,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/authelia/authelia:4.39.10
+        image: ghcr.io/authelia/authelia:4.39.14
         ip: "{{ container_network.subnet | ansible.utils.nthhost(3) }}"
         env:
           TZ: "{{ common_timezone }}"
