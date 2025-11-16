@@ -26,7 +26,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/qbittorrent/docker-qbittorrent-nox:5.1.2-1
+        image: ghcr.io/qbittorrent/docker-qbittorrent-nox:5.1.3-1
         ip: "{{ container_network.subnet | ansible.utils.nthhost(10) }}"
         env:
           QBT_LEGAL_NOTICE: "confirm"
