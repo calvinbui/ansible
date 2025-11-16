@@ -27,7 +27,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/renovatebot/renovate:41
+        image: ghcr.io/renovatebot/renovate:42
         entrypoint: /bin/bash
         command: -c "renovate --version > /tmp/renovate.log && /bin/tail -f /tmp/renovate.log"
         volumes:
