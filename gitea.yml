@@ -40,7 +40,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: docker.io/gitea/gitea:1.24.6
+        image: docker.io/gitea/gitea:1.25.1
         volumes:
           - "{{ config_directory }}/data:/data"
           - /etc/localtime:/etc/localtime:ro
