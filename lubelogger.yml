@@ -43,7 +43,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/hargata/lubelogger:v1.5.1
+        image: ghcr.io/hargata/lubelogger:v1.5.4
         env:
           LC_ALL: "{{ common_language_iso_639 }}_{{ common_country_iso_3166 }}.UTF-8"
           LANG: "{{ common_language_iso_639 }}_{{ common_country_iso_3166 }}.UTF-8"
