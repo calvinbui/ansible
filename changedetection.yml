@@ -27,7 +27,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-chrome"
-        image: ghcr.io/browserless/chromium:v2.35.0
+        image: ghcr.io/browserless/chromium:v2.38.2
         env:
           TOKEN: "{{ changedetection_browserless_token }}"
           CONCURRENT: "10"
