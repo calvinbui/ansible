@@ -33,7 +33,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/umami-software/umami:postgresql-v2.19.0
+        image: ghcr.io/umami-software/umami:postgresql-3.0.0
         # https://umami.is/docs/environment-variables
         env:
           APP_SECRET: !vault |
