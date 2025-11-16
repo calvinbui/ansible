@@ -93,7 +93,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: docker.io/plexinc/pms-docker:1.42.1.10060-4e8b05daf
+        image: docker.io/plexinc/pms-docker:1.42.2.10156-f737b826c
         ip: "{{ container_network.subnet | ansible.utils.nthhost(4) }}"
         group_add:
           - 992 # 'render'
