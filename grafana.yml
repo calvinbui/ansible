@@ -68,7 +68,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: docker.io/grafana/grafana:12.1.1
+        image: docker.io/grafana/grafana:12.2.1
         env:
           GF_SERVER_ROOT_URL: "https://grafana.{{ common_tld }}"
           GF_SERVER_ENABLE_GZIP: "true"
