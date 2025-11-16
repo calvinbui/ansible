@@ -31,7 +31,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/privatebin/nginx-fpm-alpine:2.0.1
+        image: ghcr.io/privatebin/nginx-fpm-alpine:2.0.3
         volumes:
           - "{{ config_directory }}/data:/srv/data"
           - "{{ config_directory }}/cfg:/srv/cfg"
