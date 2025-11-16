@@ -140,7 +140,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-onlyoffice"
-        image: docker.io/onlyoffice/documentserver:9.0.4
+        image: docker.io/onlyoffice/documentserver:9.1.0
         stop_signal: "{{ signal_map['SIGKILL'] }}"
         volumes:
           - "{{ config_directory }}/onlyoffice/logs:/var/log/onlyoffice"
