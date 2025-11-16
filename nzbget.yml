@@ -57,7 +57,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: lscr.io/linuxserver/nzbget:version-v25.3
+        image: lscr.io/linuxserver/nzbget:version-v25.4
         volumes:
           - "{{ config_directory }}:/config"
           - "{{ common_directory_download }}:{{ common_mounted_directory_download }}"
