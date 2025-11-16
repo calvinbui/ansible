@@ -68,7 +68,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: docker.io/brandawg93/peanut:5.15.0
+        image: docker.io/brandawg93/peanut:5.17.0
         volumes:
           - "{{ config_directory }}/config:/config"
         traefik:
