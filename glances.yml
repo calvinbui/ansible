@@ -12,7 +12,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: docker.io/nicolargo/glances:ubuntu-4.3.3-full
+        image: docker.io/nicolargo/glances:ubuntu-4.4.1-full
         volumes:
           - /run/podman/podman.sock:/var/run/docker.sock:ro
           - /etc/os-release:/etc/os-release:ro
