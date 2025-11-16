@@ -57,7 +57,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/gethomepage/homepage:v1.4.6
+        image: ghcr.io/gethomepage/homepage:v1.7.0
         ip: "{{ container_network.subnet | ansible.utils.nthhost(6) }}"
         env:
           HOMEPAGE_ALLOWED_HOSTS: "{{ common_tld }},{{ container_network.subnet | ansible.utils.nthhost(6) }}"
