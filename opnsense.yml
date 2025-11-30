@@ -450,7 +450,7 @@
         interface: "{{ item.value.opnsense_name }}"
         start_addr: "{{ item.value.dhcp_pool.start }}"
         end_addr: "{{ item.value.dhcp_pool.end }}"
-        lease_time: 3600
+        lease_time: 86400
         domain: "{{ common_local_tld }}"
         ra_mode: []
         description: "{{ item.value.name }}"
