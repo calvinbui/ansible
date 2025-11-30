@@ -45,7 +45,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-acme"
-        image: docker.io/neilpang/acme.sh:3.1.1
+        image: docker.io/neilpang/acme.sh:3.1.2
         command: daemon
         volumes:
           - "{{ config_directory }}/acme.sh:/acme.sh"
