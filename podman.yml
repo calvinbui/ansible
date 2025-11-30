@@ -21,6 +21,17 @@
         update_cache: true
         cache_valid_time: 86400
 
+    - name: Set sid repository priority
+      ansible.builtin.copy:
+        dest: "/etc/apt/preferences.d/{{ application }}"
+        content: |
+          Package: podman
+          Pin: release n=sid
+          Pin-Priority: 900
+        owner: root
+        group: root
+        mode: "0644"
+
     - name: Install python3-podman
       ansible.builtin.apt:
         name: python3-podman
