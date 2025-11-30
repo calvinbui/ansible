@@ -86,14 +86,18 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-rag-api"
-        image: ghcr.io/danny-avila/librechat-rag-api-dev-lite:v0.6.0
+        image: ghcr.io/danny-avila/librechat-rag-api-dev:latest@sha256:07f4770eabea542c54902a6db3d45979b0fff0c1d0e1182e131dfd4bbe05e4d2
         env:
-          DB_HOST: "{{ _postgres_hostname }}"
-          DB_PORT: "{{ _postgres_port | ansible.builtin.string }}"
+          RAG_OPENAI_API_KEY: "{{ openai_api_key }}"
+
           POSTGRES_DB: "{{ _postgres_database }}"
           POSTGRES_USER: "{{ _postgres_username }}"
           POSTGRES_PASSWORD: "{{ _postgres_password }}"
-          RAG_OPENAI_API_KEY: "{{ openai_api_key }}"
+          DB_HOST: "{{ _postgres_hostname }}"
+          DB_PORT: "{{ _postgres_port | ansible.builtin.string }}"
+
+          EMBEDDINGS_PROVIDER: openai
+          EMBEDDINGS_MODEL: text-embedding-3-small
 
     - name: Create configuration
       ansible.builtin.copy:
@@ -212,7 +216,6 @@
           REDIS_URI: "{{ _valkey_url }}"
 
           RAG_API_URL: "http://{{ application }}-rag-api:8000"
-          RAG_OPENAI_API_KEY: "{{ openai_api_key }}"
         volumes:
           - "{{ config_directory }}/librechat.yaml:/app/librechat.yaml"
           - "{{ config_directory }}/images:/app/client/public/images"
