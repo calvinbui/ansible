@@ -3,6 +3,7 @@ global:
   sendAnonymousUsage: false
 
 providers:
+  providersThrottleDuration: 10s
   docker:
     defaultRule: 'Host(`{% raw %}{{ normalize .Name }}{% endraw %}.{{ common_tld }}`)'
     allowEmptyServices: true
