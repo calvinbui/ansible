@@ -118,131 +118,210 @@
 
           # NEWS-SERVERS
           Server1.Active: 'yes'
-          Server1.Name: 'Newshosting'
+          Server1.Name: 'Frugal AU'
           Server1.Level: '0'
           Server1.Optional: 'no'
-          Server1.Group: '0'
-          Server1.Host: 'news.newshosting.com'
+          Server1.Group: '1'
+          Server1.Host: 'aunews.frugalusenet.com'
           Server1.Port: '563'
-          Server1.Username: !vault |
+          Server1.Username: &frugal_username !vault |
+            $ANSIBLE_VAULT;1.1;AES256
+            39613066303661343361373534393963666466396339636235373837396232343265653864336464
+            6531303835346466616238353531393136356466373438320a626139353564313038303339393634
+            38633038356637393333383664636430386536666635353064373062613863383366313139613066
+            3934616136333433350a323663313161383963613239646462643632343530633032323136393031
+            6139
+          Server1.Password: &frugal_password !vault |
+            $ANSIBLE_VAULT;1.1;AES256
+            37316362333639636564326637363365356439303536323033353634633263303739383264643936
+            3265623431323161333137353935656536666362306339650a323330623464396562343436633033
+            33613061666666656135616161656337663731333232353339383538363739613461613663353431
+            3831646534393635390a326537643464353664376631333131616231626436323564316335393662
+            36393936343636353765653965666532383233396561653664336362316465653531
+          Server1.JoinGroup: 'no'
+          Server1.Encryption: 'yes'
+          Server1.Cipher: 'AES128-SHA'
+          Server1.Connections: '200'
+          Server1.Retention: '5500'
+          Server1.IpVersion: 'ipv4'
+          Server1.Notes: ''
+
+          Server2.Active: 'yes'
+          Server2.Name: 'Frugal US East'
+          Server2.Level: '1'
+          Server2.Optional: 'no'
+          Server2.Group: '1'
+          Server2.Host: 'news.frugalusenet.com'
+          Server2.Port: '563'
+          Server2.Username: *frugal_username
+          Server2.Password: *frugal_password
+          Server2.JoinGroup: 'no'
+          Server2.Encryption: 'yes'
+          Server2.Cipher: 'AES128-SHA'
+          Server2.Connections: '100'
+          Server2.Retention: '5500'
+          Server2.IpVersion: 'ipv4'
+          Server2.Notes: ''
+
+          Server3.Active: 'yes'
+          Server3.Name: 'Frugal EU'
+          Server3.Level: '1'
+          Server3.Optional: 'no'
+          Server3.Group: '1'
+          Server3.Host: 'eunews.frugalusenet.com'
+          Server3.Port: '563'
+          Server3.Username: *frugal_username
+          Server3.Password: *frugal_password
+          Server3.JoinGroup: 'no'
+          Server3.Encryption: 'yes'
+          Server3.Cipher: 'AES128-SHA'
+          Server3.Connections: '100'
+          Server3.Retention: '5500'
+          Server3.IpVersion: 'ipv4'
+          Server3.Notes: ''
+
+          Server4.Active: 'yes'
+          Server4.Name: 'Frugal Bonus'
+          Server4.Level: '2'
+          Server4.Optional: 'no'
+          Server4.Group: '2'
+          Server4.Host: 'bonus.frugalusenet.com'
+          Server4.Port: '563'
+          Server4.Username: *frugal_username
+          Server4.Password: *frugal_password
+          Server4.JoinGroup: 'no'
+          Server4.Encryption: 'yes'
+          Server4.Cipher: 'AES128-SHA'
+          Server4.Connections: '100'
+          Server4.Retention: '3000'
+          Server4.IpVersion: 'ipv4'
+          Server4.Notes: ''
+
+          Server5.Active: 'yes'
+          Server5.Name: 'Frugal US West'
+          Server5.Level: '3'
+          Server5.Optional: 'no'
+          Server5.Group: '1'
+          Server5.Host: 'newswest.frugalusenet.com'
+          Server5.Port: '563'
+          Server5.Username: *frugal_username
+          Server5.Password: *frugal_password
+          Server5.JoinGroup: 'no'
+          Server5.Encryption: 'yes'
+          Server5.Cipher: 'AES128-SHA'
+          Server5.Connections: '100'
+          Server5.Retention: '5500'
+          Server5.IpVersion: 'ipv4'
+          Server5.Notes: ''
+
+          Server6.Active: 'yes'
+          Server6.Name: 'Frugal Brazil'
+          Server6.Level: '3'
+          Server6.Optional: 'no'
+          Server6.Group: '1'
+          Server6.Host: 'sanews.frugalusenet.com'
+          Server6.Port: '563'
+          Server6.Username: *frugal_username
+          Server6.Password: *frugal_password
+          Server6.JoinGroup: 'no'
+          Server6.Encryption: 'yes'
+          Server6.Cipher: 'AES128-SHA'
+          Server6.Connections: '200'
+          Server6.Retention: '5500'
+          Server6.IpVersion: 'ipv4'
+          Server6.Notes: ''
+
+          Server7.Active: 'yes'
+          Server7.Name: 'Frugal Japan'
+          Server7.Level: '3'
+          Server7.Optional: 'no'
+          Server7.Group: '1'
+          Server7.Host: 'asnews.frugalusenet.com'
+          Server7.Port: '563'
+          Server7.Username: *frugal_username
+          Server7.Password: *frugal_password
+          Server7.JoinGroup: 'no'
+          Server7.Encryption: 'yes'
+          Server7.Cipher: 'AES128-SHA'
+          Server7.Connections: '200'
+          Server7.Retention: '5500'
+          Server7.IpVersion: 'ipv4'
+          Server7.Notes: ''
+
+          Server8.Active: 'yes'
+          Server8.Name: 'Newshosting'
+          Server8.Level: '0'
+          Server8.Optional: 'no'
+          Server8.Group: '0'
+          Server8.Host: 'news.newshosting.com'
+          Server8.Port: '563'
+          Server8.Username: !vault |
             $ANSIBLE_VAULT;1.1;AES256
             30306564633339636335336138393132306637346432333337366339386633613235336530306261
             6138343664313938663863356237336332623538626632340a393035346336336532643139376362
             64633835353163383639323435666433393935323238623662303861376335383864663562313639
             3533636333306534640a633438633638643366306164613966343463636161653931323762346134
             3365
-          Server1.Password: &newshosting_password !vault |
+          Server8.Password: &newshosting_password !vault |
             $ANSIBLE_VAULT;1.1;AES256
             32663037346262623437326463643162316566313135373532653566653365316366643762386630
             3539323762363564643936613265333161376639376462310a366637666466326238306332376337
             37323565373932623666616530323466343230353330623332663634346433383965653935333034
             3336643862383239300a646465653933346561646362633163323230336565356238313465613833
             38633136616465643736363432616661643663323662363931636134383430333666
-          Server1.JoinGroup: 'no'
-          Server1.Encryption: 'yes'
-          Server1.Cipher: 'AES128-SHA'
-          Server1.Connections: '100'
-          Server1.Retention: '5950'
-          Server1.IpVersion: 'ipv4'
-          Server1.Notes: ''
+          Server8.JoinGroup: 'no'
+          Server8.Encryption: 'yes'
+          Server8.Cipher: 'AES128-SHA'
+          Server8.Connections: '100'
+          Server8.Retention: '5950'
+          Server8.IpVersion: 'ipv4'
+          Server8.Notes: ''
 
-          Server2.Active: 'no'
-          Server2.Name: 'Easynews'
-          Server2.Level: '1'
-          Server2.Optional: 'no'
-          Server2.Group: '0'
-          Server2.Host: 'news.easynews.com'
-          Server2.Port: '563'
-          Server2.Username: &easynews_username !vault |
-            $ANSIBLE_VAULT;1.1;AES256
-            62616530383963663338393237356638613935386636343162646663626166383231366135323764
-            6662396135333762393134393632356261656637663163390a333364303237353734363736383365
-            35376134643333316635666133616535326638333165323161353935396466303266383936636338
-            3832303262663136660a343763316630613231613864653337613363363761343333663262356434
-            36653664306434333566663636306662643634616234386132613165336135613635
-          Server2.Password: &easynews_password !vault |
-            $ANSIBLE_VAULT;1.1;AES256
-            63386333626261616138346462353164383866656236303065383834656435363331303564333561
-            3961363830366265353865656434306163656362326666660a663464323064623066366662643833
-            64626532616163363033656635393634326361303430623638363933333531363338653731613939
-            6466373865626130660a333566313863623636343431663631306133356161663933393564656566
-            3339
-          Server2.JoinGroup: 'no'
-          Server2.Encryption: 'yes'
-          Server2.Cipher: 'AES128-SHA'
-          Server2.Connections: '60'
-          Server2.Retention: ''
-          Server2.IpVersion: 'ipv4'
-          Server2.Notes: ''
-
-          Server3.Active: 'no'
-          Server3.Name: 'Tweaknews'
-          Server3.Level: '1'
-          Server3.Optional: 'no'
-          Server3.Group: '0'
-          Server3.Host: 'newshosting.tweaknews.eu'
-          Server3.Port: '563'
-          Server3.Username: !vault |
-            $ANSIBLE_VAULT;1.1;AES256
-            35396334303934633161313365636539383534666164333664386663363737386238393630363636
-            6438383236646332656234306335393333313961353838660a343932636135353139303639663765
-            65316564643431656637313133643165666230346266346239366164623732313034333263343535
-            3861373064663464340a396430343061656338363135373838666532643832396164363334383337
-            6665
-          Server3.Password: *newshosting_password
-          Server3.JoinGroup: 'no'
-          Server3.Encryption: 'yes'
-          Server3.Cipher: 'AES128-SHA'
-          Server3.Connections: '40'
-          Server3.Retention: '4200'
-          Server3.IpVersion: 'ipv4'
-          Server3.Notes: ''
-
-          Server4.Active: 'yes'
-          Server4.Name: 'Blocknews US'
-          Server4.Level: '2'
-          Server4.Optional: 'no'
-          Server4.Group: '0'
-          Server4.Host: 'usnews.blocknews.net'
-          Server4.Port: '563'
-          Server4.Username: &blocknews_username !vault |
+          Server9.Active: 'yes'
+          Server9.Name: 'Blocknews US'
+          Server9.Level: '2'
+          Server9.Optional: 'no'
+          Server9.Group: '0'
+          Server9.Host: 'usnews.blocknews.net'
+          Server9.Port: '563'
+          Server9.Username: &blocknews_username !vault |
             $ANSIBLE_VAULT;1.1;AES256
             62663232306238393433666262366163343837373638633365643734313030646337393863306630
             6265386262356261333531356565346134343638633731320a613863633236386661363638353561
             65623136663161613335383764653233366462366539313734303635353566363331623733643736
             3261353936303336620a656235623765376136623238613765613630656262366632383939313435
             3839
-          Server4.Password: &blocknews_password !vault |
+          Server9.Password: &blocknews_password !vault |
             $ANSIBLE_VAULT;1.1;AES256
             34396362353562643230303564663732353735366662326366336664636665626263336130306364
             3965393063626433363335353231306666303666636564300a613131373565343364386338396537
             39353366343737373830643932613737643238343438623530613936633034613034316431326666
             3538623233303930350a346637656361616436323063333235383361353331656232353735396564
             38643661353262383031323966363039353534363032666530336563393035393266
-          Server4.JoinGroup: 'no'
-          Server4.Encryption: 'yes'
-          Server4.Cipher: 'AES128-SHA'
-          Server4.Connections: '100'
-          Server4.Retention: '5186'
-          Server4.IpVersion: 'ipv4'
-          Server4.Notes: ''
+          Server9.JoinGroup: 'no'
+          Server9.Encryption: 'yes'
+          Server9.Cipher: 'AES128-SHA'
+          Server9.Connections: '100'
+          Server9.Retention: '5186'
+          Server9.IpVersion: 'ipv4'
+          Server9.Notes: ''
 
-          Server5.Active: 'yes'
-          Server5.Name: 'Blocknews EU'
-          Server5.Level: '2'
-          Server5.Optional: 'no'
-          Server5.Group: '0'
-          Server5.Host: 'eunews.blocknews.net'
-          Server5.Port: '563'
-          Server5.Username: *blocknews_username
-          Server5.Password: *blocknews_password
-          Server5.JoinGroup: 'no'
-          Server5.Encryption: 'yes'
-          Server5.Cipher: 'AES128-SHA'
-          Server5.Connections: '100'
-          Server5.Retention: '5186'
-          Server5.IpVersion: 'ipv4'
-          Server5.Notes: ''
+          Server10.Active: 'yes'
+          Server10.Name: 'Blocknews EU'
+          Server10.Level: '2'
+          Server10.Optional: 'no'
+          Server10.Group: '0'
+          Server10.Host: 'eunews.blocknews.net'
+          Server10.Port: '563'
+          Server10.Username: *blocknews_username
+          Server10.Password: *blocknews_password
+          Server10.JoinGroup: 'no'
+          Server10.Encryption: 'yes'
+          Server10.Cipher: 'AES128-SHA'
+          Server10.Connections: '100'
+          Server10.Retention: '5186'
+          Server10.IpVersion: 'ipv4'
+          Server10.Notes: ''
 
           # SECURITY
           ControlUsername: ''
