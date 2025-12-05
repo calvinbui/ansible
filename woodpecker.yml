@@ -160,7 +160,7 @@
         user: "{{ common_user }}"
         state: present
         key: "{{ woodpecker_public_ssh_key }}"
-        comment: "{{ application }}"
+        comment: "{{ woodpecker_authorized_keys_comment }}"
 
     - name: Copy Dockerfile
       ansible.builtin.copy:
