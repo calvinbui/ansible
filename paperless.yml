@@ -68,7 +68,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-gotenberg"
-        image: docker.io/gotenberg/gotenberg:8.25.0
+        image: docker.io/gotenberg/gotenberg:8.25.1
 
     - name: Create app container
       ansible.builtin.include_role:
