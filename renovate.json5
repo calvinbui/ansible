@@ -375,6 +375,11 @@
       matchPackageNames: ['/.*\\/woodpecker-.*$/'],
       sourceUrl: 'https://github.com/woodpecker-ci/woodpecker',
     },
+    /* traefik-logrotate */
+    {
+      matchPackageNames: ['/.*\\/traefik-logrotate$/'],
+      sourceUrl: 'https://github.com/vegardit/docker-traefik-logrotate',
+    },
   ],
 
   customManagers: [
