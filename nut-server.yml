@@ -1,0 +1,82 @@
+---
+
+- hosts: nut
+
+  vars:
+    application: nut
+
+  handlers:
+    - name: Reboot
+      ansible.builtin.reboot:
+        reboot_timeout: 360
+
+    - name: Restart nut
+      ansible.builtin.service:
+        name: nut.target
+        state: restarted
+
+  tasks:
+    - name: Install nut
+      ansible.builtin.apt:
+        name: nut
+        state: present
+        update_cache: true
+        cache_valid_time: 86400
+      notify: Reboot
+
+    - name: Configure nut
+      ansible.builtin.template:
+        src: "{{ item }}"
+        dest: "/etc/nut/{{ item | ansible.builtin.basename | ansible.builtin.regex_replace('\\.j2$', '') }}"
+        owner: root
+        group: nut
+        mode: "0655"
+      with_fileglob:
+        - "{{ files_directory }}/*"
+      notify: Restart nut
+
+    - name: Install msmtp
+      ansible.builtin.apt:
+        name:
+          - msmtp
+          - msmtp-mta
+        state: present
+        update_cache: true
+        cache_valid_time: 86400
+
+    - name: Configure msmtp
+      ansible.builtin.copy:
+        dest: /etc/msmtprc
+        owner: root
+        group: msmtp
+        mode: "0660"
+        content: |
+          defaults
+          auth            on
+          tls             on
+          tls_trust_file  /etc/ssl/certs/ca-certificates.crt
+          logfile         /var/log/msmtp
+
+          account         default
+          host            {{ common_email_server }}
+          port            {{ common_email_port }}
+          tls             on
+          from            {{ common_email_username }}
+          user            {{ common_email_username }}
+          password        {{ common_email_password }}
+
+    - name: Create msmtp log file
+      ansible.builtin.file:
+        path: /var/log/msmtp
+        state: touch
+        owner: root
+        group: msmtp
+        mode: "0660"
+        modification_time: preserve
+        access_time: preserve
+
+    - name: Add nut user to msmtp group
+      ansible.builtin.user:
+        name: nut
+        groups: msmtp
+        append: true

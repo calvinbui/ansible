@@ -1,0 +1,43 @@
+---
+
+- hosts:
+    - homeserver
+    - nvr
+
+  handlers:
+    - name: Restart nut
+      ansible.builtin.service:
+        name: nut-monitor
+        state: restarted
+        enabled: true
+
+  tasks:
+    - name: Install nut client
+      ansible.builtin.apt:
+        name: nut-client
+        state: present
+        update_cache: true
+        cache_valid_time: 86400
+
+    - name: Configure nut
+      notify: Restart nut
+      block:
+        - name: Set nut mode
+          ansible.builtin.lineinfile:
+            path: "/etc/nut/{{ item.file }}.conf"
+            regex: "{{ item.regex }}"
+            line: "{{ item.line }}"
+          loop:
+            - file: nut
+              regex: "^MODE="
+              line: "MODE={{ nut_mode }}"
+
+        - name: Configure nut
+          ansible.builtin.blockinfile:
+            path: "/etc/nut/{{ item.file }}.conf"
+            marker: "# {mark} ANSIBLE MANAGED BLOCK {{ item.name }}"
+            block: "{{ item.block }}"
+          loop:
+            - file: upsmon
+              name: monitors
+              block: "{{ nut_ups_monitors | ansible.builtin.string }}"

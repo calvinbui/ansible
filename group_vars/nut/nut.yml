@@ -1,0 +1,20 @@
+---
+
+nut_host: localhost
+
+nut_mode: netserver
+
+nut_user_mode: master
+
+nut_ups_devices:
+  - name: cyberpower
+    usb_vendor_id: "0764"
+    usb_product_id: "0601"
+    config: |
+      driver = usbhid-ups
+      port = auto
+      pollinterval = 5
+      offdelay = 120
+
+nut_ups_listen: |
+  LISTEN 0.0.0.0 3493
