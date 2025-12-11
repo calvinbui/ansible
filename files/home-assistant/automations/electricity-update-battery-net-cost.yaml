@@ -1,0 +1,22 @@
+---
+
+# Updates the net cost of the battery each night.
+# Takes the input_number value and adds yesterday's savings
+- id: electricity_update_battery_net_cost
+  alias: Electricity - Update Battery Net Cost
+  description: ""
+  triggers:
+    - platform: time
+      at: "00:05:00"
+  actions:
+    - action: input_number.set_value
+      data:
+        value: |
+          {{
+            states('input_number.battery_net_cost')|float(0)
+            +
+            states('sensor.battery_savings_yesterday_total')|float(0)
+          }}
+      target:
+        entity_id: input_number.battery_net_cost
+  mode: single

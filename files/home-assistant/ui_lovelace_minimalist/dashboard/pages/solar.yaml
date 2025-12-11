@@ -6,13 +6,12 @@ icon: mdi:solar-power-variant
 
 type: custom:grid-layout
 layout:
-  grid-template-columns: "70% 1fr"
-  grid-template-rows: "repeat(3, 270px)"
+  grid-template-columns: 70% 1fr
+  grid-template-rows: auto auto auto
   grid-template-areas: |
     "graph flow"
-    ".     data"
-    ".     prevnext"
-
+    "graph data"
+    "graph prevnext"
   mediaquery:
     "(max-width: 800px)":
       grid-template-columns: 100%
@@ -46,7 +45,8 @@ cards:
           consumption: sensor.grid_power_consumption
           production: sensor.grid_power_export
         color_icon: true
-        display_state: two_way
+        display_state: one_way
+        display_zero_tolerance: 50
         color_circle: true
         color:
           production: '#18cf87'
@@ -55,10 +55,15 @@ cards:
         entity: sensor.total_solar_generation
         color_icon: true
         color_value: true
+      battery:
+        entity: sensor.solplanet_al010k5sq2590170_power
+        state_of_charge: sensor.solplanet_battery_al010k5sq2590170_battery_state_of_charge
+        color_icon: true
+        display_state: one_way
 
   -
     view_layout:
-      grid_area: graph
+      grid-area: graph
     type: 'custom:config-template-card'
     entities:
       - sensor.home_sun_rising
@@ -114,7 +119,7 @@ cards:
 
       cache: true
 
-      stacked: false
+      stacked: true
 
       header:
         show: true
@@ -132,8 +137,13 @@ cards:
           apex_config:
             tickAmount: 5
         -
-          id: header_only
-          show: false
+          id: percent
+          min: 0
+          max: 100
+          decimals: 0
+          opposite: true
+          apex_config:
+            tickAmount: 5
 
       apex_config:
         chart:
@@ -144,8 +154,8 @@ cards:
           toolbar:
             show: true
             tools:
-              reset: false
-              pan: false
+              reset: true
+              pan: true
               download: false
               selection: false
               zoom: false
@@ -166,7 +176,7 @@ cards:
             opacityFrom: 0.7
             opacityTo: 0.7
         grid:
-          show: true
+          show: false
         annotations:
           xaxis:
             -
@@ -189,50 +199,61 @@ cards:
       locale: en
 
       all_series_config:
-        stroke_width: 2
+        type: area
+        stroke_width: 3
         curve: smooth
-        opacity: 1
+        opacity: 2
         unit: kWh
+        fill_raw: last
+        extend_to: now
+        show:
+          legend_value: true
+          in_header: false
+          in_chart: true
       series:
         -
-          entity: sensor.electricity_costs_currently
-          yaxis_id: header_only
-          name: Current Cost ($/hr)
-          unit: " "
-          float_precision: 2
-          show:
-            legend_value: true
-            in_header: true
-            in_chart: false
-        -
-          name: Solar
-          entity: sensor.total_solar_generation
+          name: Grid Consumption
+          entity: sensor.grid_power_consumption
           yaxis_id: kWh
-          color: '#18cf87' # green
+          color: '#f76354' # red
           transform: return x / 1000;
-          type: area
-          show:
-            legend_value: true
-            in_header: false
-            in_chart: true
           float_precision: 3
-          extend_to: now
           group_by:
             func: avg
             duration: 5m
         -
-          name: Grid Consumption
-          entity: sensor.home_power_consumption
+          name: Solar Usage
+          entity: sensor.solar_direct_home_consumption
           yaxis_id: kWh
-          color: '#f76354' # red
           transform: return x / 1000;
-          type: area
-          show:
-            legend_value: true
-            in_header: false
-            in_chart: true
-          float_precision: 3
-          extend_to: now
+          color: '#ff9800'
+          group_by:
+            func: avg
+            duration: 5m
+        -
+          name: Solar Export
+          entity: sensor.grid_power_export
+          yaxis_id: kWh
+          transform: return x / 1000;
+          color: '#18cf87'
+          group_by:
+            func: avg
+            duration: 5m
+        -
+          name: Battery Usage
+          entity: sensor.battery_discharging_power
+          yaxis_id: kWh
+          transform: return x / 1000;
+          color: '#4db6ac'
+          group_by:
+            func: avg
+            duration: 5m
+        -
+          name: Solar Battery Charging
+          entity: sensor.solar_battery_charging
+          yaxis_id: kWh
+          transform: return x / 1000;
+          color: '#f06292'
           group_by:
             func: avg
             duration: 5m
@@ -241,39 +262,30 @@ cards:
           entity: sensor.solcast_pv_forecast_forecast_today
           yaxis_id: kWh
           type: line
-          show:
-            legend_value: true
-            in_header: false
-            in_chart: true
-          color: '#3798fe' # blue
+          color: '#3798fe'
           curve: stepline
+          extend_to: end
           data_generator: |
             return entity.attributes.detailedForecast.map((entry) => {
               var date_period = new Date(entry.period_start);
               return [date_period, Math.min(entry.pv_estimate, 10)];
             });
+        -
+          name: Battery Charge
+          entity: sensor.solplanet_battery_al010k5sq2590170_battery_state_of_charge
+          yaxis_id: percent
+          type: line
+          stroke_width: 5
+          color: '#ffa500'
+          unit: '%'
+          show:
+            extremas: true
 
   -
     view_layout:
       grid-area: data
     type: entities
     entities:
-      -
-        type: custom:multiple-entity-row
-        entity: sensor.tou_period
-        name: Current Period
-      -
-        type: custom:multiple-entity-row
-        entity: sensor.electricity_costs_average_per_day
-        name: Cost Per Day ($)
-        icon: mdi:currency-usd
-        unit: USD
-      -
-        type: custom:multiple-entity-row
-        entity: sensor.electricity_costs_bill_forecast
-        name: Forecasted Bill ($)
-        icon: mdi:chart-line
-        unit: USD
       -
         type: custom:multiple-entity-row
         entity: input_number.solar_net_cost
@@ -283,8 +295,17 @@ cards:
       -
         type: custom:multiple-entity-row
         entity: sensor.solar_breakeven_date
-        name: Breakeven Date
-
+        name: Solar Breakeven Date
+      -
+        type: custom:multiple-entity-row
+        entity: input_number.battery_net_cost
+        name: Battery Net Cost ($)
+        unit: false
+        format: precision2
+      -
+        type: custom:multiple-entity-row
+        entity: sensor.battery_breakeven_date
+        name: Battery Breakeven Date
   -
     view_layout:
       grid-area: prevnext

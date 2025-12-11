@@ -1,7 +1,6 @@
 ---
 
 # Updates the net cost of the solar system each night.
-# This is to stop it updating constantly and wasting CPU
 # Takes the input_number value and minuses the difference between the yesterdays electricity costs (usage minus feed-in+self-consumption) and the alternative plan
 - id: electricity_update_solar_net_cost
   alias: Electricity - Update Solar Net Cost
