@@ -91,7 +91,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/jacobalberty/unifi-docker:v9.5.21
+        image: ghcr.io/jacobalberty/unifi-docker:v10.0.162
         ip: "{{ container_network.subnet | ansible.utils.nthhost(31) }}"
         env:
           SYSTEM_IP: "{{ container_network.subnet | ansible.utils.nthhost(31) }}"
