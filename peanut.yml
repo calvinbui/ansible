@@ -26,7 +26,7 @@
       ansible.builtin.include_role:
         name: influxdb
       vars:
-        influxdb_version: 2.7.12
+        influxdb_version: 2.8.0
         influxdb_password: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           33353633316665643762656335666561353834653838366337346166343834346433383462386136
