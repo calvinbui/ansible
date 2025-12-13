@@ -380,6 +380,11 @@
       matchPackageNames: ['/.*\\/traefik-logrotate$/'],
       sourceUrl: 'https://github.com/vegardit/docker-traefik-logrotate',
     },
+    /* plex-auto-languages */
+    {
+      matchPackageNames: ['/.*\\/plex-auto-languages$/'],
+      sourceUrl: 'https://github.com/JourneyDocker/Plex-Auto-Languages',
+    },
   ],
 
   customManagers: [

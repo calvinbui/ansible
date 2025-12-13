@@ -58,7 +58,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-mercure"
-        image: docker.io/dunglas/mercure:v0.21.2
+        image: docker.io/dunglas/mercure:v0.21.4
         env:
           SERVER_NAME: ":80"
           MERCURE_PUBLISHER_JWT_KEY: "{{ shlink_mercure_jwt }}"
@@ -124,7 +124,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-web"
-        image: ghcr.io/shlinkio/shlink-web-client:4.6.1
+        image: ghcr.io/shlinkio/shlink-web-client:4.6.2
         env:
           SHLINK_SERVER_URL: "https://{{ shlink_domain }}"
           SHLINK_SERVER_API_KEY: "{{ shlink_api_key }}"
