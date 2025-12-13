@@ -274,22 +274,6 @@ cards:
     entities:
       -
         type: custom:multiple-entity-row
-        entity: sensor.tou_period
-        name: Current Period
-      -
-        type: custom:multiple-entity-row
-        entity: sensor.electricity_costs_average_per_day
-        name: Cost Per Day ($)
-        icon: mdi:currency-usd
-        unit: USD
-      -
-        type: custom:multiple-entity-row
-        entity: sensor.electricity_costs_bill_forecast
-        name: Forecasted Bill ($)
-        icon: mdi:chart-line
-        unit: USD
-      -
-        type: custom:multiple-entity-row
         entity: input_number.solar_net_cost
         name: Solar Net Cost ($)
         unit: false
@@ -297,8 +281,17 @@ cards:
       -
         type: custom:multiple-entity-row
         entity: sensor.solar_breakeven_date
-        name: Breakeven Date
-
+        name: Solar Breakeven Date
+      -
+        type: custom:multiple-entity-row
+        entity: input_number.battery_net_cost
+        name: Battery Net Cost ($)
+        unit: false
+        format: precision2
+      -
+        type: custom:multiple-entity-row
+        entity: sensor.battery_breakeven_date
+        name: Battery Breakeven Date
   -
     view_layout:
       grid-area: prevnext
