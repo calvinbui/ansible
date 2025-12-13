@@ -692,4 +692,179 @@
       {% set nice_remaining_days = today_at() + timedelta(days=days) %}
       {{ nice_remaining_days.strftime('%d %b %Y') }}
 
+  # Battery Usage TODAY
+  # Add off-peak and peak periods together.
+  -
+    name: Battery Discharge Today
+    state_class: total_increasing
+    unit_of_measurement: kWh
+    device_class: energy
+    state: >
+      {{
+        states('sensor.battery_discharge_self_consumption_daily_offpeak') | float(0) +
+        states('sensor.battery_discharge_self_consumption_daily_peak') | float(0)
+      }}
+
+  # Battery Usage YESTERDAY
+  -
+    name: Battery Discharge Yesterday
+    state_class: total_increasing
+    unit_of_measurement: kWh
+    device_class: energy
+    state: >
+      {{
+        state_attr('sensor.battery_discharge_self_consumption_daily_offpeak', 'last_period') | float(0) +
+        state_attr('sensor.battery_discharge_self_consumption_daily_peak', 'last_period') | float(0)
+      }}
+
+  # Battery Usage MONTHLY
+  -
+    name: Battery Discharge Month
+    state_class: total_increasing
+    unit_of_measurement: kWh
+    device_class: energy
+    state: >
+      {{
+        states('sensor.battery_discharge_self_consumption_monthly_offpeak') | float(0) +
+        states('sensor.battery_discharge_self_consumption_monthly_peak') | float(0)
+      }}
+
+  # Battery savings TODAY
+  # Savings = discharge × (import_rate - feed_in_rate)
+  # Calculated per TOU period
+  -
+    name: Battery Savings Today - Peak
+    device_class: monetary
+    state_class: total
+    unit_of_measurement: AUD
+    state: >
+      {{
+        states('sensor.battery_discharge_self_consumption_daily_peak') | float(0) *
+        (states('sensor.electricity_peak_cost') | float(0) - states('sensor.solar_feed_in') | float(0))
+      }}
+  -
+    name: Battery Savings Today - Offpeak
+    device_class: monetary
+    state_class: total
+    unit_of_measurement: AUD
+    state: >
+      {{
+        states('sensor.battery_discharge_self_consumption_daily_offpeak') | float(0) *
+        (states('sensor.electricity_offpeak_cost') | float(0) - states('sensor.solar_feed_in') | float(0))
+      }}
+  -
+    name: Battery Savings Today - Total
+    device_class: monetary
+    state_class: total
+    unit_of_measurement: AUD
+    state: >
+      {{
+        states('sensor.battery_savings_today_peak') | float(0) +
+        states('sensor.battery_savings_today_offpeak') | float(0)
+      }}
+
+  # Battery savings YESTERDAY
+  -
+    name: Battery Savings Yesterday - Peak
+    device_class: monetary
+    state_class: total
+    unit_of_measurement: AUD
+    state: >
+      {{
+        state_attr('sensor.battery_discharge_self_consumption_daily_peak', 'last_period') | float(0) *
+        (states('sensor.electricity_peak_cost') | float(0) - states('sensor.solar_feed_in') | float(0))
+      }}
+  -
+    name: Battery Savings Yesterday - Offpeak
+    device_class: monetary
+    state_class: total
+    unit_of_measurement: AUD
+    state: >
+      {{
+        state_attr('sensor.battery_discharge_self_consumption_daily_offpeak', 'last_period') | float(0) *
+        (states('sensor.electricity_offpeak_cost') | float(0) - states('sensor.solar_feed_in') | float(0))
+      }}
+  -
+    name: Battery Savings Yesterday - Total
+    device_class: monetary
+    state_class: total
+    unit_of_measurement: AUD
+    state: >
+      {{
+        states('sensor.battery_savings_yesterday_peak') | float(0) +
+        states('sensor.battery_savings_yesterday_offpeak') | float(0)
+      }}
+
+  # Battery savings MONTHLY
+  -
+    name: Battery Savings Month - Peak
+    device_class: monetary
+    state_class: total
+    unit_of_measurement: AUD
+    state: >
+      {{
+        states('sensor.battery_discharge_self_consumption_monthly_peak') | float(0) *
+        (states('sensor.electricity_peak_cost') | float(0) - states('sensor.solar_feed_in') | float(0))
+      }}
+  -
+    name: Battery Savings Month - Offpeak
+    device_class: monetary
+    state_class: total
+    unit_of_measurement: AUD
+    state: >
+      {{
+        states('sensor.battery_discharge_self_consumption_monthly_offpeak') | float(0) *
+        (states('sensor.electricity_offpeak_cost') | float(0) - states('sensor.solar_feed_in') | float(0))
+      }}
+  -
+    name: Battery Savings Month - Total
+    device_class: monetary
+    state_class: total
+    unit_of_measurement: AUD
+    state: >
+      {{
+        states('sensor.battery_savings_month_peak') | float(0) +
+        states('sensor.battery_savings_month_offpeak') | float(0)
+      }}
+
+  # Battery Initial Cost
+  -
+    name: Battery Initial Cost
+    unit_of_measurement: AUD
+    state: "6000"
+    state_class: total
+    device_class: monetary
+
+  # Time until battery breakeven
+  -
+    name: Battery Days Until Breakeven
+    state_class: total
+    state: >
+      {% set battery_days = (as_timestamp(today_at()) - as_timestamp(states('input_datetime.battery_installation_date'))) / 86400 %}
+      {% set paid_off = (states('sensor.battery_initial_cost')|float(0) - (states('input_number.battery_net_cost')|float(0) * -1)) %}
+      {% set average = paid_off / battery_days %}
+      {% set remaining_days = (states('input_number.battery_net_cost')|float(0) * -1) / average %}
+      {{ remaining_days }}
+  -
+    name: Battery Breakeven Date
+    state: >
+      {% set days = states('sensor.battery_days_until_breakeven') | float(0) %}
+      {% set nice_remaining_days = today_at() + timedelta(days=days) %}
+      {{ nice_remaining_days.strftime('%d %b %Y') }}
+
+  # How much we are saving per day on average with the battery
+  -
+    name: Battery Savings Average Per Day
+    state_class: total
+    unit_of_measurement: AUD
+    device_class: monetary
+    state: >
+      {% set battery_days = (as_timestamp(today_at()) - as_timestamp(states('input_datetime.battery_installation_date'))) / 86400 %}
+      {% if battery_days > 0 %}
+        {% set paid_off = (states('sensor.battery_initial_cost')|float(0) - (states('input_number.battery_net_cost')|float(0) * -1)) %}
+        {{ (paid_off / battery_days) | round(2) }}
+      {% else %}
+        {{ 0.00 }}
+      {% endif %}
+
 {%- endraw %}

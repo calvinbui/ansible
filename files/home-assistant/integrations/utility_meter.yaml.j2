@@ -71,3 +71,27 @@ solar_self_consumption_monthly:
   tariffs:
     - offpeak
     - peak
+
+#
+# BATTERY DISCHARGE SELF CONSUMPTION
+#
+
+## Daily
+battery_discharge_self_consumption_daily:
+  unique_id: utility_meter_daily_battery_discharge_self_consumption
+  source: sensor.battery_discharge_self_consumption_kwh
+  name: Battery Meter - Daily Discharge Self-Consumption
+  cycle: daily
+  tariffs:
+    - offpeak
+    - peak
+
+## Monthly
+battery_discharge_self_consumption_monthly:
+  unique_id: utility_meter_monthly_battery_discharge_self_consumption
+  source: sensor.battery_discharge_self_consumption_kwh
+  name: Battery Meter - Monthly Discharge Self-Consumption
+  cycle: monthly
+  tariffs:
+    - offpeak
+    - peak
