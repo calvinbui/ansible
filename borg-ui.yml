@@ -1,0 +1,40 @@
+---
+
+- hosts: homeserver
+
+  vars:
+    application: borg-ui
+
+    container_network: "{{ networks.pub }}"
+
+  tasks:
+    - name: Create config folder
+      ansible.builtin.file:
+        path: "{{ config_directory }}/{{ item }}"
+        state: directory
+        owner: "{{ common_user }}"
+        group: "{{ common_group }}"
+        mode: "0711"
+      loop:
+        - data
+        - cache
+
+    - name: Create container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        image: docker.io/ainullcode/borg-ui:1.35.0
+        env:
+          TZ: "{{ common_timezone }}"
+          PUID: "{{ common_user_id }}"
+          PGID: "{{ common_group_id }}"
+        volumes:
+          - "{{ config_directory }}/data:/data"
+          - "{{ config_directory }}/cache:/home/borg/.cache/borg"
+        traefik:
+          - port: 8081
+        homepage:
+          name: Borg UI
+          group: Backups
+          weight: 250
+          description: Web interface for Borg Backup
