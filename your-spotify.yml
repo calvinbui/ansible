@@ -1,0 +1,75 @@
+---
+
+- hosts: homeserver
+
+  vars:
+    application: your-spotify
+
+    container_network: "{{ networks.pub }}"
+
+  tasks:
+    - name: Create config folder
+      ansible.builtin.file:
+        path: "{{ config_directory }}"
+        state: directory
+        owner: "{{ common_user }}"
+        group: "{{ common_group }}"
+        mode: "0771"
+
+    - name: Create mongodb container
+      ansible.builtin.include_role:
+        name: mongodb
+      vars:
+        mongo_version: 8.2.2
+        mongo_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          66356362636162323163303031383234646661383734323533346634663231326665306331633038
+          3433313364653962613264356634333636663265323536640a353132313134373933646334356361
+          36626364323962666235373934363832306664366637363138613864626465353134346337363839
+          3761336233393735340a323734373730313634396266363364626539313863343837363762333666
+          34303339343931653662383333353938626261333939666632613066393034396534633738346331
+          3237633465393061336136346236666331336637353835363130
+        mongo_command: --logpath /dev/null --quiet
+
+    - name: Create server container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        container_name: "{{ application }}-server"
+        image: ghcr.io/yooooomi/your_spotify_server:1.15.0
+        env:
+          API_ENDPOINT: "https://{{ application }}-server.{{ common_tld }}"
+
+          CLIENT_ENDPOINT: "https://{{ application }}.{{ common_tld }}"
+
+          SPOTIFY_PUBLIC: 44ea23bb33924ca9b0fca86ceed346a9
+          SPOTIFY_SECRET: !vault |
+            $ANSIBLE_VAULT;1.1;AES256
+            37373238336465656561393430663339313330323036643265303933653564383430363864396563
+            6332623032663366366665333138336364663164363235380a386636626462386434316238643239
+            66613830373036353730613238323138313832633630383833636231343636656666396135666635
+            3865373630653733360a623633313265316563396338326266323538303636653361353463333939
+            38393633376233633464393162633762326130353532656438623438356566343463323732376363
+            3364353834666537316633333133636461363764366639326536
+
+          MONGO_ENDPOINT: "{{ _mongo_url }}"
+        traefik:
+          - port: 8080
+            rule: Host(`{{ application }}-server.{{ common_tld }}`)
+
+    - name: Create client container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        container_name: "{{ application }}-client"
+        image: ghcr.io/yooooomi/your_spotify_client:1.15.0
+        env:
+          API_ENDPOINT: "https://{{ application }}-server.{{ common_tld }}"
+        traefik:
+          - port: 3000
+            rule: Host(`{{ application }}.{{ common_tld }}`)
+        homepage:
+          name: Your Spotify
+          group: Media
+          weight: 560
+          description: "Spotify tracking dashboard"
