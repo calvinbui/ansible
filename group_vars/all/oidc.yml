@@ -243,7 +243,7 @@ oidc_auth:
 
   stirlingpdf:
     redirect_uris:
-      - "https://stirlingpdf.{{ common_tld }}/login/oauth2/code/oidc"
+      - "https://stirlingpdf.{{ common_tld }}/login/oauth2/code/{{ oidc_provider | ansible.builtin.title }}"
     secret: !vault |
       $ANSIBLE_VAULT;1.1;AES256
       39316137306631643361373730653361633561653234343666353561386265303832336638613838
