@@ -104,13 +104,19 @@ services:
             61396363333533663366623630323838396137613132656631396633333932316237363464383366
             3261
           fields: '["wanUpload", "wanDownload"]'
-
+      -
+        name: EnGenius ECS5512FP
+        icon: /icons/engenius.png
+        description: 10G Network switch
+        url: http://engenius.{{ common_local_tld }}
+        weight: 20
+        monitor: true
       -
         name: Juniper EX3300-48P
         icon: /icons/juniper.png
         description: Network switch
         url: http://juniper.{{ common_local_tld }}
-        weight: 20
+        weight: 21
         monitor: true
 
   - group: Remote Access
