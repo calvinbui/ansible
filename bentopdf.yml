@@ -1,0 +1,22 @@
+---
+
+- hosts: homeserver
+
+  vars:
+    application: bentopdf
+
+    container_network: "{{ networks.pub }}"
+
+  tasks:
+    - name: Create container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        image: ghcr.io/alam00000/bentopdf-simple:1.11.2
+        traefik:
+          - port: 8080
+        homepage:
+          name: BentoPDF
+          group: Documents
+          weight: 599
+          description: Manage PDF files
