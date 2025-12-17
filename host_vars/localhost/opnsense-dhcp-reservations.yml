@@ -53,22 +53,22 @@ opnsense_dhcp_reservations:
   -
     ip: "{{ networks.mgmt.subnet | ansible.utils.nthhost(25) }}"
     subnet: "{{ networks.mgmt.subnet | ansible.utils.ipaddr('subnet') }}"
-    mac: e8:48:b8:9b:64:1a
+    mac: 84:78:48:14:6f:98
     hostname: wifi-downstairs-common
   -
     ip: "{{ networks.mgmt.subnet | ansible.utils.nthhost(26) }}"
     subnet: "{{ networks.mgmt.subnet | ansible.utils.ipaddr('subnet') }}"
-    mac: e8:48:b8:9b:64:20
+    mac: 84:78:48:16:5e:a0
     hostname: wifi-front-bedrooms
   -
     ip: "{{ networks.mgmt.subnet | ansible.utils.nthhost(27) }}"
     subnet: "{{ networks.mgmt.subnet | ansible.utils.ipaddr('subnet') }}"
-    mac: e8:48:b8:9b:64:12
+    mac: 84:78:48:14:41:04
     hostname: wifi-rear-bedrooms
   -
     ip: "{{ networks.mgmt.subnet | ansible.utils.nthhost(28) }}"
     subnet: "{{ networks.mgmt.subnet | ansible.utils.ipaddr('subnet') }}"
-    mac: 10:27:f5:66:ae:2a
+    mac: 84:78:48:16:54:8c
     hostname: wifi-foyer
 
   #  _   _ ___  ___ _ __
