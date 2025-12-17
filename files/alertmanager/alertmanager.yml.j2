@@ -1,9 +1,6 @@
 #jinja2: lstrip_blocks: True, trim_blocks: False
 ---
 
-global:
-  slack_api_url: {{ alertmanager_slack_url }}
-
 inhibit_rules:
   - source_matchers:
       - alertname = "BlackboxInternetConnectivity"
@@ -15,17 +12,25 @@ templates:
 
 receivers:
   - name: mattermost-home-lab-alerts
-    slack_configs:
-      - &commonMattermostConfig
-        channel: '#home-lab-alerts'
-        send_resolved: true
-        {%- raw %}
-        title: |-
-          {{ with index .Alerts 0 }}{{ if .Annotations.summary }}{{ .Annotations.summary }}{{ end }}{{ end }}
-        text: >-
-          {{ range .Alerts }}
-            {{ .Annotations.description }}
-          {{ end }}
+    mattermost_configs:
+      -
+        webhook_url: {{ alertmanager_mattermost_url }}
+        channel: 'home-lab-alerts'
+        text: '' # disables default
+        attachments:
+          -
+            {%- raw %}
+            color: '{{ if eq .Status "resolved" }}#00FF00{{ else }}#FF0000{{ end }}'
+            title: |-
+              {{ with index .Alerts 0 }}{{ if .Annotations.summary }}{{ .Annotations.summary }}{{ end }}{{ end }}
+            title_link: >-
+              {{ with index .Alerts 0 -}}
+                {{ .GeneratorURL }}
+              {{- end }}
+            text: >-
+              {{ range .Alerts }}
+                {{ .Annotations.description }}
+              {{ end }}
         {% endraw %}
 
   - name: "null"

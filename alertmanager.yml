@@ -5,14 +5,14 @@
   vars:
     application: alertmanager
 
-    alertmanager_slack_webhook_id: !vault |
+    alertmanager_mattermost_webhook_id: !vault |
       $ANSIBLE_VAULT;1.1;AES256
       30623531353631653433356263336434373037623036643730356464356263646439326663356232
       6134306334316666613235663930376563366236643966310a303533306436633963356430363435
       36373033346433346539623133663064343532396539386639376361333862613664343765376536
       3135666539623037300a636531653832316165643365303039356565363063333630343033323134
       39633536313162326238386130643032643332363564346632323861643132663161
-    alertmanager_slack_url: https://mattermost.{{ common_tld }}/hooks/{{ alertmanager_slack_webhook_id }}
+    alertmanager_mattermost_url: https://mattermost.{{ common_tld }}/hooks/{{ alertmanager_mattermost_webhook_id }}
 
     container_network: "{{ prometheus_network }}"
 
