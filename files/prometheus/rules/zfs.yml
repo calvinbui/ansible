@@ -75,8 +75,8 @@ groups:
           description: "{{ $value }} DMU transactions are suspended"
       -
         alert: ZFSDMUTxDirtyOverMax
-        expr: node_zfs_dmu_tx_dmu_tx_dirty_over_max > 0
-        for: 15m
+        expr: sum by (instance) (increase(node_zfs_dmu_tx_dmu_tx_dirty_over_max[15m])) > 0
+        for: 0m
         annotations:
           summary: ZFS Dirty Data Over Max
           description: "Dirty data exceeded maximum threshold {{ $value }} times"
