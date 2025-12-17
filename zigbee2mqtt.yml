@@ -108,6 +108,12 @@
               friendly_name: Upstairs Bathroom Power Outlet
             '0xa4c1384886aba4b4':
               friendly_name: Dishwasher Power Outlet
+            '0xa4c1389f1c4747e5':
+              friendly_name: Downstairs Bathroom Power Outlet
+            '0xa4c138f699db6e2b':
+              friendly_name: Large Rear Bedroom Power Outlet
+            '0xa4c13895ebf5b6d2':
+              friendly_name: Small Rear Bedroom Power Outlet
 
             # Sonoff ZBDongle-P
             '0x00124b002a2e833f':
