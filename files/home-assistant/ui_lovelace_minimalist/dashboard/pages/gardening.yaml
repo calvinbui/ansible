@@ -5,18 +5,39 @@ title: Gardening
 path: gardening
 icon: mdi:flower
 
+type: panel
+
 cards:
-  -
-    entity: plant.monstera
-    battery_sensor: sensor.monstera_plant_sensor_battery
-    <<: &gardening_card
-      type: custom:flower-card
-      show_bars: [moisture, conductivity]
-  -
-    entity: plant.chilli
-    battery_sensor: sensor.chilli_plant_sensor_battery
-    <<: *gardening_card
-  -
-    entity: plant.dwarf_jade
-    battery_sensor: sensor.dwarf_jade_plant_sensor_battery
-    <<: *gardening_card
+  - type: grid
+    columns: 3
+    square: false
+    cards:
+      - entity: plant.monstera
+        battery_sensor: sensor.monstera_plant_sensor_battery
+        <<: &gardening_card
+          type: custom:flower-card
+          show_bars:
+            - moisture
+            - conductivity
+            - temperature
+            - illuminance
+
+      - entity: plant.arrowhead
+        battery_sensor: sensor.arrowhead_plant_sensor_battery
+        <<: *gardening_card
+
+      - entity: plant.dwarf_jade
+        battery_sensor: sensor.dwarf_jade_plant_sensor_battery
+        <<: *gardening_card
+
+      - entity: plant.monstera_small
+        battery_sensor: sensor.monstera_small_plant_sensor_battery
+        <<: *gardening_card
+
+      - entity: plant.zanzibar_gem
+        battery_sensor: sensor.zanzibar_gem_plant_sensor_battery
+        <<: *gardening_card
+
+      - entity: plant.mammillaria
+        battery_sensor: sensor.mammillaria_plant_sensor_battery
+        <<: *gardening_card
