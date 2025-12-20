@@ -179,11 +179,11 @@
 
             # Aqara Wireless Mini Switch (WXKG11LM)
             '0x00158d008b4463b8':
-              friendly_name: Garage Switch Bike
+              friendly_name: Changing Table Switch
             '0x00158d000af2c512':
-              friendly_name: Garage Switch Right
+              friendly_name: Bike Switch
             '0x00158d008b3d10f4':
-              friendly_name: Calvin's Study Switch
+              friendly_name: Coffee Machine Switch
 
             # Aqara Door and Window (MCCGQ11LM)
             '0x00158d008afd5a2c':
