@@ -63,7 +63,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-server"
-        image: ghcr.io/immich-app/immich-server:v2.4.0
+        image: ghcr.io/immich-app/immich-server:v2.4.1
         group_add:
           - 992 # 'render'
         env:
@@ -114,7 +114,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-machine-learning"
-        image: ghcr.io/immich-app/immich-machine-learning:v2.4.0-openvino
+        image: ghcr.io/immich-app/immich-machine-learning:v2.4.1-openvino
         group_add:
           - 992 # 'render'
         volumes:
