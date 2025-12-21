@@ -36,7 +36,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-server"
-        image: ghcr.io/yooooomi/your_spotify_server:1.15.0
+        image: ghcr.io/yooooomi/your_spotify_server:1.16.0
         env:
           API_ENDPOINT: "https://{{ application }}-server.{{ common_tld }}"
 
@@ -62,7 +62,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-client"
-        image: ghcr.io/yooooomi/your_spotify_client:1.15.0
+        image: ghcr.io/yooooomi/your_spotify_client:1.16.0
         env:
           API_ENDPOINT: "https://{{ application }}-server.{{ common_tld }}"
         traefik:
