@@ -8,8 +8,8 @@ type: custom:grid-layout
 layout:
   grid-template-columns: 1fr 40% 40% 1fr
   grid-template-areas: |
-    ". controls rooms   ."
-    ". empty temps ."
+    ". controls rooms ."
+    ". controls temps ."
   mediaquery:
     "(max-width: 800px)":
       grid-template-columns: 100%
