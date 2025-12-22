@@ -372,7 +372,7 @@ opnsense_dhcp_reservations:
   -
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(84) }}"
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
-    mac:  cc:ba:97:c3:71:6c
+    mac: cc:ba:97:c3:71:6c
     hostname: shelly-upstairs-hallway
     comment: "1PM Mini Gen4"
   -
@@ -444,7 +444,7 @@ opnsense_dhcp_reservations:
   -
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(96) }}"
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
-    mac:  e4:b3:23:18:1b:a0
+    mac: e4:b3:23:18:1b:a0
     hostname: shelly-calvins-study
     comment: "1PM Mini Gen3"
   -
@@ -456,13 +456,13 @@ opnsense_dhcp_reservations:
   -
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(98) }}"
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
-    mac:  e4:b3:23:23:fe:10
+    mac: e4:b3:23:23:fe:10
     hostname: shelly-alfresco
     comment: "1PM Mini Gen3"
   -
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(99) }}"
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
-    mac:  b0:a7:32:48:7e:cc
+    mac: b0:a7:32:48:7e:cc
     hostname: shelly-kitchen
     comment: "Plus 2PM"
   -
