@@ -333,7 +333,7 @@ cards:
                     target:
                       entity_id: "[[entity_id]]"
             map_source:
-              camera: image.upstairs_s7_map_0_custom
+              camera: image.upstairs_s7_upstairs_custom
               crop:
                 top: 180
                 bottom: 150
