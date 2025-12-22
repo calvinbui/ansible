@@ -202,24 +202,6 @@
       {% endif %}
 
   -
-    # Portion of battery discharge that ends up as grid export
-    name: "Battery Discharge to Grid"
-    unique_id: "battery_discharge_to_grid"
-    unit_of_measurement: "W"
-    device_class: power
-    state_class: measurement
-    state: >
-      {% set bat_dis = states('sensor.solplanet_al010k5sq2590170_power') | float(0) %}
-      {% set bat_dis = (bat_dis if bat_dis > 0 else 0.0) | float(0) %}
-      {% set meter_power = states('sensor.power_meter_active_power') | float(0) %}
-      {% set grid_export = (meter_power if meter_power > 0 else 0.0) | float(0) %}
-      {% if bat_dis > 0 and grid_export > 0 %}
-        {{ [bat_dis, grid_export] | min | float(0) }}
-      {% else %}
-        {{ 0.0 | float(0) }}
-      {% endif %}
-
-  -
     # Portion of grid import that goes into charging the battery
     name: "Battery Charge from Grid"
     unique_id: "battery_charge_from_grid"
