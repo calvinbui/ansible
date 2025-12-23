@@ -390,6 +390,11 @@
       groupName: 'your_spotify',
       matchPackageNames: ['/.*\\/your_spotify_.*$/'],
     },
+    /* prometheus-podman-exporter */
+    {
+      matchPackageNames: ['/.*\\/prometheus-podman-exporter$/'],
+      sourceUrl: 'https://github.com/containers/prometheus-podman-exporter',
+    },
   ],
 
   customManagers: [
