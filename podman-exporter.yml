@@ -12,7 +12,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: quay.io/navidys/prometheus-podman-exporter:v1.19.0
+        image: quay.io/navidys/prometheus-podman-exporter:v1.20.0
         user: root
         command:
           - --collector.enhance-metrics
