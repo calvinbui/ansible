@@ -79,6 +79,10 @@
           TransmitHashPolicy=layer3+4
           LACPTransmitRate=fast
           MIIMonitorSec=100ms
+          AdActorSystemPriority=1
+          AdSelect=stable
+          UpDelaySec=3s
+          GratuitousARP=5
         dest: "/etc/systemd/network/20-{{ network_bond.name }}.netdev"
         mode: "0644"
       notify:
