@@ -115,11 +115,14 @@
       block:
         - name: Create addons folder
           ansible.builtin.file:
-            path: "{{ home_assistant_addons_dir }}"
+            path: "{{ home_assistant_addons_dir }}/{{ item }}"
             state: directory
             owner: "{{ common_root_id }}"
             group: "{{ common_root_group }}"
             mode: "0771"
+          loop:
+            - eufy-security-ws
+            - wyoming-piper
 
         - name: Create python_scripts folder
           tags:
@@ -202,6 +205,16 @@
                 39633232363530663238613331316432346634653661373063396135333937386532
 
               TZ: "{{ common_timezone }}"
+
+        - name: Create wyoming-piper container
+          ansible.builtin.include_role:
+            name: podman_container
+          vars:
+            container_name: wyoming-piper
+            image: docker.io/rhasspy/wyoming-piper:2.1.2
+            command: --voice=en_US-ryan-high
+            volumes:
+              - "{{ home_assistant_addons_dir }}/wyoming-piper:/data"
 
     - name: Configure Automations
       tags:
