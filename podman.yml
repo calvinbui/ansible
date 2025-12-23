@@ -91,6 +91,12 @@
         group: root
         mode: "0644"
 
+    - name: Enable podman-startup service
+      ansible.builtin.systemd_service:
+        name: podman-startup.service
+        enabled: true
+        daemon_reload: true
+
     - name: Create containers.conf
       ansible.builtin.copy:
         content: |
@@ -113,12 +119,6 @@
         group: root
         mode: "0644"
       notify: Restart podman
-
-    - name: Enable podman-startup service
-      ansible.builtin.systemd_service:
-        name: podman-startup.service
-        enabled: true
-        daemon_reload: true
 
     - name: Prune images daily
       ansible.builtin.cron:

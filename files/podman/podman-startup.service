@@ -35,8 +35,12 @@ sleep 5'
 # Phase 3: All remaining containers (batched start)
 ExecStart=-/bin/bash -c '\
 echo "=== Phase 3: Starting remaining containers ==="; \
-podman ps -a --filter "status=exited" --filter "status=created" --format "{{.Names}}" | xargs -n 10 -r podman start; \
-sleep 5; \
+containers=$(podman ps -a --filter "status=exited" --filter "status=created" --format "{{.Names}}"); \
+echo "$containers" | xargs -n 10 | while read -r batch; do \
+  echo "Starting batch $batch"; \
+  podman start $batch; \
+  sleep 5; \
+done; \
 echo "=== All phases complete ==="'
 
 [Install]
