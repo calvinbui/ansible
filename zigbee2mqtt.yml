@@ -257,9 +257,13 @@
 
             # Tuya Wireless switch with 4 buttons (TS0044)
             '0xa4c13821d8deaeea':
-              friendly_name: Living Room TV Switch
+              friendly_name: Master Bedroom Switch
+            '0xa4c13866b674b384':
+              friendly_name: Living Room Switch
             '0xa4c1381044bd5541':
-              friendly_name: Garage Switch Light
+              friendly_name: Garage Light Switch
+            '0xa4c138b1bcf07d49':
+              friendly_name: Car Door Switch
 
         dest: "{{ config_directory }}/configuration.yaml"
         owner: "{{ common_root_id }}"
