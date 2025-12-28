@@ -280,6 +280,11 @@ opnsense_dhcp_reservations:
     mac: d8:8b:4c:04:f4:d3
     hostname: yolink-speaker-hub
   -
+    ip: "{{ networks.iot.subnet | ansible.utils.nthhost(36) }}"
+    subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
+    mac: 28:56:2f:5c:3e:e0
+    hostname: battery-inverter
+  -
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(40) }}"
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
     mac: 00:e0:4c:36:16:7a
