@@ -71,93 +71,101 @@
         description: "cam-11"
         access: "{{ networks.iot.vlan }}"
       -
-        port: "20"
-        description: "testing-0"
+        port: "12"
+        description: "testing-01"
+        access: "{{ networks.mgmt.vlan }}"
+      -
+        port: "13"
+        description: "testing-02"
+        access: "{{ networks.mgmt.vlan }}"
+      -
+        port: "14"
+        description: "testing-03"
+        access: "{{ networks.mgmt.vlan }}"
+      -
+        port: "15"
+        description: "testing-04"
+        access: "{{ networks.mgmt.vlan }}"
+      -
+        port: "16"
+        description: "testing-05"
         access: "{{ networks.user.vlan }}"
+      -
+        port: "17"
+        description: "testing-06"
+        access: "{{ networks.user.vlan }}"
+      -
+        port: "18"
+        description: "testing-07"
+        access: "{{ networks.user.vlan }}"
+      -
+        port: "19"
+        description: "testing-08"
+        access: "{{ networks.user.vlan }}"
+      -
+        port: "20"
+        description: "testing-09"
+        access: "{{ networks.iot.vlan }}"
       -
         port: "21"
-        description: "testing-1"
-        access: "{{ networks.user.vlan }}"
+        description: "testing-10"
+        access: "{{ networks.iot.vlan }}"
       -
         port: "22"
-        description: "testing-2"
-        access: "{{ networks.user.vlan }}"
+        description: "testing-11"
+        access: "{{ networks.iot.vlan }}"
       -
         port: "23"
-        description: "testing-3"
-        access: "{{ networks.user.vlan }}"
+        description: "testing-12"
+        access: "{{ networks.iot.vlan }}"
       -
         port: "24"
-        description: "master-bedroom"
-        access: "{{ networks.iot.vlan }}"
+        description: "testing-13"
+        access: "{{ networks.pub.vlan }}"
       -
         port: "25"
-        description: "calvins-study"
-        access: "{{ networks.user.vlan }}"
+        description: "testing-14"
+        access: "{{ networks.pub.vlan }}"
       -
         port: "26"
-        description: "living-room"
-        access: "{{ networks.iot.vlan }}"
+        description: "testing-15"
+        access: "{{ networks.pub.vlan }}"
       -
         port: "27"
-        description: "reserved-1"
-        access: "{{ networks.user.vlan }}"
+        description: "testing-16"
+        access: "{{ networks.pub.vlan }}"
       -
         port: "28"
-        description: "reserved-2"
-        access: "{{ networks.user.vlan }}"
+        description: "testing-17"
+        access: "{{ networks.guest.vlan }}"
       -
         port: "29"
-        description: "reserved-3"
-        access: "{{ networks.user.vlan }}"
+        description: "testing-18"
+        access: "{{ networks.guest.vlan }}"
       -
         port: "30"
-        description: "doorbell"
-        access: "{{ networks.iot.vlan }}"
+        description: "testing-19"
+        access: "{{ networks.guest.vlan }}"
       -
         port: "31"
+        description: "testing-20"
+        access: "{{ networks.guest.vlan }}"
+      -
+        port: "40"
         description: "linktap-gateway-1"
         access: "{{ networks.iot.vlan }}"
       -
-        port: "40"
-        description: "wifi-01"
-        access: "{{ networks.mgmt.vlan }}"
-        trunk:
-          - "{{ networks.user.name }}"
-          - "{{ networks.iot.name }}"
-          - "{{ networks.guest.name }}"
-        duplex: "full-duplex"
-        speed: "1g"
-      -
         port: "41"
-        description: "wifi-02"
-        access: "{{ networks.mgmt.vlan }}"
-        trunk:
-          - "{{ networks.user.name }}"
-          - "{{ networks.iot.name }}"
-          - "{{ networks.guest.name }}"
-        duplex: "full-duplex"
-        speed: "1g"
+        description: "doorbell"
+        access: "{{ networks.iot.vlan }}"
       -
         port: "42"
-        description: "wifi-03"
-        access: "{{ networks.mgmt.vlan }}"
-        trunk:
-          - "{{ networks.user.name }}"
-          - "{{ networks.iot.name }}"
-          - "{{ networks.guest.name }}"
-        duplex: "full-duplex"
-        speed: "1g"
+        description: "living-room"
+        access: "{{ networks.iot.vlan }}"
       -
         port: "43"
-        description: "wifi-04"
-        access: "{{ networks.mgmt.vlan }}"
-        trunk:
-          - "{{ networks.user.name }}"
-          - "{{ networks.iot.name }}"
-          - "{{ networks.guest.name }}"
-        duplex: "full-duplex"
-        speed: "1g"
+        description: "master-bedroom"
+        access: "{{ networks.iot.vlan }}"
       -
         port: "44"
         description: "octopi"
@@ -203,7 +211,7 @@
         domain_search:
           - "{{ common_local_tld }}"
         name_servers:
-          - "{{ networks.mgmt.subnet | ansible.utils.ipaddr('addressname }}"
+          - "{{ networks.mgmt.subnet | ansible.utils.ipaddr('address') }}"
 
     - name: Configure Layer 3 interfaces
       junipernetworks.junos.junos_l3_interfaces:
