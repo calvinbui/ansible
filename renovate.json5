@@ -157,7 +157,7 @@
     },
     /* psitransfer */
     {
-      matchPackageNames: ['/psitrax\\/psitransfer$/'],
+      matchPackageNames: ['/.*\\/psitransfer$/'],
       sourceUrl: 'https://github.com/psi-4ward/psitransfer',
     },
     /* node_exporter */
