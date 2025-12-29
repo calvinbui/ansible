@@ -18,7 +18,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/druggeri/nut_exporter:3.2.2
+        image: ghcr.io/druggeri/nut_exporter:3.2.3
         env:
           NUT_EXPORTER_SERVER: "{{ nut_host }}"
           NUT_EXPORTER_USERNAME: "{{ nut_user['slave'].name }}"
