@@ -23,12 +23,12 @@
 
 - name: Create OPNsense DHCP reservation for MAC address
   oxlorg.opnsense.dnsmasq_host:
-    host: "{{ container_name | default(application) }}"
+    host: "{{ container_name | ansible.builtin.default(application) }}"
     local: true
     ip:
       - "{{ network_entry.ip }}"
     hardware_addr: "{{ network_entry.mac }}"
-    description: "{{ network_entry.description | default(container_name) | default(application) }} - Podman"
+    description: "{{ network_entry.description | ansible.builtin.default(container_name) | ansible.builtin.default(application) }} - Podman"
     reload: true
   module_defaults:
     group/oxlorg.opnsense.all: "{{ oxlorg_opnsense_module_defaults }}"
@@ -44,7 +44,7 @@
 - name: Create OPNsense alias for container IP
   oxlorg.opnsense.alias:
     name: "{{ container_name | default(application) | ansible.builtin.replace('-', '_') }}"
-    content: "{{ networks_enriched | selectattr('ip','defined') | map(attribute='ip') | list }}"
+    content: "{{ networks_enriched | ansible.builtin.selectattr('ip','defined') | ansible.builtin.map(attribute='ip') | ansible.builtin.list }}"
     type: host
     description: "Created by Ansible for Podman"
     reload: true
@@ -52,7 +52,7 @@
     group/oxlorg.opnsense.all: "{{ oxlorg_opnsense_module_defaults }}"
   delegate_to: localhost
   become: false
-  when: (networks_enriched | selectattr('ip','defined') | map(attribute='ip') | list | length) > 0
+  when: (networks_enriched | ansible.builtin.selectattr('ip','defined') | ansible.builtin.map(attribute='ip') | ansible.builtin.list | ansible.builtin.length) > 0
 
 - name: Build Podman network list
   ansible.builtin.set_fact:
