@@ -36,39 +36,39 @@
         access: "{{ networks.iot.vlan }}"
       -
         port: "3"
-        description: "cam-03"
+        description: "battery-inverter-dongle"
         access: "{{ networks.iot.vlan }}"
       -
         port: "4"
-        description: "cam-04"
+        description: "cam-03"
         access: "{{ networks.iot.vlan }}"
       -
         port: "5"
-        description: "cam-05"
+        description: "cam-04"
         access: "{{ networks.iot.vlan }}"
       -
         port: "6"
-        description: "cam-06"
+        description: "cam-05"
         access: "{{ networks.iot.vlan }}"
       -
         port: "7"
-        description: "cam-07"
+        description: "cam-06"
         access: "{{ networks.iot.vlan }}"
       -
         port: "8"
-        description: "cam-08"
+        description: "cam-07"
         access: "{{ networks.iot.vlan }}"
       -
         port: "9"
-        description: "cam-09"
+        description: "cam-08"
         access: "{{ networks.iot.vlan }}"
       -
         port: "10"
-        description: "cam-10"
+        description: "cam-09"
         access: "{{ networks.iot.vlan }}"
       -
         port: "11"
-        description: "cam-11"
+        description: "cam-10"
         access: "{{ networks.iot.vlan }}"
       -
         port: "12"

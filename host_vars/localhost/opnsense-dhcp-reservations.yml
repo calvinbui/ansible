@@ -282,8 +282,15 @@ opnsense_dhcp_reservations:
   -
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(36) }}"
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
+    mac: 28:56:2f:5c:3e:e3
+    hostname: battery-inverter-dongle
+    comment: "Ethernet"
+  -
+    ip: "{{ networks.iot.subnet | ansible.utils.nthhost(37) }}"
+    subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
     mac: 28:56:2f:5c:3e:e0
-    hostname: battery-inverter
+    hostname: battery-inverter-dongle-wifi
+    comment: "WiFi"
   -
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(40) }}"
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
@@ -314,6 +321,11 @@ opnsense_dhcp_reservations:
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
     mac: ac:67:84:3c:4b:f7
     hostname: google-home-tammys-study
+  -
+    ip: "{{ networks.iot.subnet | ansible.utils.nthhost(46) }}"
+    subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
+    mac: ac:67:84:0a:34:f0
+    hostname: google-home-garage
   -
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(51) }}"
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
