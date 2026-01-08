@@ -13,6 +13,7 @@
         name: podman_container
       vars:
         image: docker.io/nicolargo/glances:ubuntu-4.4.1-full
+        pid_mode: host
         env:
           GLANCES_OPT: "-w"
           TZ: "{{ common_timezone }}"
@@ -22,7 +23,8 @@
         traefik:
           - port: 61208
             auth: page
-        pid_mode: host
+        blackbox:
+          path: /api/4/status
         homepage:
           group: Monitoring
           weight: 250
