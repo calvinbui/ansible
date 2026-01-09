@@ -1,5 +1,5 @@
 ansible==13.2.0
-ansible-lint==25.12.2
+ansible-lint==26.1.0
 paramiko==4.0.0
 
 # argon2 stuff for authelia
