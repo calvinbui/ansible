@@ -53,7 +53,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: docker.io/mattermost/mattermost-team-edition:11.2.1
+        image: docker.io/mattermost/mattermost-team-edition:11.3.0
         env:
           TZ: "{{ common_timezone }}"
         volumes:
