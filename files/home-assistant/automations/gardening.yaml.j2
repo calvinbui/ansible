@@ -11,28 +11,6 @@
     - condition: numeric_state
       entity_id: sensor.smart_irrigation_{{ g.name | ansible.builtin.lower | ansible.builtin.replace(" ", "_") }}
       above: 0
-    - condition: not
-      conditions:
-        - condition: state
-          entity_id: sensor.meteorological_season
-          state: winter
-      alias: Not Winter
-    - alias: Season / Day of Week
-      condition: or
-      conditions:
-      {% for k, v in home_assistant_gardening.schedule.items() %}
-        - alias: {{ k | ansible.builtin.title }}
-          condition: and
-          conditions:
-            - condition: state
-              entity_id: sensor.meteorological_season
-              state: {{ k }}
-            - condition: time
-              weekday:
-              {% for s in v %}
-                - {{ s[:3] | ansible.builtin.lower }}
-              {% endfor %}
-      {% endfor %}
   actions:
     - action: linktap.start_watering
       target:

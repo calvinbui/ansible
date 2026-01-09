@@ -52,15 +52,6 @@ home_assistant_integrations:
   plex_token: "{{ plex_token }}"
 
 home_assistant_gardening:
-  schedule:
-    summer:
-      - Monday
-      - Wednesday
-      - Friday
-    spring:
-      - Monday
-    autumn:
-      - Monday
   systems:
     -
       name: Backyard Sprinklers
