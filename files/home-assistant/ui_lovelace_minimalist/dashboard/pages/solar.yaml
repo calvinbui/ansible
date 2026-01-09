@@ -6,12 +6,12 @@ icon: mdi:solar-power-variant
 
 type: custom:grid-layout
 layout:
-  grid-template-columns: 70% 1fr
+  grid-template-columns: 70% 30%
   grid-template-rows: auto auto auto
   grid-template-areas: |
     "graph flow"
     "graph data"
-    "graph prevnext"
+    "prevnext data"
   mediaquery:
     "(max-width: 800px)":
       grid-template-columns: 100%
@@ -283,31 +283,6 @@ cards:
 
   -
     view_layout:
-      grid-area: data
-    type: entities
-    entities:
-      -
-        type: custom:multiple-entity-row
-        entity: input_number.solar_net_cost
-        name: Solar Net Cost ($)
-        unit: false
-        format: precision2
-      -
-        type: custom:multiple-entity-row
-        entity: sensor.solar_breakeven_date
-        name: Solar Breakeven Date
-      -
-        type: custom:multiple-entity-row
-        entity: input_number.battery_net_cost
-        name: Battery Net Cost ($)
-        unit: false
-        format: precision2
-      -
-        type: custom:multiple-entity-row
-        entity: sensor.battery_breakeven_date
-        name: Battery Breakeven Date
-  -
-    view_layout:
       grid-area: prevnext
     type: horizontal-stack
     cards:
@@ -317,7 +292,7 @@ cards:
         name: Previous Day
         styles:
           card:
-            - height: 7em
+            - height: 5em
         tap_action:
           action: call-service
           service: input_number.increment
@@ -329,9 +304,45 @@ cards:
         name: Next Day
         styles:
           card:
-            - height: 7em
+            - height: 5em
         tap_action:
           action: call-service
           service: input_number.decrement
           data:
             entity_id: input_number.solar_graph_offset
+
+  -
+    view_layout:
+      grid-area: data
+    type: entities
+    entities:
+      -
+        type: custom:multiple-entity-row
+        name: Electricity Bill Today ($)
+        entity: sensor.electricity_costs_today_total
+        unit: false
+        format: precision2
+      -
+        type: section
+      -
+        type: custom:multiple-entity-row
+        name: Solar Net Cost ($)
+        entity: input_number.solar_net_cost
+        unit: false
+        format: precision2
+      -
+        type: custom:multiple-entity-row
+        name: Solar Breakeven Date
+        entity: sensor.solar_breakeven_date
+      -
+        type: section
+      -
+        type: custom:multiple-entity-row
+        name: Battery Net Cost ($)
+        entity: input_number.battery_net_cost
+        unit: false
+        format: precision2
+      -
+        type: custom:multiple-entity-row
+        name: Battery Breakeven Date
+        entity: sensor.battery_breakeven_date
