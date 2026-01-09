@@ -7,8 +7,10 @@ source_directories:
   - /mnt/source
 
 repositories:
-  - path: {{ item.repository }}
-    label: {{ item.name }}
+{% for s in borg_servers %}
+  - label: "{{ s.name }}"
+    path: "ssh://{{ s.username }}@{{ s.hostname }}:{{ s.port }}{{ s.path }}/{{ item.name }}"
+{% endfor %}
 
 {% if item.exclude_patterns is defined %}
 exclude_patterns:

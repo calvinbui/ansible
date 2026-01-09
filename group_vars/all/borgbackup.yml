@@ -1,0 +1,95 @@
+---
+
+borg_servers:
+  -
+    name: hetzner
+    protocol: ssh
+    username: !vault |
+      $ANSIBLE_VAULT;1.1;AES256
+      32616138366131376563613936326131313633356637363864643330643833323465633861303662
+      3433656465663963663063333439663261646662396163300a626262643531336132616161653863
+      64653464653365613362323536376231633439616539376539646639393238376565663662386263
+      6630323636313838370a333866343932316633353339333030626164663735663135646634336432
+      6633
+    hostname: !vault |
+      $ANSIBLE_VAULT;1.1;AES256
+      31646363333137636366376434353135643631303832383833313135323439373937393964623438
+      3365343439396137333538376464653361623865663131640a393636353639333833383436326539
+      32316339353334366437656535643839373339336439663134613265653032373333306133343330
+      3237663737373564640a663964623537363039373932653430663062323438316135363534353163
+      38343465383963306239633963386633633366643839356261643136353430613461
+    port: 23
+    path: /./borg
+  -
+    name: borg-01
+    protocol: ssh
+    username: borg
+    hostname: !vault |
+      $ANSIBLE_VAULT;1.1;AES256
+      37386461656437303364663534363061653663326434313864363864313365393666356138356563
+      6433373862356666373834656565313835643332376164320a353437623364383730323161303664
+      33333335666161383762356565306333326235376432313064316239346130613137313935343062
+      3835326566383864370a643833303835353564613766363037623236643862393234623430353333
+      3861
+    port: 26767
+    path: /mnt/borg
+  -
+    name: borg-02
+    protocol: ssh
+    username: borg
+    hostname: !vault |
+      $ANSIBLE_VAULT;1.1;AES256
+      38646635303035353033383932646561326631373532616263613466366462313330323736623437
+      6133653637333366363536353463336266386332323464320a653265313939616638303836643562
+      32646639656361353935386631633230323764303838383763303637613161366562333665376139
+      3238633865313661390a353265386434623639313139363133333838366433386138373364653361
+      3665
+    port: 26767
+    path: /mnt/borg
+
+borgmatic_backups:
+  - name: backups
+    source: "{{ common_directory_backup }}"
+    crontab: "30 1 * * *"
+    exclude_patterns:
+      - "/mnt/source/Time Machine"
+
+  - name: misc
+    source: "{{ common_directory_misc }}"
+    crontab: "45 1 * * *"
+
+  - name: work
+    source: "{{ common_directory_storage }}/Work"
+    crontab: "0 2 * * *"
+
+  - name: photos
+    source: "{{ common_directory_photos }}/Immich/library"
+    crontab: "30 2 * * *"
+
+  - name: apps
+    source: "{{ common_directory }}"
+    crontab: "30 3 * * *"
+    exclude_patterns:
+      - "/mnt/source/nextcloud/app/data/*/cache"
+      - "/mnt/source/plex/Library/Application Support/Plex Media Server/Cache"
+      - "/mnt/source/renovate"
+      - "/mnt/source/immich/ml-cache"
+      - "/mnt/source/vscode/repos"
+      - "/mnt/source/obico/repo"
+      - "/mnt/source/esphome"
+      - "/mnt/source/webtop"
+      - "/mnt/source/recyclarr"
+      - "/mnt/source/prometheus"
+      - "/mnt/source/thanos"
+      - "/mnt/source/portainer/backups"
+      - "/mnt/source/*/cache"
+      - "/mnt/source/*/*/log"
+      - "/mnt/source/*/*/log.*"
+      - "/mnt/source/*/*/logs"
+      - "/mnt/source/*/*/logs.*"
+      - "/mnt/source/*/logs"
+      - "/mnt/source/*/logs.*"
+      - "/mnt/source/*/log"
+      - "/mnt/source/*/log.*"
+      - "/mnt/source/*/*.log"
+      - "/mnt/source/*/*.log.*"

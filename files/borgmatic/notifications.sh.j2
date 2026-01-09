@@ -22,4 +22,4 @@ elif [ $step = "error" ]; then
   message="Error creating backup :x:"
 fi
 
-wget --spider --header="Content-Type: application/json" --post-data="{\"text\": \"${name}: ${message}\"}" {{ borgmatic_notification_webhook }}
+wget --spider --header="Content-Type: application/json" --post-data="{\"text\": \"${name}: ${message}\"}" https://mattermost.{{ common_tld }}/hooks/{{ borgmatic_notification_webhook_id }}

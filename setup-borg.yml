@@ -1,0 +1,214 @@
+---
+
+- hosts: localhost
+
+  gather_facts: false
+  become: false
+
+  tasks:
+    - name: Create backup locations on Hetzner
+      ansible.builtin.command: >-
+        ssh -p{{ _borg_server_hetzner.port }}
+        {{ _borg_server_hetzner.username }}@{{ _borg_server_hetzner.hostname }}
+        mkdir -p borg/{{ '{' }}{{ borgmatic_backups | ansible.builtin.map(attribute='name') | ansible.builtin.flatten | ansible.builtin.join(',') }}{{ '}' }}
+      changed_when: false
+      become: false
+      delegate_to: localhost
+      vars:
+        _borg_server_hetzner: "{{ (borg_servers | ansible.builtin.selectattr('name','equalto','hetzner') | ansible.builtin.list | ansible.builtin.first) }}"
+
+- hosts: borg
+
+  vars:
+    common_user: borg
+
+    borg_mount_point: /mnt/borg
+
+    borg_mount_uuids:
+      borg-01: 55afaad4-5f77-409a-adab-8c24e2f42b5b
+      borg-02: 82304c8f-9f05-47b5-bff7-3d9593debdb6
+
+  handlers:
+    - name: Restart ssh
+      ansible.builtin.service:
+        name: ssh
+        state: restarted
+
+    - name: Assemble ddclient config
+      ansible.builtin.assemble:
+        src: /etc/ansible-managed/ddclient
+        dest: /etc/ddclient.conf
+        owner: root
+        group: root
+        mode: "0600"
+
+    - name: Restart ddclient
+      ansible.builtin.service:
+        name: ddclient
+        state: restarted
+        enabled: true
+
+  tasks:
+    - name: No password sudo
+      community.general.sudoers:
+        name: "{{ common_user }}"
+        user: "{{ common_user }}"
+        commands: ALL
+        nopassword: true
+
+    - name: Set authorized keys from GitHub
+      ansible.posix.authorized_key:
+        user: "{{ common_user }}"
+        state: present
+        key: "https://github.com/calvinbui.keys"
+        comment: github
+
+    - name: Add borg-ui key
+      ansible.posix.authorized_key:
+        user: "{{ common_user }}"
+        state: present
+        key: "{{ borg_ui_key }}"
+        comment: borg-ui
+
+    - name: Add borgmatic key
+      ansible.posix.authorized_key:
+        user: "{{ common_user }}"
+        state: present
+        key: "{{ lookup('file', 'files/borgmatic/ssh/id_ed25519.pub') }}"
+        comment: borgmatic
+
+    - name: Disable password expiration
+      ansible.builtin.user:
+        name: "{{ common_user }}"
+        password_expire_max: -1
+
+    - name: Set timezone
+      community.general.timezone:
+        name: "{{ common_timezone }}"
+
+    - name: Configure SSH
+      ansible.builtin.copy:
+        dest: /etc/ssh/sshd_config.d/10-custom.conf
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          Port 26767
+          PasswordAuthentication no
+          UsePAM no
+          PermitRootLogin no
+          AllowTcpForwarding no
+          X11Forwarding no
+        validate: "sshd -t -f %s"
+      notify: Restart ssh
+
+    - name: Install apt packages
+      ansible.builtin.apt:
+        name:
+          - parted
+          - ddclient
+        state: present
+        update_cache: true
+        cache_valid_time: 86400
+
+    - name: Get GitHub release
+      ansible.builtin.uri:
+        url: https://api.github.com/repos/borgbackup/borg/releases/tags/1.4.3
+        return_content: true
+      register: _borg_release
+
+    - name: Get asset
+      ansible.builtin.set_fact:
+        _borg_asset: "{{ _borg_release.json.assets | ansible.builtin.selectattr('name', 'equalto', 'borg-linux-glibc231-x86_64') | ansible.builtin.list | ansible.builtin.first }}"
+
+    - name: Download
+      ansible.builtin.get_url:
+        url: "{{ _borg_asset.browser_download_url }}"
+        dest: /usr/local/bin/borg
+        mode: "0755"
+        checksum: "{{ _borg_asset.digest }}"
+
+    - name: Create USB mount point
+      ansible.builtin.file:
+        path: "{{ borg_mount_point }}"
+        state: directory
+        mode: "0755"
+
+    - name: Add fstab entry and mount
+      ansible.posix.mount:
+        path: "{{ borg_mount_point }}"
+        src: "UUID={{ borg_mount_uuids[inventory_hostname] }}"
+        fstype: ext4
+        opts: "noatime,nofail,x-systemd.automount,errors=remount-ro,x-systemd.device-timeout=10s"
+        state: mounted
+
+    - name: Create backup locations
+      ansible.builtin.file:
+        path: "/mnt/borg/{{ item.name }}"
+        state: directory
+        owner: "{{ common_user }}"
+        group: "{{ common_user }}"
+        mode: "0770"
+      loop: "{{ borgmatic_backups }}"
+
+    - name: Create ddclient fragments directory
+      ansible.builtin.file:
+        path: "/etc/ansible-managed/ddclient/"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Create ddclient base config
+      become: true
+      ansible.builtin.copy:
+        dest: /etc/ansible-managed/ddclient/00-base.conf
+        owner: root
+        group: root
+        mode: "0600"
+        content: |
+          # Assembled by Ansible from /etc/ansible-managed/ddclient/*.conf
+          # Do not edit /etc/ddclient.conf directly.
+
+          daemon=300
+          syslog=yes
+          pid=/var/run/ddclient.pid
+          ssl=yes
+          verbose=yes
+          use=web
+          web=https://cloudflare.com/cdn-cgi/trace
+          web-skip='ip='
+      notify:
+        - Assemble ddclient config
+        - Restart ddclient
+
+    - name: Configure ddclient domain config
+      ansible.builtin.copy:
+        dest: /etc/ansible-managed/ddclient/10-{{ _ddclient_cf_zone }}.conf
+        owner: root
+        group: root
+        mode: "0600"
+        content: |
+          protocol=cloudflare
+          zone={{ _ddclient_cf_zone }}
+          ttl=1
+          login=token
+          password={{ _ddclient_cf_token }}
+          {{ inventory_hostname }}.{{ _ddclient_cf_zone }}
+      notify: Restart ddclient
+      vars:
+        _ddclient_cf_zone: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          34386261626533376564383762343835376139343563333239623932623261343034623864333564
+          6538373537373436303966363838613662366334363838660a343065656237613461336366336264
+          35633730323332376439336465323032366436393237386366656462633235353232663663323062
+          6164353864666663320a646431303465656639386665303536653830386533326264343836306366
+          3135
+        _ddclient_cf_token: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          31326331396135373262393832613538323030613262343636613838663265633530343364383635
+          3536613130666162383834646636343234666433346663620a333835343561626565646331616366
+          32666535323039393466303266306233346136376335306437353932633130306131323765653661
+          3634306663386232310a373237336363306533643064353563376338613566633234633238643139
+          66346232343935396434613039653130663630633532346332666236626262323465353032656438
+          3366663035306538616666316533393366353039336562353631

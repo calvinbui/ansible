@@ -1,0 +1,9 @@
+---
+
+# ansible needs variables to be defined
+common_directory_storage: ""
+common_directory_photos: ""
+common_directory_misc: ""
+common_directory_backup: ""
+
+borg_ui_key: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINKeOkkMKx8JeSvpIyIfEYrUwrUaw5VHLyVqKhpGH2Em borg@borg-ui

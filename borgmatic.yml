@@ -7,68 +7,6 @@
 
     config_directory: /borgmatic
 
-    borgmatic_hetzner_storage_box_host: !vault |
-      $ANSIBLE_VAULT;1.1;AES256
-      65343838343365376137613863316438653533616236343066316134313931306633613139363264
-      6632303265393664376538643566333738326431326431340a386164313666613730666331656136
-      33333733346632313036373866393337316637646562656361306533643639323037306432303737
-      3863353061656164340a306438323464643863396138356535393132363237383164653231643939
-      32326338356462393234326632323537383336353936356262643832343864663630336432616537
-      3230633564653339336162306432316633303862656665646366
-    borgmatic_hetzner_storage_box_port: 23
-
-    borgmatic_backups:
-      - name: backups
-        source: "{{ common_directory_backup }}"
-        crontab: "30 1 * * *"
-        repository: ssh://{{ borgmatic_hetzner_storage_box_host }}:{{ borgmatic_hetzner_storage_box_port }}/./borg/backups
-        exclude_patterns:
-          - "/mnt/source/Time Machine"
-
-      - name: misc
-        source: "{{ common_directory_misc }}"
-        crontab: "45 1 * * *"
-        repository: ssh://{{ borgmatic_hetzner_storage_box_host }}:{{ borgmatic_hetzner_storage_box_port }}/./borg/misc
-
-      - name: work
-        source: "{{ common_directory_storage }}/Work"
-        crontab: "0 2 * * *"
-        repository: ssh://{{ borgmatic_hetzner_storage_box_host }}:{{ borgmatic_hetzner_storage_box_port }}/./borg/work
-
-      - name: photos
-        source: "{{ common_directory_photos }}/Immich/library"
-        crontab: "30 2 * * *"
-        repository: ssh://{{ borgmatic_hetzner_storage_box_host }}:{{ borgmatic_hetzner_storage_box_port }}/./borg/photos
-
-      - name: apps
-        source: "{{ common_directory }}"
-        crontab: "30 3 * * *"
-        repository: ssh://{{ borgmatic_hetzner_storage_box_host }}:{{ borgmatic_hetzner_storage_box_port }}/./borg/apps
-        exclude_patterns:
-          - "/mnt/source/nextcloud/app/data/*/cache"
-          - "/mnt/source/plex/Library/Application Support/Plex Media Server/Cache"
-          - "/mnt/source/renovate"
-          - "/mnt/source/immich/ml-cache"
-          - "/mnt/source/vscode/repos"
-          - "/mnt/source/obico/repo"
-          - "/mnt/source/esphome"
-          - "/mnt/source/webtop"
-          - "/mnt/source/recyclarr"
-          - "/mnt/source/prometheus"
-          - "/mnt/source/thanos"
-          - "/mnt/source/portainer/backups"
-          - "/mnt/source/*/cache"
-          - "/mnt/source/*/*/log"
-          - "/mnt/source/*/*/log.*"
-          - "/mnt/source/*/*/logs"
-          - "/mnt/source/*/*/logs.*"
-          - "/mnt/source/*/logs"
-          - "/mnt/source/*/logs.*"
-          - "/mnt/source/*/log"
-          - "/mnt/source/*/log.*"
-          - "/mnt/source/*/*.log"
-          - "/mnt/source/*/*.log.*"
-
     borgmatic_pass: !vault |
       $ANSIBLE_VAULT;1.1;AES256
       37626530363533323433633066656632393664313962366264363435386635346634613433303661
@@ -78,16 +16,13 @@
       35663138313039623361346562346234636365316164636365663439326663643261643438376334
       3361306465303461613739396564306434333033643962616664
 
-    borgmatic_notification_webhook: !vault |
+    borgmatic_notification_webhook_id: !vault |
       $ANSIBLE_VAULT;1.1;AES256
-      35316463616432373433336236326164616232316162646138373738656634353466653863613563
-      3135313633663131386434363036363936653763366661370a343064653032623133303638656566
-      38373633306665333363666331633339666634653737376530386263373539636262653839386238
-      6264623635633564640a643531386632323565616138376261383563353861646634646433333534
-      65363932316661303164623130656234323234323962323263636338303539643431363531343435
-      37386565336366383061353634643261616163666361656466343036386137363062336236343933
-      38386630306635626434366464386234343265333230303965303239323366386565336130306639
-      65633139313433323530
+      36333864613836636138376164353330343661636439653564363232336434663563343139366665
+      3036663462353966316463666236373131666632666531380a356638653163323734343466656565
+      30373435623231616465303664353630336338663361373032636266663961366364313436386338
+      3661323238613131330a303061306332306262646165376564306338326635643766356364643136
+      33323734393461663237663339336365333566316164613939383064386266666461
 
     container_network: "{{ networks.pub }}"
 
@@ -134,14 +69,20 @@
         mode: "0755"
       loop: "{{ borgmatic_backups }}"
 
-    - name: Copy SSH keys
+    - name: Copy SSH files
       ansible.builtin.copy:
         src: "{{ files_directory }}/ssh/"
-        dest: "{{ config_directory }}/{{ item.name }}/ssh/"
+        dest: "{{ config_directory }}/ssh/"
         owner: root
         group: root
         mode: "0600"
-      loop: "{{ borgmatic_backups }}"
+
+    - name: Add servers to known hosts
+      ansible.builtin.known_hosts:
+        path: "{{ config_directory }}/ssh/known_hosts"
+        name: "[{{ item.hostname }}]:{{ item.port }}"
+        key: "{{ lookup('pipe', 'ssh-keyscan -t ed25519 -p ' + (item.port | string) + ' ' + item.hostname + ' 2>/dev/null | grep ssh-ed25519') }}"
+      loop: "{{ borg_servers }}"
 
     - name: Template notification script
       ansible.builtin.template:
@@ -159,30 +100,25 @@
         env:
           TZ: "{{ common_timezone }}"
           BORG_PASSPHRASE: "{{ borgmatic_pass }}"
-          BORG_CHECK_I_KNOW_WHAT_I_AM_DOING: "true"
+          BORG_CHECK_I_KNOW_WHAT_I_AM_DOING: "YES"
+          BORG_RELOCATED_REPO_ACCESS_IS_OK: "yes"
         volumes:
           # data to backup. mount as rw when a restore is needed
           - "{{ item.source }}:/mnt/source:ro"
 
           - "{{ config_directory }}/borgbackup:/mnt/borg-repository"
+          - "{{ config_directory }}/ssh:/root/.ssh"
 
           - "{{ config_directory }}/{{ item.name }}/borgmatic.d/:/etc/borgmatic.d/"
           - "{{ config_directory }}/{{ item.name }}/borgmatic:/root/.borgmatic"
           - "{{ config_directory }}/{{ item.name }}/config/borg:/root/.config/borg"
-          - "{{ config_directory }}/{{ item.name }}/ssh:/root/.ssh"
           - "{{ config_directory }}/{{ item.name }}/cache/borg:/root/.cache/borg"
       loop: "{{ borgmatic_backups }}"
-
-    - name: Create backup locations
-      ansible.builtin.command: ssh -p{{ borgmatic_hetzner_storage_box_port }} {{ borgmatic_hetzner_storage_box_host }} mkdir -p borg/{{ '{' }}{{ borgmatic_backups | ansible.builtin.map(attribute='name') | ansible.builtin.flatten | ansible.builtin.join(',') }}{{ '}' }}
-      changed_when: false
-      become: false
-      delegate_to: localhost
 
     - name: Initialise repos
       containers.podman.podman_container_exec:
         name: "borgmatic-{{ item.name }}"
-        command: borgmatic init --encryption=repokey-blake2
+        command: borgmatic repo-create --encryption=repokey-blake2
       register: _command_result
       changed_when: _command_result.stdout != ''
       loop: "{{ borgmatic_backups }}"
