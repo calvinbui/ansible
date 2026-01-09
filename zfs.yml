@@ -9,6 +9,7 @@
         name: Applications
       -
         name: Audiobooks
+        recordsize: 1M
       -
         name: Backups
       -
@@ -83,7 +84,6 @@
           atime: false
           xattr: sa
           acltype: posixacl
-          recordsize: 1M
         vdevs:
           - type: raidz2
             disks:
@@ -115,7 +115,8 @@
       community.general.zfs:
         name: "{{ zfs_pool }}/{{ item.name }}"
         state: present
-        extra_zfs_properties: "{{ properties | default(omit) }}"
+        extra_zfs_properties:
+          recordsize: "{{ item.recordsize | default(omit) }}"
       loop: "{{ zfs_datasets }}"
 
     - name: Set correct permissions on the dataset
