@@ -170,14 +170,14 @@
             reason: "my whitelist"
             expression:
               # mattermost
-              - evt.Meta.http_status == '403' && evt.Parsed.traefik_router_name startsWith 'mattermost' && (evt.Meta.http_path contains '/api/v4/')
+              - evt.Parsed.traefik_router_name startsWith 'mattermost' && evt.Meta.http_status == '403' && (evt.Meta.http_path contains '/api/v4/')
 
               # home assistant
-              - evt.Meta.http_status == '403' && evt.Parsed.traefik_router_name startsWith 'home-assistant' && (evt.Meta.http_path contains '/api/calendars/' || evt.Meta.http_path contains '/api/camera_proxy_stream/' || evt.Meta.http_path contains '/api/webhook/' || evt.Meta.http_path contains '/auth/token')
+              - evt.Parsed.traefik_router_name startsWith 'home-assistant' && evt.Meta.http_status == '403' && (evt.Meta.http_path contains '/api/calendars/' || evt.Meta.http_path contains '/api/camera_proxy_stream/' || evt.Meta.http_path contains '/api/webhook/' || evt.Meta.http_path contains '/auth/token')
               - evt.Parsed.traefik_router_name startsWith 'home-assistant' && evt.Meta.http_path startsWith '/&v='
 
               # qbittorent
-              - evt.Meta.http_status == '403' && evt.Parsed.traefik_router_name startsWith 'qbittorrent' && (evt.Meta.http_path contains '/favicon.ico' || evt.Meta.http_path contains '/api/v2/')
+              - evt.Parsed.traefik_router_name startsWith 'qbittorrent' && evt.Meta.http_status == '403' && (evt.Meta.http_path contains '/favicon.ico' || evt.Meta.http_path contains '/api/v2/')
 
               # actualbudget
               - evt.Parsed.traefik_router_name startsWith 'actualbudget' && (evt.Meta.http_path contains '/data/migrations/' || evt.Meta.http_path == '/sync/sync')
@@ -187,10 +187,14 @@
 
               # syncthing
               - evt.Parsed.traefik_router_name startsWith 'syncthing' && (evt.Meta.http_path startsWith '/rest/' || evt.Meta.http_path startsWith '/assets')
+
+              # outline
+              - evt.Parsed.traefik_router_name startsWith 'outline' && evt.Meta.http_path startsWith '/api/'
         dest: "{{ config_directory }}/my-whitelist.yaml"
         owner: "{{ common_root_id }}"
         group: "{{ common_root_group }}"
         mode: "0644"
+      notify: Restart
 
     - name: Create container
       ansible.builtin.include_role:
