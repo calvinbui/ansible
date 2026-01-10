@@ -99,7 +99,7 @@
           containers.podman.podman_container_exec:
             name: "{{ application }}"
             user: "{{ common_root_id }}"
-            command: code-server --install-extension /root/.local/share/code-server/CachedExtensionVSIXs/{{ item.split('#')[0] }}-{{ item.split('#')[1] }}.vsix
+            command: code-server --force --install-extension /root/.local/share/code-server/CachedExtensionVSIXs/{{ item.split('#')[0] }}-{{ item.split('#')[1] }}.vsix
           loop: "{{ home_assistant_vscode_extensions }}"
           register: _command_result
           failed_when: "'was successfully installed.' not in _command_result.stdout"
