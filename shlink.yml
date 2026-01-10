@@ -73,7 +73,7 @@
         name: podman_container
       vars:
         container_name: shlink
-        image: ghcr.io/shlinkio/shlink:4.6.0
+        image: ghcr.io/shlinkio/shlink:5.0.0
         env:
           # General
           DEFAULT_DOMAIN: "{{ shlink_domain }}"
