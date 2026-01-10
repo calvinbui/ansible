@@ -10,58 +10,25 @@ layout:
   grid-template-columns: 0.2fr 4fr 5fr 5fr 0.2fr
   grid-column-gap: 20px
   grid-template-areas: |
-    ". schedule stats1 stats2 ."
+    ". automations stats1 stats2 ."
   mediaquery:
     "(max-width: 800px)":
       grid-template-columns: 100%
       grid-template-areas: |
         "stats1"
         "stats2"
-        "schedule"
+        "automations"
 
 cards:
   - type: vertical-stack
     view_layout:
-      grid-area: schedule
+      grid-area: automations
     cards:
       -
-        name: 🕙 Schedule
+        name: ⚙️ Automations
         <<: &title_card
           type: custom:button-card
           template: card_title
-      -
-        type: markdown
-        content: |
-          | Area | Time |
-          |------|------|
-          {% for g in home_assistant_gardening.systems %}
-          | {{ g.name }} | {% raw %}{{ '2000-01-01T{% endraw %}{{ g.time }}'{% raw %} | as_timestamp() | timestamp_custom("%I:%M %p") }}{% endraw %} |
-          {% endfor %}
-
-          | Season | Active Days |
-          |--------|-------------|
-          {% for k, v in home_assistant_gardening.schedule.items() %}
-          | {{ k | ansible.builtin.title }} | {{ v | ansible.builtin.join(", ") }} |
-          {% endfor %}
-        card_mod:
-          style:
-            ha-markdown:
-              $:
-                ha-markdown-element: |
-                  table {
-                      width: 100%;
-                      border-collapse: collapse;
-                      margin: 20px 0;
-                  }
-
-                  th, td {
-                      padding: 12px;
-                      text-align: left;
-                      border: 1px solid #dddddd;
-                  }
-      -
-        name: ⚙️ Automations
-        <<: *title_card
 
       {% for g in home_assistant_gardening.systems %}
       -
