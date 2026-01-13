@@ -200,7 +200,7 @@ cards:
 
       all_series_config:
         type: area
-        stroke_width: 3
+        stroke_width: 2
         curve: smooth
         opacity: 2
         unit: kWh
@@ -258,6 +258,16 @@ cards:
             func: avg
             duration: 5m
         -
+          name: Battery Charge
+          entity: sensor.solplanet_battery_al010k5sq2590170_battery_state_of_charge
+          yaxis_id: percent
+          type: line
+          stroke_width: 5
+          color: '#ffa500'
+          unit: '%'
+          show:
+            extremas: true
+        -
           name: Forecast
           entity: sensor.solcast_pv_forecast_forecast_today
           yaxis_id: kWh
@@ -270,16 +280,6 @@ cards:
               var date_period = new Date(entry.period_start);
               return [date_period, Math.min(entry.pv_estimate, 10)];
             });
-        -
-          name: Battery Charge
-          entity: sensor.solplanet_battery_al010k5sq2590170_battery_state_of_charge
-          yaxis_id: percent
-          type: line
-          stroke_width: 5
-          color: '#ffa500'
-          unit: '%'
-          show:
-            extremas: true
 
   -
     view_layout:
