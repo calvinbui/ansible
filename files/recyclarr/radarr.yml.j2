@@ -6,10 +6,10 @@ radarr:
     api_key: {{ radarr_api_key }}
 
     media_naming:
+      folder: plex-tmdb
       movie:
         rename: true
-        standard: default
-      folder: plex
+        standard: plex-tmdb
 
     quality_definition:
       type: movie
@@ -103,34 +103,14 @@ radarr:
     # https://trash-guides.info/Radarr/radarr-setup-quality-profiles/
     custom_formats:
       -
-        # All HDR Formats
-        ## Boost DV HDR10+ and DV HDR10
-        assign_scores_to:
-          - name: Best
-            score: 1600
-        trash_ids:
-          - c53085ddbd027d9624b320627748612f # DV HDR10+
-      -
-        assign_scores_to:
-          - name: Best
-            score: 1550
-        trash_ids:
-          - e23edd2482476e595fb990b12e7c609c # DV HDR10
-      -
+        # HDR Formats
         assign_scores_to:
           - name: Best
         trash_ids:
-          # - c53085ddbd027d9624b320627748612f # DV HDR10+
-          # - e23edd2482476e595fb990b12e7c609c # DV HDR10
-          - 58d6a88f13e2db7f5059c41047876f00 # DV
-          - 55d53828b9d81cbe20b02efd00aa0efd # DV HLG
-          - a3e19f8f627608af0211acd02bf89735 # DV SDR
-          - b974a6cd08c1066250f1f177d7aa1225 # HDR10+
-          - dfb86d5941bc9075d6af23b09c2aeecd # HDR10
-          - e61e28db95d22bedcadf030b8f156d96 # HDR
-          - 2a4d9069cc1fe3242ff9bdaebed239bb # HDR (undefined)
-          - 08d6d8834ad9ec87b1dc7ec8148e7a1f # PQ
-          - 9364dd386c9b4a1100dde8264690add7 # HLG
+          - 493b6d1dbec3c3364c59d7607f7e3405 # HDR
+          - b337d6812e06c200ec9a2d3cfa9d20a7 # DV Boost
+          - caa37d0df9c348912df1fb1d88f9273a # HDR10+ Boost
+          - 923b6abef9b17f937fab56cfcf89e1f1 # DV (w/o HDR fallback)
       -
         # HQ Release Groups
         assign_scores_to:
@@ -156,12 +136,14 @@ radarr:
           - name: Best
         trash_ids:
           - ed38b889b31be83fda192888e2286d83 # BR-DISK
+          - e6886871085226c3da1830830146846c # Generated Dynamic HDR
           - 90a6f9a284dff5103f6346090e6280c8 # LQ
           - e204b80c87be9497a8a6eaff48f72905 # LQ (Release Title)
           # - dc98083864ea246d05a42df0d05f81cc # x265 (HD)
           - b8cd450cbfa689c0259a01d9e29ba3d6 # 3D
           - bfd8eb01832d646a0a89c4deb46f8564 # Upscaled
           - 0a3f082873eb454bde444150b70253cc # Extras
+          - 712d74cd88bceb883ee32f773656b1f5 # Sing-Along Versions
           - cae4ca30163749b891686f95532519bd # AV1
       -
         # General Streaming Services
@@ -169,6 +151,7 @@ radarr:
           - name: Best
         trash_ids:
           - b3b3a6ac74ecbd56bcdbefa4799fb9df # AMZN
+          - df13ed57843877b21ad969184ab6888f # ATV
           - 40e9380490e748672c2522eaaeb692f7 # ATVP
           - cc5e51a9e85a6296ceefe097a77f12f4 # BCORE
           - 16622a6911d1ab5d5b8b713d5b0036d4 # CRiT
@@ -182,6 +165,8 @@ radarr:
           - 170b1d363bd8516fbf3a3eb05d4faff6 # NF
           - e36a0ba1bc902b26ee40818a1d59b8bd # PMTP
           - c9fd353f8f5f1baf56dc601c4cb29920 # PCOK
+          - 350e9170619683a55cb9191d0b1ababa # PLAY
+          - 44c2b54d7c81c1a442a8b2cabeaef54f # ROKU
           - c2863d2a50c9acad1fb50e53ece60817 # STAN
       -
         # Audio
@@ -208,7 +193,7 @@ radarr:
           - name: Best
         trash_ids:
           - b6832f586342ef70d9c128d40c07b872 # Bad Dual Groups
-          - 90cedc1fea7ea5d11298bebd3d1d3223 # EVO (no WEBDL)
+          - cc444569854e9de0b084ab2b8b1532b2 # Black and White Editions
           - ae9b7c9ebde1f3bd336a8cbd1ec4c5e5 # No-RlsGroup
           # - 7357cf5161efbf8c4d5d0c30b4815ee2 # Obfuscated
           - 5c44f52a8714fdd79bb4d98e2673be1f # Retags

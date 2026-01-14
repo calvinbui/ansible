@@ -6,13 +6,13 @@ sonarr:
     api_key: {{ sonarr_api_key }}
 
     media_naming:
+      series: plex-tvdb
+      season: default
       episodes:
         rename: true
         standard: default
         daily: default
         anime: default
-      series: plex
-      season: default
 
     quality_definition:
       type: series
@@ -141,9 +141,11 @@ sonarr:
           - d34870697c9db575f17700212167be23 # NF
           - c67a75ae4a1715f2bb4d492755ba4195 # PMTP
           - 1656adc6d7bb2c8cca6acfb6592db421 # PCOK
+          - 6eb71887a8db6e783dd398446eb0e65d # PLAY
           - ae58039e1319178e6be73caab5c42166 # SHO
           - 1efe8da11bfd74fbbcd4d8117ddb9213 # STAN
           - 9623c5c9cac8e939c1b9aedd32f640bf # SYFY
+          - 218e93e5702f44a68ad9e3c6ba87d2f0 # HD Streaming Boost
       -
         # HQ Source Groups
         assign_scores_to:
@@ -163,37 +165,6 @@ sonarr:
           # - e1a997ddb54e3ecbfe06341ad323c458 # Obfuscated
           - 06d66ab109d4d2eddb2794d21526d140 # Retags
           # - 1b3994c551cbb92a2c781af061f4ab44 # Scene
-          - 9b64dff695c2115facf1b6ea59c9bd07 # x265 (no HDR/DV)
-      -
-        # Add HDR to 1080p. Not sure why it doesn't exist.
-        # Boost DV HDR10+ and DV HDR10
-        assign_scores_to:
-          - name: 1080p
-            score: 1600
-        trash_ids:
-          - 2b239ed870daba8126a53bd5dc8dc1c8 # DV HDR10+
-      -
-        assign_scores_to:
-          - name: 1080p
-            score: 1550
-        trash_ids:
-          - 7878c33f1963fefb3d6c8657d46c2f0a # DV HDR10
-      -
-        assign_scores_to:
-          - name: 1080p
-        trash_ids:
-          # - 2b239ed870daba8126a53bd5dc8dc1c8 # DV HDR10+
-          # - 7878c33f1963fefb3d6c8657d46c2f0a # DV HDR10
-          - 6d0d8de7b57e35518ac0308b0ddf404e # DV
-          - 1f733af03141f068a540eec352589a89 # DV HLG
-          - 27954b0a80aab882522a88a4d9eae1cd # DV SDR
-          - a3d82cbef5039f8d295478d28a887159 # HDR10+
-          - 3497799d29a085e2ac2df9d468413c94 # HDR10
-          - 3e2c4e748b64a1a1118e0ea3f4cf6875 # HDR
-          - bb019e1cd00f304f80971c965de064dc # HDR (undefined)
-          - 2a7e3be05d3861d6df7171ec74cad727 # PQ
-          - 17e889ce13117940092308f48b48b45b # HLG
-
 
       # ▞▀▖▗▌ ▞▀▖▞▀▖
       #  ▗▘ ▌ ▙▄ ▌▞▌▛▀▖
@@ -202,34 +173,15 @@ sonarr:
       #
       # https://trash-guides.info/Sonarr/sonarr-setup-quality-profiles/#web-2160p
       -
-        # All HDR Formats
-        # Boost DV HDR10+ and DV HDR10
+        # HDR Formats
         assign_scores_to:
           - name: 4K
-            score: 1600
+          - name: 1080p # Add HDR to 1080p. Not sure why it doesn't exist.
         trash_ids:
-          - 2b239ed870daba8126a53bd5dc8dc1c8 # DV HDR10+
-      -
-        assign_scores_to:
-          - name: 4K
-            score: 1550
-        trash_ids:
-          - 7878c33f1963fefb3d6c8657d46c2f0a # DV HDR10
-      -
-        assign_scores_to:
-          - name: 4K
-        trash_ids:
-          # - 2b239ed870daba8126a53bd5dc8dc1c8 # DV HDR10+
-          # - 7878c33f1963fefb3d6c8657d46c2f0a # DV HDR10
-          - 6d0d8de7b57e35518ac0308b0ddf404e # DV
-          - 1f733af03141f068a540eec352589a89 # DV HLG
-          - 27954b0a80aab882522a88a4d9eae1cd # DV SDR
-          - a3d82cbef5039f8d295478d28a887159 # HDR10+
-          - 3497799d29a085e2ac2df9d468413c94 # HDR10
-          - 3e2c4e748b64a1a1118e0ea3f4cf6875 # HDR
-          - bb019e1cd00f304f80971c965de064dc # HDR (undefined)
-          - 2a7e3be05d3861d6df7171ec74cad727 # PQ
-          - 17e889ce13117940092308f48b48b45b # HLG
+          - 505d871304820ba7106b693be6fe4a9e # HDR
+          - 7c3a61a9c6cb04f52f1544be6d44a026 # DV Boost
+          - 0c4b99df9206d2cfac3c05ab897dd62a # HDR10+ Boost
+          - 9b27ab6498ec0f31a3353992e19434ca # DV (w/o HDR fallback)
       -
         # Unwanted
         assign_scores_to:
@@ -267,11 +219,12 @@ sonarr:
           - d34870697c9db575f17700212167be23 # NF
           - c67a75ae4a1715f2bb4d492755ba4195 # PMTP
           - 1656adc6d7bb2c8cca6acfb6592db421 # PCOK
+          - 6eb71887a8db6e783dd398446eb0e65d # PLAY
           - ae58039e1319178e6be73caab5c42166 # SHO
           - 1efe8da11bfd74fbbcd4d8117ddb9213 # STAN
           - 9623c5c9cac8e939c1b9aedd32f640bf # SYFY
           - 43b3cf48cb385cd3eac608ee6bca7f09 # UHD Streaming Boost
-          - d2d299244a92b8a52d4921ce3897a256 # UHD Streaming Cut
+          - 218e93e5702f44a68ad9e3c6ba87d2f0 # HD Streaming Boost
       -
         # HQ Source Groups
         assign_scores_to:
