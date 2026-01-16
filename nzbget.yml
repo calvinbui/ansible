@@ -192,7 +192,7 @@
           Server4.JoinGroup: 'no'
           Server4.Encryption: 'yes'
           Server4.Cipher: 'AES128-SHA'
-          Server4.Connections: '100'
+          Server4.Connections: '50'
           Server4.Retention: '3000'
           Server4.IpVersion: 'ipv4'
           Server4.Notes: ''
