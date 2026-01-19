@@ -232,6 +232,7 @@
         - os-acme-client
         - os-cpu-microcode-intel
         - os-ddclient
+        - os-iperf
         - os-nut
         - os-sftp-backup
         - os-smart

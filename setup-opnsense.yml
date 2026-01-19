@@ -1,0 +1,11 @@
+---
+
+- hosts: opnsense
+
+  tasks:
+    - name: Set authorized keys from GitHub
+      ansible.posix.authorized_key:
+        user: root
+        state: present
+        key: "https://github.com/calvinbui.keys"
+        comment: github
