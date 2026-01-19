@@ -21,6 +21,12 @@
         name: podman_container
       vars:
         image: ghcr.io/actualbudget/actual:26.1.0
+        env:
+          ACTUAL_OPENID_DISCOVERY_URL: "{{ oidc_discovery_url }}"
+          ACTUAL_OPENID_CLIENT_ID: "{{ application }}"
+          ACTUAL_OPENID_CLIENT_SECRET: "{{ oidc_auth.actualbudget.secret }}"
+          ACTUAL_OPENID_SERVER_HOSTNAME: "https://{{ application }}.{{ common_tld }}"
+          ACTUAL_OPENID_ENFORCE: "true"
         volumes:
           - "{{ config_directory }}:/data"
         traefik:
