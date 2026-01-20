@@ -51,7 +51,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: docker.io/binwiederhier/ntfy:v2.15.0
+        image: docker.io/binwiederhier/ntfy:v2.16.0
         command:
           - serve
         user: "{{ common_user_id }}:{{ common_group_id }}"
