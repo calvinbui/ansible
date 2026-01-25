@@ -184,13 +184,8 @@
         access: "{{ networks.iot.vlan }}"
       -
         interface: xe
-        port: "1"
-        description: "nvr-sfp"
-        access: "{{ networks.iot.vlan }}"
-      -
-        interface: xe
         port: "3"
-        description: "engenius-10g-switch"
+        description: "uplink"
         trunk:
           - "{{ networks.mgmt.name }}"
           - "{{ networks.user.name }}"
