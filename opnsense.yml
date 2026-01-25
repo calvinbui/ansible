@@ -25,20 +25,21 @@
         provider: PureVPN
         location: Sydney
         server:
-          address: 172.21.4.141
+          address: 172.21.6.5
           private_key: !vault |
             $ANSIBLE_VAULT;1.1;AES256
-            31363031393962623363623361646364383937323835326461643865393665623139393566303531
-            3665303034373137613737393261633835353936343836350a326239316534616430386434353836
-            62303064343966626537356331363238613261663462656362333665666164626632633037343535
-            3738356331313333650a373531656365306636343234313739386331303764623637623537306665
-            38306261636137393636373936393462656637643461376237623338636663323936383663656533
-            3932333139653636323737396631653432663837653836376633
-          public_key: 8JcSDdjWiD6n0quPGZfctXiQ5UyrL5Q0vPXgQIjwgG4=
+            32613361333164653635376563626635396262383363373161366465333934663536373634623333
+            6263623962306363356365336633383565323134366462340a356238393034346664366365393031
+            31356166623734356432363433333634613863366133616636303166343762656636396132383561
+            6138613636656265370a653663646139633230326633663238653631396131373736633530353164
+            38366432366235616136383437376564323332363439623236366266623734333637643331366566
+            3061323161366132386433303030393838663230393736636561
+          # $ wg pubkey < private
+          public_key: d86LyteXpyoTDYsIeLosV9k2g/EBTLCsviZWWWbQ7xg=
         peer:
-          endpoint: sx150901-ikev.ptoserver.com
+          endpoint: sx152431-ikev.ptoserver.com
           port: 51820
-          public_key: eXETIPS1b8H0SbMII57dPRyuGBdTPQ9fmHBQXL7EJgQ=
+          public_key: y+aymD9T0D1nFCWb8O2IPXgDHAjNdIBPie+rlhwAdwU=
           keepalive: 21
         interface: "{{ networks.vpn_purevpn_sydney.opnsense_identifier }}"
         used_by:
@@ -631,16 +632,14 @@
 
     - name: WireGuard - Firewall Rule
       oxlorg.opnsense.rule:
-        rules:
-          -
-            sequence: 200
-            quick: false
-            interface: []
-            action: pass
-            source_net: "{{ item.interface }}ip"
-            destination_net: "{{ item.interface }}"
-            gateway: "{{ opnsense_wireguard_vpn[0].provider | ansible.builtin.upper }}_{{ opnsense_wireguard_vpn[0].location | ansible.builtin.upper }}"
-            description: "{{ opnsense_wireguard_vpn[0].provider | ansible.builtin.upper }}_{{ opnsense_wireguard_vpn[0].location | ansible.builtin.upper }}"
+        sequence: 200
+        quick: false
+        interface: []
+        action: pass
+        source_net: "{{ item.interface }}ip"
+        destination_net: "{{ item.interface }}"
+        gateway: "{{ opnsense_wireguard_vpn[0].provider | ansible.builtin.upper }}_{{ opnsense_wireguard_vpn[0].location | ansible.builtin.upper }}"
+        description: "{{ opnsense_wireguard_vpn[0].provider | ansible.builtin.upper }}_{{ opnsense_wireguard_vpn[0].location | ansible.builtin.upper }}"
       loop: "{{ opnsense_wireguard_vpn }}"
       notify: Reload firewall rules
       tags:
