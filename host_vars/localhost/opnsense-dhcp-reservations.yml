@@ -10,7 +10,7 @@ opnsense_dhcp_reservations:
   #   ip: "{{ networks.lan.subnet | ansible.utils.nthhost(2) }}"
   #   subnet: "{{ networks.lan.subnet | ansible.utils.ipaddr('subnet') }}"
   #   mac: ac:84:c6:2c:dd:12
-  #   hostname: juniper-lan
+  #   hostname: tplink
 
   #                            _
   #  _ __ ___   __ _ _ __ ___ | |_
@@ -22,7 +22,7 @@ opnsense_dhcp_reservations:
     ip: "{{ networks.mgmt.subnet | ansible.utils.nthhost(2) }}"
     subnet: "{{ networks.mgmt.subnet | ansible.utils.ipaddr('subnet') }}"
     mac: ac:84:c6:2c:dd:12
-    hostname: juniper
+    hostname: tplink
   -
     ip: "{{ networks.mgmt.subnet | ansible.utils.nthhost(3) }}"
     subnet: "{{ networks.mgmt.subnet | ansible.utils.ipaddr('subnet') }}"

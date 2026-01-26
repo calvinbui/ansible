@@ -112,6 +112,13 @@ services:
         weight: 20
         monitor: true
       -
+        name: TP-Link T1600G-28PS
+        icon: /icons/tp-link.svg
+        description: Network switch
+        url: http://tplink.{{ common_local_tld }}
+        weight: 21
+        monitor: true
+      -
         name: Juniper EX3300-48P
         icon: /icons/juniper.png
         description: Network switch
