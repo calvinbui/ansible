@@ -118,13 +118,6 @@ services:
         url: http://tplink.{{ common_local_tld }}
         weight: 21
         monitor: true
-      -
-        name: Juniper EX3300-48P
-        icon: /icons/juniper.png
-        description: Network switch
-        url: http://juniper.{{ common_local_tld }}
-        weight: 21
-        monitor: true
 
   - group: Remote Access
     items:
