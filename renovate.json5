@@ -395,6 +395,11 @@
       matchPackageNames: ['/.*\\/prometheus-podman-exporter$/'],
       sourceUrl: 'https://github.com/containers/prometheus-podman-exporter',
     },
+    /* wyoming-piper */
+    {
+      matchPackageNames: ['/.*\\/wyoming-piper$/'],
+      sourceUrl: 'https://github.com/rhasspy/wyoming-piper',
+    },
   ],
 
   customManagers: [
