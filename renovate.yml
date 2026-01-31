@@ -27,7 +27,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/renovatebot/renovate:42
+        image: ghcr.io/renovatebot/renovate:43
         stop_signal: "{{ signal_map['SIGKILL'] }}"
         entrypoint: /bin/bash
         command:
