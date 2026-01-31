@@ -16,14 +16,6 @@
         group: "{{ common_group }}"
         mode: "0771"
 
-    - name: Download init.sql
-      ansible.builtin.get_url:
-        url: https://raw.githubusercontent.com/hargata/lubelog/main/init.sql
-        dest: "{{ config_directory }}/init.sql"
-        mode: "0644"
-        owner: "{{ common_user }}"
-        group: "{{ common_root_group }}"
-
     - name: Create postgres container
       ansible.builtin.include_role:
         name: postgres
@@ -36,8 +28,6 @@
           36333566323333643835653937633839363262356231663432353739353237356334363533633966
           6461343735613431350a626162343736313736343437356137323430373165376436393032663838
           35663632343534373838346532363761656665343034316632386632653966306530
-        postgres_directory_extra:
-          - "{{ config_directory }}/init.sql:/docker-entrypoint-initdb.d/init.sql:ro"
 
     - name: Create container
       ansible.builtin.include_role:
