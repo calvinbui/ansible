@@ -20,7 +20,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/psi-4ward/psitransfer:v2.3.1
+        image: ghcr.io/psi-4ward/psitransfer:v2.4.0
         env:
           PSITRANSFER_ADMIN_PASS: !vault |
             $ANSIBLE_VAULT;1.1;AES256
