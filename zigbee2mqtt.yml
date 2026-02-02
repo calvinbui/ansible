@@ -298,7 +298,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/koenkk/zigbee2mqtt:2.7.2
+        image: ghcr.io/koenkk/zigbee2mqtt:2.8.0
         env:
           TZ: "{{ common_timezone }}"
         volumes:
