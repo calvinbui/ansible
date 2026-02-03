@@ -56,7 +56,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: quay.io/prometheus/alertmanager:v0.30.1
+        image: quay.io/prometheus/alertmanager:v0.31.0
         command:
           - "--config.file=/etc/alertmanager/alertmanager.yml"
           - "--storage.path=/alertmanager"
