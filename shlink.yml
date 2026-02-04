@@ -44,7 +44,7 @@
       ansible.builtin.include_role:
         name: valkey
       vars:
-        valkey_version: 9.0.1
+        valkey_version: 9.0.2
         valkey_password: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           66326533313830633564373739346634383435373730623033303431346130346337313864336563
