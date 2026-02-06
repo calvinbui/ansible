@@ -50,7 +50,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: docker.io/a1ex4/ownfoil:2.1.3
+        image: docker.io/a1ex4/ownfoil:2.2.0
         ip: "{{ container_network.subnet | ansible.utils.nthhost(105) }}"
         volumes:
           - "{{ config_directory }}:/app/config"
