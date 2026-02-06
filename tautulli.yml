@@ -7,12 +7,6 @@
 
     container_network: "{{ networks.pub }}"
 
-  handlers:
-    - name: Restart
-      containers.podman.podman_container:
-        name: "{{ application }}"
-        force_restart: true
-
   tasks:
     - name: Create config folder
       ansible.builtin.file:
@@ -43,45 +37,3 @@
             key: "{{ tautulli_api_key }}"
         blackbox:
           path: /status
-
-    - name: Wait for config
-      ansible.builtin.wait_for:
-        path: "{{ config_directory }}/config.ini"
-
-    - name: Configure
-      community.general.ini_file:
-        path: "{{ config_directory }}/config.ini"
-        section: "{{ item.key.split('.')[0] }}"
-        option: "{{ item.key.split('.')[1] }}"
-        value: "{{ item.value | ansible.builtin.string }}"
-        owner: "{{ common_user }}"
-        group: "{{ common_root_group }}"
-        mode: "0640"
-      loop: "{{ _tautulli_config | ansible.builtin.dict2items }}"
-      notify: Restart
-      vars:
-        _tautulli_config:
-          General.date_format: "DD-MM-YYYY"
-          General.anon_redirect: https://www.nullrefer.com/?
-          General.api_enabled: 1
-          General.api_key: "{{ tautulli_api_key }}"
-          General.backup_days: 1
-          General.backup_interval: 24
-          General.check_github: 0
-          General.first_run_complete: 1
-          General.home_library_cards: 1, 2
-          General.https_create_cert: 0
-          General.http_plex_admin: 0
-          General.launch_browser: 0
-          General.launch_startup: 0
-          General.update_show_changelog: 0
-          General.sys_tray_icon: 0
-
-          Advanced.notify_consecutive: 0
-          Advanced.notify_new_device_initial_only: 0
-
-          Cloudinary.newsletter_inline_styles: 0
-
-    - name: Send message
-      ansible.builtin.debug:
-        msg: Connect Plex manually through the Web UI
