@@ -111,9 +111,9 @@
             '0xa4c1389f1c4747e5':
               friendly_name: Downstairs Bathroom Power Outlet
             '0xa4c138f699db6e2b':
-              friendly_name: Large Rear Bedroom Power Outlet
+              friendly_name: Fridge Power Outlet
             '0xa4c13895ebf5b6d2':
-              friendly_name: Small Rear Bedroom Power Outlet
+              friendly_name: Living Room Entertainment Unit Power Outlet
 
             # Sonoff ZBDongle-P
             '0x00124b002a2e833f':
@@ -121,13 +121,13 @@
 
             # Sonoff ZBDongle-E
             '0x94b216fffea0b765':
-              friendly_name: Fridge ZBDongle-E Router
+              friendly_name: Large Rear Bedroom ZBDongle-E Router
             '0x94b216fffea0b78c':
               friendly_name: Sideboard ZBDongle-E Router
             '0x94b216fffea0b6db':
               friendly_name: Tammy's Study ZBDongle-E Router
             '0x94b216fffea0b837':
-              friendly_name: Large Rear Bedroom ZBDongle-E Router
+              friendly_name: Small Rear Bedroom ZBDongle-E Router
 
             # Aqara Water Leak Sensor (SJCGQ11LM)
             '0x00158d0008e0193f':
@@ -265,6 +265,11 @@
             '0xa4c138b1bcf07d49':
               friendly_name: Car Door Switch
 
+            # Light Sensor (TS0222)
+            '0xa4c138b99c79ec39':
+              friendly_name: Foyer Light Sensor
+            '0xa4c13824c2826af9':
+              friendly_name: Dining Room Light Sensor
         dest: "{{ config_directory }}/configuration.yaml"
         owner: "{{ common_root_id }}"
         group: "{{ common_root_group }}"
