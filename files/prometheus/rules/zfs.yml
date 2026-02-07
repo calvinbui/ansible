@@ -152,7 +152,7 @@ groups:
           description: "High rate of memory reclaim operations"
       -
         alert: ZFSDirectMemoryReclaim
-        expr: rate(node_zfs_arc_memory_direct_count[5m]) > 0
+        expr: rate(node_zfs_arc_memory_direct_count[5m]) > 3
         for: 15m
         annotations:
           summary: ZFS Direct Memory Reclaim
