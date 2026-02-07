@@ -1,22 +1,5 @@
 ---
 
-- hosts: localhost
-
-  gather_facts: false
-  become: false
-
-  tasks:
-    - name: Create backup locations on Hetzner
-      ansible.builtin.command: >-
-        ssh -p{{ _borg_server_hetzner.port }}
-        {{ _borg_server_hetzner.username }}@{{ _borg_server_hetzner.hostname }}
-        mkdir -p borg/{{ '{' }}{{ borgmatic_backups | ansible.builtin.map(attribute='name') | ansible.builtin.flatten | ansible.builtin.join(',') }}{{ '}' }}
-      changed_when: false
-      become: false
-      delegate_to: localhost
-      vars:
-        _borg_server_hetzner: "{{ (borg_servers | ansible.builtin.selectattr('name','equalto','hetzner') | ansible.builtin.list | ansible.builtin.first) }}"
-
 - hosts: borg
 
   vars:
