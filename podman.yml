@@ -43,7 +43,7 @@
       containers.podman.podman_network:
         name: "{{ item.key }}"
         driver: macvlan
-        interface_name: "bond0.{{ item.value.vlan }}"
+        interface_name: "vlan{{ item.value.vlan }}"
       loop: "{{ networks | ansible.builtin.dict2items }}"
       when:
         - item.value.vlan is defined

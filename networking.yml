@@ -1,24 +1,15 @@
 ---
 
 # https://wiki.debian.org/NetworkInterfaceNames#CUSTOM_SCHEMES_USING_.LINK_FILES
-# https://wiki.debian.org/Bonding#Using_systemd-networkd
 # https://manpages.debian.org/trixie/systemd/systemd.netdev.5.en.html
 # https://manpages.debian.org/trixie/systemd/systemd.network.5.en.html
 
 - hosts: homeserver
 
   vars:
-    network_interfaces:
-      -
-        name: lan_2.5g_left
-        mac: 10:7c:61:40:7f:bc
-      -
-        name: lan_2.5g_right
-        mac: 10:7c:61:40:7f:bd
-
-    network_bond:
-      name: "bond0"
-      mode: "802.3ad" # LACP
+    network_interface:
+      name: fiber1
+      mac: ec:0d:9a:8b:33:d4
 
   handlers:
     - name: Regenerate the kernel initramfs
@@ -56,51 +47,32 @@
       ansible.builtin.copy:
         content: |
           [Match]
-          MACAddress={{ item.mac }}
+          MACAddress={{ network_interface.mac }}
 
           [Link]
-          Name={{ item.name }}
-        dest: "/etc/systemd/network/10-{{ item.name }}.link"
+          Name={{ network_interface.name }}
+        dest: "/etc/systemd/network/10-{{ network_interface.name }}.link"
         mode: "0644"
-      loop: "{{ network_interfaces }}"
       notify:
         - Regenerate the kernel initramfs
         - Reboot
 
-    - name: Configure bond device
-      ansible.builtin.copy:
-        content: |
-          [NetDev]
-          Name={{ network_bond.name }}
-          Kind=bond
-
-          [Bond]
-          Mode={{ network_bond.mode }}
-          TransmitHashPolicy=layer3+4
-          LACPTransmitRate=fast
-          MIIMonitorSec=100ms
-          AdActorSystemPriority=1
-          AdSelect=stable
-          UpDelaySec=3s
-          GratuitousARP=5
-        dest: "/etc/systemd/network/20-{{ network_bond.name }}.netdev"
-        mode: "0644"
-      notify:
-        - Restart systemd-networkd
-
-    - name: Add interfaces for the bond
+    - name: Configure interface network
       ansible.builtin.copy:
         content: |
           [Match]
-          Name={{ item.name }}
+          Name={{ network_interface.name }}
 
           [Network]
-          Bond={{ network_bond.name }}
-          DHCP=no
           LinkLocalAddressing=no
-        dest: "/etc/systemd/network/30-{{ item.name }}.network"
+          DHCP=no
+          {% for network in networks.values() %}
+          {% if 'vlan' in network %}
+          VLAN=vlan{{ network.vlan }}
+          {% endif %}
+          {% endfor %}
+        dest: "/etc/systemd/network/30-{{ network_interface.name }}.network"
         mode: "0644"
-      loop: "{{ network_interfaces }}"
       notify:
         - Restart systemd-networkd
 
@@ -108,34 +80,15 @@
       ansible.builtin.copy:
         content: |
           [NetDev]
-          Name={{ network_bond.name }}.{{ item.value.vlan }}
+          Name=vlan{{ item.value.vlan }}
           Kind=vlan
 
           [VLAN]
           Id={{ item.value.vlan }}
-        dest: "/etc/systemd/network/40-{{ network_bond.name }}.{{ item.value.vlan }}.netdev"
+        dest: "/etc/systemd/network/40-vlan{{ item.value.vlan }}.netdev"
         mode: "0644"
       loop: "{{ networks | ansible.builtin.dict2items }}"
       when: item.value.vlan is defined
-      notify:
-        - Restart systemd-networkd
-
-    - name: Configure bond network
-      ansible.builtin.copy:
-        content: |
-          [Match]
-          Name={{ network_bond.name }}
-
-          [Network]
-          LinkLocalAddressing=no
-          DHCP=no
-          {% for network in networks.values() %}
-          {% if 'vlan' in network %}
-          VLAN={{ network_bond.name }}.{{ network.vlan }}
-          {% endif %}
-          {% endfor %}
-        dest: "/etc/systemd/network/50-{{ network_bond.name }}.network"
-        mode: "0644"
       notify:
         - Restart systemd-networkd
 
@@ -143,12 +96,12 @@
       ansible.builtin.copy:
         content: |
           [Match]
-          Name={{ network_bond.name }}.{{ item.value.vlan }}
+          Name=vlan{{ item.value.vlan }}
 
           [Network]
           DHCP={{ "yes" if item.value.name == "mgmt" else "no" }}
           LinkLocalAddressing=no
-        dest: "/etc/systemd/network/60-{{ network_bond.name }}.{{ item.value.vlan }}.network"
+        dest: "/etc/systemd/network/60-vlan{{ item.value.vlan }}.network"
         mode: "0644"
       loop: "{{ networks | ansible.builtin.dict2items }}"
       when: item.value.vlan is defined
