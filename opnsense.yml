@@ -321,6 +321,29 @@
       tags:
         - acme
 
+    # #              _
+    # #  _ __  _   _| |_
+    # # | '_ \| | | | __|
+    # # | | | | |_| | |_
+    # # |_| |_|\__,_|\__|
+
+    # - name: Nut
+    #   oxlorg.opnsense.nut:
+    #     # General Settings
+    #     enabled: true
+    #     mode: netclient
+    #     name: "{{ nut_ups_devices[0].name }}"
+    #     listen: 127.0.0.1
+
+    #     # UPS Type
+    #     netclient_enable: true
+    #     netclient_address: 192.168.1.100
+    #     netclient_port: 3493
+    #     netclient_user: "{{ nut_user['slave'].name }}"
+    #     netclient_password: "{{ nut_user['slave'].password }}"
+    #   tags:
+    #     - nut
+
     #              _                           _
     #  _   _ _ __ | |__   ___  _   _ _ __   __| |
     # | | | | '_ \| '_ \ / _ \| | | | '_ \ / _` |
