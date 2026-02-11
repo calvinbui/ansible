@@ -26,5 +26,15 @@ nut_user:
       6465666230333263370a366431626665326431316435326231326537386466313035633930383332
       6135
 
+nut_ups_devices:
+  - name: cyberpower
+    usb_vendor_id: "0764"
+    usb_product_id: "0601"
+    config: |
+      driver = usbhid-ups
+      port = auto
+      pollinterval = 5
+      offdelay = 120
+
 nut_ups_monitors: |
-  MONITOR cyberpower@{{ nut_host }} 1 {{ nut_user[nut_user_mode].name }} {{ nut_user[nut_user_mode].password }} {{ nut_user_mode }}
+  MONITOR {{ nut_ups_devices[0].name }}@{{ nut_host }} 1 {{ nut_user[nut_user_mode].name }} {{ nut_user[nut_user_mode].password }} {{ nut_user_mode }}

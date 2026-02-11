@@ -80,4 +80,4 @@
           weight: 300
           description: "Dashboard for Network UPS Tools"
           widget:
-            key: cyberpower
+            key: "{{ nut_ups_devices[0].name }}"
