@@ -20,7 +20,7 @@
       ansible.builtin.include_role:
         name: mongodb
       vars:
-        mongo_version: 8.2.4
+        mongo_version: 8.2.5
         mongo_password: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           66356362636162323163303031383234646661383734323533346634663231326665306331633038
