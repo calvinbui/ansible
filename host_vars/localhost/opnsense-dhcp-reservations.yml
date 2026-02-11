@@ -305,7 +305,7 @@ opnsense_dhcp_reservations:
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(42) }}"
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
     mac: 30:fd:38:0c:01:f6
-    hostname: google-home-garage
+    hostname: google-home-kitchen
   -
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(43) }}"
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
