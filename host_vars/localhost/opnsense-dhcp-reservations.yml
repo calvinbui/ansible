@@ -29,12 +29,6 @@ opnsense_dhcp_reservations:
     mac: 88:dc:97:53:58:57
     hostname: engenius
   -
-    ip: "{{ networks.mgmt.subnet | ansible.utils.nthhost(4) }}"
-    subnet: "{{ networks.mgmt.subnet | ansible.utils.ipaddr('subnet') }}"
-    mac: 84:78:48:6c:45:4b
-    hostname: switch-study
-    comment: "In Calvin's Room"
-  -
     ip: "{{ networks.mgmt.subnet | ansible.utils.nthhost(10) }}"
     subnet: "{{ networks.mgmt.subnet | ansible.utils.ipaddr('subnet') }}"
     mac: ec:0d:9a:8b:33:d4
@@ -79,6 +73,12 @@ opnsense_dhcp_reservations:
     ip: "{{ networks.user.subnet | ansible.utils.nthhost(1) }}"
     subnet: "{{ networks.user.subnet | ansible.utils.ipaddr('subnet') }}"
     hostname: opnsense-web
+  -
+    ip: "{{ networks.user.subnet | ansible.utils.nthhost(2) }}"
+    subnet: "{{ networks.user.subnet | ansible.utils.ipaddr('subnet') }}"
+    mac: f4:1e:57:84:e2:17
+    hostname: switch-study
+    comment: "In Calvin's Room"
   -
     ip: "{{ networks.user.subnet | ansible.utils.nthhost(10) }}"
     subnet: "{{ networks.user.subnet | ansible.utils.ipaddr('subnet') }}"
