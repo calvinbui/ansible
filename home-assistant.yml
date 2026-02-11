@@ -298,7 +298,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-mcp"
-        image: ghcr.io/homeassistant-ai/ha-mcp:6.5.0
+        image: ghcr.io/homeassistant-ai/ha-mcp:6.6.1
         command: ha-mcp-web
         env:
           HOMEASSISTANT_URL: "https://{{ application }}.{{ common_tld }}"
