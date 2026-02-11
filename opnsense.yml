@@ -50,6 +50,8 @@
     group/oxlorg.opnsense.all: "{{ oxlorg_opnsense_module_defaults }}"
     oxlorg.opnsense.rule:
       match_fields: ["interface", "description"]
+    oxlorg.opnsense.rule_multi:
+      match_fields: ["interface", "description"]
 
   handlers:
     - name: Reload Unbound
@@ -136,7 +138,7 @@
     #  \__,_|_|_|\__,_|___/
 
     - name: Alias
-      oxlorg.opnsense.alias:
+      oxlorg.opnsense.alias_multi:
         aliases:
           -
             name: rfc1918
@@ -674,7 +676,7 @@
     #             |_|                                                                   |___/
 
     - name: UDP Broadcast Relay - Firewall Rules
-      oxlorg.opnsense.rule:
+      oxlorg.opnsense.rule_multi:
         rules:
           # Floating
           -
@@ -761,7 +763,7 @@
     # |_| |_|_|  \___| \_/\_/ \__,_|_|_|
 
     - name: Firewall Rules - floating
-      oxlorg.opnsense.rule:
+      oxlorg.opnsense.rule_multi:
         rules:
           -
             sequence: 1
@@ -842,7 +844,7 @@
         - firewall
 
     - name: Firewall Rules - mgmt
-      oxlorg.opnsense.rule:
+      oxlorg.opnsense.rule_multi:
         rules:
           -
             sequence: 1
@@ -865,7 +867,7 @@
         - firewall
 
     - name: Firewall Rules - user
-      oxlorg.opnsense.rule:
+      oxlorg.opnsense.rule_multi:
         rules:
           -
             sequence: 1
@@ -888,7 +890,7 @@
         - firewall
 
     - name: Firewall Rules - iot
-      oxlorg.opnsense.rule:
+      oxlorg.opnsense.rule_multi:
         rules:
           -
             sequence: 1
@@ -936,7 +938,7 @@
         - firewall
 
     - name: Firewall Rules - pub
-      oxlorg.opnsense.rule:
+      oxlorg.opnsense.rule_multi:
         rules:
           -
             sequence: 1
@@ -966,7 +968,7 @@
         - firewall
 
     - name: Firewall Rules - guest
-      oxlorg.opnsense.rule:
+      oxlorg.opnsense.rule_multi:
         rules:
           -
             sequence: 1
@@ -989,7 +991,7 @@
         - firewall
 
     - name: Firewall Rules - vpn home
-      oxlorg.opnsense.rule:
+      oxlorg.opnsense.rule_multi:
         rules:
           -
             sequence: 1
@@ -1003,7 +1005,7 @@
         - firewall
 
     - name: Firewall Rules - wan
-      oxlorg.opnsense.rule:
+      oxlorg.opnsense.rule_multi:
         rules:
           -
             sequence: 1
