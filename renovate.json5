@@ -317,7 +317,7 @@
       sourceUrl: 'https://github.com/roundcube/roundcubemail',
       recreateWhen: 'always',
       allowedVersions: '/^\\d+\\.\\d+\\.\\d+-apache$/',
-      versionCompatibility: '^(?<version>\\d+\\.\\d+\\.\\d+)-apache$',
+      extractVersion: '^(?<version>\\d+\\.\\d+\\.\\d+)-apache$',
       versioning: 'semver',
     },
     /* dovecot */
