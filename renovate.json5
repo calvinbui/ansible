@@ -315,9 +315,11 @@
     {
       matchPackageNames: ['/roundcube\\/roundcubemail$/'],
       sourceUrl: 'https://github.com/roundcube/roundcubemail',
+      changelogUrl: 'https://github.com/roundcube/roundcubemail/releases',
       recreateWhen: 'always',
-      allowedVersions: '/^\\d+\\.\\d+\\.\\d+-apache$/',
-      versioning: 'regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-apache$',
+      versionCompatibility: '^(?<version>\\d+\\.\\d+\\.\\d+)-apache$',
+      versioning: 'semver',
+      allowedVersions: '/^\\d+\\.\\d+\\.\\d+$/',
     },
     /* dovecot */
     {
