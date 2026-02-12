@@ -57,6 +57,7 @@
     /* plex */
     {
       matchPackageNames: ['/.*\\/pms-docker$/'],
+      recreateWhen: 'always',
       allowedVersions: '/^\\d+\\.\\d+\\.\\d+\\.\\d+-[0-9a-f]+$/',
       versioning: 'regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)\\.(?<build>\\d+)-(?<prerelease>[0-9a-f]+)$',
       changelogUrl: 'https://forums.plex.tv/t/plex-media-server/30447',
@@ -314,6 +315,7 @@
     {
       matchPackageNames: ['/roundcube\\/roundcubemail$/'],
       sourceUrl: 'https://github.com/roundcube/roundcubemail',
+      recreateWhen: 'always',
       allowedVersions: '/^\\d+\\.\\d+\\.\\d+-apache$/',
       extractVersion: '^(?<version>\\d+\\.\\d+\\.\\d+)-apache$',
       versioning: 'semver',
