@@ -1,0 +1,231 @@
+---
+
+- hosts: homeserver
+
+  vars:
+    application: seerr
+
+    container_network: "{{ networks.pub }}"
+
+  handlers:
+    - name: Restart
+      containers.podman.podman_container:
+        name: "{{ application }}"
+        force_restart: true
+
+  tasks:
+    - name: Create config folder
+      ansible.builtin.file:
+        path: "{{ config_directory }}/config"
+        state: directory
+        owner: "{{ common_user }}"
+        group: "{{ common_group }}"
+        mode: "0771"
+
+    - name: Create postgres container
+      ansible.builtin.include_role:
+        name: postgres
+      vars:
+        postgres_version: 18.1
+        postgres_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          37656334306364373036386230646234303339313634373030383736316431633837393133646136
+          3031613033623738383461346237333932623033643839390a396136626132646538613937383337
+          36363861636666396663393466623866306432343639333238393139396631373264326463333734
+          6662356562623362640a633435373464363464353130363439386262663935643138613664363237
+          31316533663430326566316263653432643038346439316432663630393932383061
+
+    - name: Create container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        image: ghcr.io/seerr-team/seerr:v3.0.1
+        env:
+          DB_TYPE: "postgres"
+          DB_HOST: "{{ _postgres_hostname }}"
+          DB_PORT: "{{ _postgres_port | ansible.builtin.string }}"
+          DB_USER: "{{ _postgres_username }}"
+          DB_PASS: "{{ _postgres_password }}"
+          DB_NAME: "{{ _postgres_database }}"
+          DB_LOG_QUERIES: "false"
+
+          TZ: "{{ common_timezone }}"
+        volumes:
+          - "{{ config_directory }}/config:/app/config"
+        tmpfs:
+          /app/.next/cache: rw,mode=01777
+        user: "{{ common_user_id }}:{{ common_group_id }}"
+        traefik:
+          - port: 5055
+        homepage:
+          group: Media
+          weight: 100
+          description: "Request and discover media"
+          widget:
+            key: !vault |
+              $ANSIBLE_VAULT;1.1;AES256
+              32343964326565373561646438333866356463623966626161383235366430363765613563633862
+              6137393130666230363134616164613565346537333835660a343430363266323161636534313832
+              32353630653166356363633934356434366433313066653666643339613962653366656164626136
+              6563396363363434380a643633366433613965336163623636643331366366393732386339653632
+              39366333626462613734653630363935626366333237366663323437363339386639396338303939
+              36633633313035633438653534356464313833653266633032353031333536336130383631633934
+              31373765343236353634373662643032303933616138316335386633383030343931393261383033
+              34626534386337356262
+            fields: '["pending", "processing"]'
+        blackbox:
+          path: /api/v1/status
+
+    - name: Wait for config
+      ansible.builtin.wait_for:
+        path: "{{ config_directory }}/config/settings.json"
+
+    - name: Configure
+      local.utils.json_patch:
+        src: "{{ config_directory }}/config/settings.json"
+        pretty: true
+        create_parents: true
+        operations:
+          - op: add
+            path: "{{ item.key }}"
+            value: "{{ item.value }}"
+      loop: "{{ _seerr_configuration | ansible.builtin.dict2items }}"
+      notify: Restart
+      vars:
+        _seerr_configuration:
+          main/applicationTitle: "{{ application }}"
+          main/applicationUrl: "https://{{ application }}.{{ common_tld }}"
+          main/defaultPermissions: 1283473568
+          main/localLogin: false
+          main/streamingRegion: "{{ common_country_iso_3166 }}"
+          main/mediaServerType: 1 # Plex
+          main/enableSpecialEpisodes: true
+
+          network/trustProxy: true
+          network/forceIpv4First: true
+
+          plex/name: plex
+          plex/ip: plex
+          plex/webAppUrl: "https://plex.{{ common_tld }}"
+
+          tautulli/hostname: tautulli
+          tautulli/port: 8181
+          tautulli/apiKey: "{{ tautulli_api_key }}"
+          tautulli/externalUrl: "https://tautulli.{{ common_tld }}"
+
+          radarr/0/name: Radarr
+          radarr/0/hostname: radarr
+          radarr/0/port: 7878
+          radarr/0/apiKey: "{{ radarr_api_key }}"
+          radarr/0/useSsl: false
+          radarr/0/baseUrl: ""
+          radarr/0/activeProfileId: 14
+          radarr/0/activeProfileName: Best
+          radarr/0/activeDirectory: "{{ common_mounted_directory_movies }}"
+          radarr/0/is4k: false
+          radarr/0/minimumAvailability: released
+          radarr/0/tags: []
+          radarr/0/isDefault: true
+          radarr/0/externalUrl: "https://radarr.{{ common_tld }}"
+          radarr/0/syncEnabled: true
+          radarr/0/preventSearch: false
+          radarr/0/tagRequests: true
+          radarr/0/id: 0
+
+          sonarr/0/name: "Sonarr"
+          sonarr/0/hostname: sonarr
+          sonarr/0/port: 8989
+          sonarr/0/apiKey: "{{ sonarr_api_key }}"
+          sonarr/0/useSsl: false
+          sonarr/0/baseUrl: ""
+          sonarr/0/activeProfileId: 9
+          sonarr/0/activeProfileName: "4K"
+          sonarr/0/activeDirectory: "{{ common_mounted_directory_tv }}"
+          sonarr/0/tags: []
+          sonarr/0/animeTags: []
+          sonarr/0/is4k: false
+          sonarr/0/isDefault: true
+          sonarr/0/enableSeasonFolders: true
+          sonarr/0/externalUrl: "https://sonarr.{{ common_tld }}"
+          sonarr/0/syncEnabled: true
+          sonarr/0/preventSearch: false
+          sonarr/0/tagRequests: true
+          sonarr/0/id: 0
+
+          sonarr/1/name: "Sonarr Anime"
+          sonarr/1/hostname: sonarr-anime
+          sonarr/1/port: 8989
+          sonarr/1/apiKey: "{{ sonarr_api_key }}"
+          sonarr/1/useSsl: false
+          sonarr/1/baseUrl: ""
+          sonarr/1/activeProfileId: 7
+          sonarr/1/activeProfileName: "Anime"
+          sonarr/1/activeDirectory: "{{ common_mounted_directory_tv }}"
+          sonarr/1/animeSeriesType: "anime"
+          sonarr/1/activeAnimeProfileId: 7
+          sonarr/1/activeAnimeProfileName: "Anime"
+          sonarr/1/activeAnimeDirectory: "{{ common_mounted_directory_tv }}"
+          sonarr/1/tags: []
+          sonarr/1/animeTags: []
+          sonarr/1/is4k: false
+          sonarr/1/isDefault: false
+          sonarr/1/enableSeasonFolders: true
+          sonarr/1/externalUrl: "https://sonarr-anime.{{ common_tld }}"
+          sonarr/1/syncEnabled: true
+          sonarr/1/preventSearch: false
+          sonarr/1/tagRequests: true
+          sonarr/1/id: 1
+
+          notifications/agents/webhook/enabled: true
+          notifications/agents/webhook/types: 146
+          notifications/agents/webhook/options/webhookUrl: "https://mattermost.{{ common_tld }}/hooks/{{ _seerr_mattermost_webhook_id }}"
+          notifications/agents/webhook/options/jsonPayload: "{{ _seerr_webhook_payload | ansible.builtin.to_json | ansible.builtin.b64encode }}"
+
+        _seerr_mattermost_webhook_id: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          32383630663939376465333938323565623663306334376230643637646639313262356661646339
+          6338666264353762393638303763363163613630353835380a363266616230353738316136623462
+          38393536663664333465363339333635356330323461393062613662666562343162643162353563
+          6462336265343130380a643064366661326435376665343166303234313165666361623335623362
+          31646138613861653261666566613132306166656334373163336239316263666134
+        _seerr_webhook_payload: |
+          {
+            "text": "{{ '{{subject}}' }} - {{ '{{event}}' }} by {{ '{{requestedBy_username}}' }}",
+            "attachments": [
+              {
+                "author_name": "{{ '{{requestedBy_username}}' }}",
+                "author_icon": "{{ '{{requestedBy_avatar}}' }}",
+                "title": "{{ '{{subject}}' }} - {{ '{{event}}' }}",
+                "title_link": "https://{{ application }}.{{ common_tld }}/{{ '{{media_type}}' }}/{{ '{{media_tmdbid}}' }}",
+                "text": "{{ '{{message}}' }}",
+                "image_url": "{{ '{{image}}' }}"
+              }
+            ]
+          }
+
+    - name: Waiting for user to finish setup
+      ansible.builtin.wait_for:
+        path: "{{ config_directory }}/config/settings.json"
+        search_regex: '"initialized": true'
+
+    - name: Configure Plex libraries
+      local.utils.json_patch:
+        src: "{{ config_directory }}/config/settings.json"
+        pretty: true
+        operations:
+          - op: add
+            path: "{{ item.key }}"
+            value: "{{ item.value }}"
+      loop: "{{ _seerr_configuration | ansible.builtin.dict2items }}"
+      vars:
+        _seerr_configuration:
+          # will error and cause duplicates if plex isn't configured yet
+          plex/libraries/0/id: "1"
+          plex/libraries/0/name: Movies
+          plex/libraries/0/enabled: true
+          plex/libraries/0/type: movie
+
+          plex/libraries/1/id: "2"
+          plex/libraries/1/name: TV Shows
+          plex/libraries/1/enabled: true
+          plex/libraries/1/type: show
