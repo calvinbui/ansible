@@ -132,6 +132,7 @@
     /* mattermost */
     {
       matchPackageNames: ['/.*\\/mattermost-(team|enterprise)-edition$/'],
+      separateMajorMinor: true,
       sourceUrl: 'https://github.com/mattermost/mattermost-server',
       changelogUrl: 'https://docs.mattermost.com/about/mattermost-server-releases.html#latest-releases',
     },
