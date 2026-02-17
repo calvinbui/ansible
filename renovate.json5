@@ -13,7 +13,7 @@
   prConcurrentLimit: 0,
   prHourlyLimit: 0,
 
-  rebaseWhen: 'conflicted',
+  rebaseWhen: 'behind-base-branch',
 
   dependencyDashboard: true,
 
