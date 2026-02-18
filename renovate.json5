@@ -294,7 +294,7 @@
     {
       matchPackageNames: ['/.*\\/glances$/'],
       versioning: 'regex:^ubuntu-(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)\\.?(?<build>\\d+)?-full$',
-      changelogUrl: 'https://github.com/nicolargo/glances/releases',
+      changelogUrl: 'https://github.com/nicolargo/glances/blob/develop/NEWS.rst',
     },
     /* mealie */
     {
