@@ -350,7 +350,7 @@ cards:
                       x: 27500
                       y: 29300
                     label:
-                      text: Small Bedroom
+                      text: Tammy's Study
                       x: 27500
                       y: 29300
                       offset_y: 35
@@ -388,7 +388,7 @@ cards:
                       x: 36200
                       y: 26125
                     label:
-                      text: Tammy's Study
+                      text: Kai's Bedroom
                       x: 36200
                       y: 26125
                       offset_y: 35

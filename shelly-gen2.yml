@@ -116,7 +116,7 @@
         settings:
           sys:
             device:
-              name: Small Rear Bedroom Lights
+              name: Tammy's Study Lights
         relay:
           - name: Downlights
       -
@@ -173,7 +173,7 @@
         settings:
           sys:
             device:
-              name: Tammy's Study Lights
+              name: Kai's Bedroom Lights
         relay:
           - name: Downlights
       -

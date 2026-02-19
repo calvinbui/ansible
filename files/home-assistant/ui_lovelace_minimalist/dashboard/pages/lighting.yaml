@@ -181,18 +181,18 @@ cards:
       grid-area: room7
     cards:
       -
-        name: 📦 Rear Bedrooms
+        name: 📦 Bedrooms
         <<: *lighting_card_title
+      -
+        entity: light.kai_s_bedroom_downlights
+        <<: *lighting_card_switch
+        variables:
+          ulm_card_light_name: Kai
       -
         entity: light.large_rear_bedroom_downlights
         <<: *lighting_card_switch
         variables:
           ulm_card_light_name: Large
-      -
-        entity: light.small_rear_bedroom_downlights
-        <<: *lighting_card_switch
-        variables:
-          ulm_card_light_name: Small
 
   - type: vertical-stack
     view_layout:

@@ -172,9 +172,9 @@ cards:
         type: horizontal-stack
         cards:
           -
-            entity: binary_sensor.presence_detector_07_presence
+            entity: binary_sensor.presence_detector_07_kai_s_bedroom_presence
             variables:
-              ulm_card_binary_sensor_alert_name: Tammy's Study
+              ulm_card_binary_sensor_alert_name: Kai's Bedroom
               ulm_card_binary_sensor_alert_icon: mdi:motion-sensor
             <<: *alarm_sensor_status
           -

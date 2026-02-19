@@ -300,7 +300,7 @@ opnsense_dhcp_reservations:
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(41) }}"
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
     mac: f4:f5:d8:da:7e:16
-    hostname: google-home-tammy-study
+    hostname: google-home-master-bedroom
   -
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(42) }}"
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
@@ -310,7 +310,7 @@ opnsense_dhcp_reservations:
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(43) }}"
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
     mac: 20:1f:3b:98:6f:e0
-    hostname: google-home-dining
+    hostname: google-home-living-room
   -
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(44) }}"
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
@@ -320,7 +320,7 @@ opnsense_dhcp_reservations:
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(45) }}"
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
     mac: ac:67:84:3c:4b:f7
-    hostname: google-home-tammys-study
+    hostname: google-home-kai-bedroom
   -
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(46) }}"
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
@@ -367,7 +367,7 @@ opnsense_dhcp_reservations:
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
     mac: 64:e8:33:b9:b8:38
     hostname: presence-detector-07
-    comment: "tammy's study"
+    comment: "kai's bedroom"
   -
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(81) }}"
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
@@ -396,7 +396,7 @@ opnsense_dhcp_reservations:
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(85) }}"
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
     mac: 7c:87:ce:65:d8:a0
-    hostname: shelly-small-rear-bedroom
+    hostname: shelly-tammys-study
     comment: "Plus 1PM"
   -
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(86) }}"
@@ -432,7 +432,7 @@ opnsense_dhcp_reservations:
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(91) }}"
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
     mac: e4:b3:23:16:c1:7c
-    hostname: shelly-tammys-study
+    hostname: shelly-kai-bedroom
     comment: "1PM Mini Gen3"
   -
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(92) }}"

@@ -125,9 +125,9 @@
             '0x94b216fffea0b78c':
               friendly_name: Sideboard ZBDongle-E Router
             '0x94b216fffea0b6db':
-              friendly_name: Tammy's Study ZBDongle-E Router
+              friendly_name: Kai's Bedroom ZBDongle-E Router
             '0x94b216fffea0b837':
-              friendly_name: Small Rear Bedroom ZBDongle-E Router
+              friendly_name: Tammy's Study ZBDongle-E Router
 
             # Aqara Water Leak Sensor (SJCGQ11LM)
             '0x00158d0008e0193f':
@@ -167,9 +167,9 @@
             '0x00158d008b6450b9':
               friendly_name: Ensuite Temperature & Humidity Sensor
             '0x00158d008b619299':
-              friendly_name: Tammy's Study Temperature & Humidity Sensor
+              friendly_name: Kai's Bedroom Temperature & Humidity Sensor
             '0x00158d008b617c95':
-              friendly_name: Small Rear Bedroom Temperature & Humidity Sensor
+              friendly_name: Tammy's Study Temperature & Humidity Sensor
             '0x00158d0009777cfe':
               friendly_name: Kitchen Temperature & Humidity Sensor
             '0x00158d0009775385':
@@ -197,11 +197,11 @@
             '0x00158d008afd762c':
               friendly_name: Large Rear Bedroom Sliding Door Sensor
             '0x00158d008afd59d2':
-              friendly_name: Small Rear Bedroom Sliding Door Sensor
+              friendly_name: Tammy's Study Sliding Door Sensor
             '0x00158d008afd1ebf':
               friendly_name: Master Bedroom Sliding Door Sensor
             '0x00158d008afd7625':
-              friendly_name: Tammy's Study Cabinet Door Sensor
+              friendly_name: Kai's Bedroom Cabinet Door Sensor
             '0x00158d008afd1999':
               friendly_name: Garage Right Window Sensor
             '0x00158d008afd232f':
@@ -233,7 +233,7 @@
             '0xe406bffffefd7988':
               friendly_name: Master Bedroom Centre Roller Blind
             '0x04e3e5fffeba0cd3':
-              friendly_name: Tammy's Study Roller Blind
+              friendly_name: Kai's Bedroom Roller Blind
 
             # Tuya Solar Rain Sensor (RB-SRAIN01)
             '0xa4c1386a70f431d1':
@@ -249,7 +249,7 @@
 
             # Aqara Vibration Sensor (DJT11LM)
             '0x00158d000af0bac2':
-              friendly_name: Tammy's Study Vibration Sensor
+              friendly_name: Kai's Bedroom Vibration Sensor
 
             # Moes Vibration Sensor (Tuya TS0210)
             '0xa4c1386b0855a815':
