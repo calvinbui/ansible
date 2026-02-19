@@ -20,7 +20,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/jlesage/jdownloader-2:v26.01.1
+        image: ghcr.io/jlesage/jdownloader-2:v26.02.2
         ip: "{{ container_network.subnet | ansible.utils.nthhost(8) }}"
         env:
           TZ: "{{ common_timezone }}"
