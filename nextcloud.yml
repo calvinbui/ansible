@@ -140,7 +140,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-onlyoffice"
-        image: docker.io/onlyoffice/documentserver:9.2.1
+        image: docker.io/onlyoffice/documentserver:9.3.0
         stop_signal: "{{ signal_map['SIGKILL'] }}"
         env:
           JWT_ENABLED: "true"
