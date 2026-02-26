@@ -34,7 +34,7 @@
       ansible.builtin.include_role:
         name: elasticsearch
       vars:
-        elasticsearch_version: 9.3.0
+        elasticsearch_version: 9.3.1
         elasticsearch_password: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           39653039613434366630613065626636336233303734653665663232646235396130363334373531
