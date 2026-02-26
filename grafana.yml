@@ -79,6 +79,8 @@
           GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: "false"
           GF_ANALYTICS_FEEDBACK_LINKS_ENABLED: "false"
 
+          GF_INSTALL_PLUGINS: yesoreyeram-infinity-datasource
+
           GF_SECURITY_DISABLE_GRAVATAR: "true"
 
           GF_USERS_DEFAULT_LANGUAGE: "{{ common_locale }}"
