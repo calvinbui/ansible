@@ -108,11 +108,6 @@
           plex/ip: plex
           plex/webAppUrl: "https://plex.{{ common_tld }}"
 
-          tautulli/hostname: tautulli
-          tautulli/port: 8181
-          tautulli/apiKey: "{{ tautulli_api_key }}"
-          tautulli/externalUrl: "https://tautulli.{{ common_tld }}"
-
           radarr/0/name: Radarr
           radarr/0/hostname: radarr
           radarr/0/port: 7878

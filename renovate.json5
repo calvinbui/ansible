@@ -108,11 +108,6 @@
       matchPackageNames: ['/outlinewiki\\/outline$/'],
       sourceUrl: 'https://github.com/outline/outline',
     },
-    /* tautulli */
-    {
-      matchPackageNames: ['/.*\\/tautulli$/'],
-      sourceUrl: 'https://github.com/Tautulli/Tautulli',
-    },
     /* vscode */
     {
       matchPackageNames: ['/.*\\/code-server$/'],
