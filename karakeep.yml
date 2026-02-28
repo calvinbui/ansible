@@ -76,6 +76,7 @@
           OAUTH_PROVIDER_NAME: "{{ oidc_provider | ansible.builtin.title }}"
 
           OPENAI_API_KEY: "{{ openai_api_key }}"
+          OCR_USE_LLM: "true"
 
           BROWSER_WEB_URL: http://{{ application }}-chrome:9222
         volumes:
