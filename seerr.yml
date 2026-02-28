@@ -39,7 +39,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/seerr-team/seerr:v3.0.1
+        image: ghcr.io/seerr-team/seerr:v3.1.0
         env:
           DB_TYPE: "postgres"
           DB_HOST: "{{ _postgres_hostname }}"
