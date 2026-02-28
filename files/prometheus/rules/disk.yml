@@ -5,18 +5,26 @@ groups:
     rules:
       -
         alert: DiskIOUtilizationHigh
-        expr: rate(node_disk_io_time_seconds_total[5m]) > 0.85 and on() zfs_pool_scrub_in_progress == 0
+        expr: >
+          rate(node_disk_io_time_seconds_total[5m]) > 0.85
+          and on(device, instance) node_disk_info
+          and on(instance) (sum by(instance) (zfs_pool_scrub_in_progress) == 0)
         for: 15m
         annotations:
           summary: High Disk I/O Utilization
           description: "{{ $labels.device }} I/O utilization is {{ $value | humanizePercentage }}"
       -
-        alert: DiskIOSaturated
-        expr: rate(node_disk_io_time_weighted_seconds_total[5m]) / rate(node_disk_io_time_seconds_total[5m]) > 10
+        alert: DiskIOQueueDepthHigh
+        expr: >
+          (
+            rate(node_disk_io_time_weighted_seconds_total[5m])
+            / clamp_min(rate(node_disk_io_time_seconds_total[5m]), 0.01)
+          ) > 10
+          and on(device, instance) node_disk_info{rotational="1"}
         for: 15m
         annotations:
-          summary: Disk I/O Queue Saturated
-          description: "{{ $labels.device }} has high I/O queue depth - average {{ $value | humanize }} operations queued"
+          summary: High Disk I/O Queue Depth
+          description: "{{ $labels.device }} average IO queue depth is {{ $value }}"
       -
         alert: DiskReadLatencyHigh
         expr: rate(node_disk_read_time_seconds_total[5m]) / rate(node_disk_reads_completed_total[5m]) > 0.1
