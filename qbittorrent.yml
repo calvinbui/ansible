@@ -98,8 +98,8 @@
           BitTorrent.Session\Port: 34727 # Port used for incoming connections
 
           ## Connection Limits
-          BitTorrent.Session\MaxConnections: -1 # Global maximum number of connections
-          BitTorrent.Session\MaxConnectionsPerTorrent: -1 # Maximum number of connections per torrent
+          BitTorrent.Session\MaxConnections: 500 # Global maximum number of connections
+          BitTorrent.Session\MaxConnectionsPerTorrent: 100 # Maximum number of connections per torrent
           BitTorrent.Session\MaxUploads: -1 # Global maximum number of upload slots
           BitTorrent.Session\MaxUploadsPerTorrent: -1 # Maximum number of upload slots per torrent
 
