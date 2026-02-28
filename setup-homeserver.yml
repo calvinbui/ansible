@@ -144,6 +144,7 @@
           vm.dirty_background_bytes: 4294967296 # 4GB
           vm.dirty_bytes: 8589934592 # 8GB
           vm.max_map_count: 524288 # for some databases like ES, TSDB
+          vm.overcommit_ratio: 80 # raise commit limit, default 50% is too conservative
 
           # kernel
           kernel.pid_max: 4194304
