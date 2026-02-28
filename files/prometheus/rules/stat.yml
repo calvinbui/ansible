@@ -31,17 +31,3 @@ groups:
         annotations:
           summary: High Number of Blocked Processes
           description: "{{ $value }} processes blocked waiting for I/O"
-      -
-        alert: InterruptRateHigh
-        expr: rate(node_intr_total[5m]) > 50000
-        for: 15m
-        annotations:
-          summary: High Interrupt Rate
-          description: "System handling {{ $value | humanize }} interrupts per second"
-      -
-        alert: InterruptRateCritical
-        expr: rate(node_intr_total[5m]) > 100000
-        for: 10m
-        annotations:
-          summary: Critical Interrupt Rate
-          description: "System handling {{ $value | humanize }} interrupts per second - possible hardware or driver issue"
