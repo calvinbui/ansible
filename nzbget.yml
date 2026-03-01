@@ -127,7 +127,7 @@
             36393936343636353765653965666532383233396561653664336362316465653531
           Server1.JoinGroup: 'no'
           Server1.Encryption: 'yes'
-          Server1.Cipher: 'AES128-SHA'
+          Server1.Cipher: 'TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256'
           Server1.Connections: '100'
           Server1.Retention: '5500'
           Server1.IpVersion: 'ipv4'
@@ -144,7 +144,7 @@
           Server2.Password: *frugal_password
           Server2.JoinGroup: 'no'
           Server2.Encryption: 'yes'
-          Server2.Cipher: 'AES128-SHA'
+          Server2.Cipher: 'TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256'
           Server2.Connections: '50'
           Server2.Retention: '5500'
           Server2.IpVersion: 'ipv4'
@@ -161,7 +161,7 @@
           Server3.Password: *frugal_password
           Server3.JoinGroup: 'no'
           Server3.Encryption: 'yes'
-          Server3.Cipher: 'AES128-SHA'
+          Server3.Cipher: 'TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256'
           Server3.Connections: '50'
           Server3.Retention: '5500'
           Server3.IpVersion: 'ipv4'
@@ -178,7 +178,7 @@
           Server4.Password: *frugal_password
           Server4.JoinGroup: 'no'
           Server4.Encryption: 'yes'
-          Server4.Cipher: 'AES128-SHA'
+          Server4.Cipher: 'TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256'
           Server4.Connections: '50'
           Server4.Retention: '3000'
           Server4.IpVersion: 'ipv4'
@@ -195,7 +195,7 @@
           Server5.Password: *frugal_password
           Server5.JoinGroup: 'no'
           Server5.Encryption: 'yes'
-          Server5.Cipher: 'AES128-SHA'
+          Server5.Cipher: 'TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256'
           Server5.Connections: '50'
           Server5.Retention: '5500'
           Server5.IpVersion: 'ipv4'
@@ -212,7 +212,7 @@
           Server6.Password: *frugal_password
           Server6.JoinGroup: 'no'
           Server6.Encryption: 'yes'
-          Server6.Cipher: 'AES128-SHA'
+          Server6.Cipher: 'TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256'
           Server6.Connections: '100'
           Server6.Retention: '5500'
           Server6.IpVersion: 'ipv4'
@@ -229,7 +229,7 @@
           Server7.Password: *frugal_password
           Server7.JoinGroup: 'no'
           Server7.Encryption: 'yes'
-          Server7.Cipher: 'AES128-SHA'
+          Server7.Cipher: 'TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256'
           Server7.Connections: '100'
           Server7.Retention: '5500'
           Server7.IpVersion: 'ipv4'
@@ -258,7 +258,7 @@
             38643661353262383031323966363039353534363032666530336563393035393266
           Server8.JoinGroup: 'no'
           Server8.Encryption: 'yes'
-          Server8.Cipher: 'AES128-SHA'
+          Server8.Cipher: 'TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256'
           Server8.Connections: '100'
           Server8.Retention: '5186'
           Server8.IpVersion: 'ipv4'
@@ -275,7 +275,7 @@
           Server9.Password: *blocknews_password
           Server9.JoinGroup: 'no'
           Server9.Encryption: 'yes'
-          Server9.Cipher: 'AES128-SHA'
+          Server9.Cipher: 'TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256'
           Server9.Connections: '100'
           Server9.Retention: '5186'
           Server9.IpVersion: 'ipv4'
