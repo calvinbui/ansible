@@ -8,13 +8,23 @@
     container_network: "{{ networks.pub }}"
 
   tasks:
-    - name: Create data folder
+    - name: Create directories
       ansible.builtin.file:
-        path: "{{ config_directory }}/data"
+        path: "{{ config_directory }}/{{ item }}"
         state: directory
         owner: "{{ common_user }}"
         group: "{{ common_group }}"
         mode: "0771"
+      loop:
+        - data
+        - ssh
+
+    - name: Create SSH key
+      community.crypto.openssh_keypair:
+        path: "{{ config_directory }}/ssh/id_ed25519"
+        type: ed25519
+        owner: "{{ common_user }}"
+        group: "{{ common_group }}"
 
     - name: Create postgres container
       ansible.builtin.include_role:
@@ -78,6 +88,12 @@
           FORGEJO__repository__DISABLE_MIGRATIONS: "true"
           FORGEJO__repository__DEFAULT_BRANCH: "master"
           FORGEJO__repository__DISABLE_STARS: "true"
+
+          FORGEJO__repository.signing__FORMAT: "ssh"
+          FORGEJO__repository.signing__SIGNING_KEY: "/ssh/id_ed25519.pub"
+          FORGEJO__repository.signing__SIGNING_NAME: "Calvin Bui"
+          FORGEJO__repository.signing__SIGNING_EMAIL: "3604363+calvinbui@users.noreply.github.com"
+          FORGEJO__repository.signing__MERGES: "always"
 
           FORGEJO__badges__ENABLED: "false"
 
@@ -187,6 +203,7 @@
           FORGEJO__other__ENABLE_FEED: "false"
         volumes:
           - "{{ config_directory }}/data:/data"
+          - "{{ config_directory }}/ssh:/ssh"
           - /etc/localtime:/etc/localtime:ro
         traefik:
           - port: 3000
