@@ -14,18 +14,46 @@
         force_restart: true
 
   tasks:
-    - name: Create config folder
+    - name: Create directories
       ansible.builtin.file:
-        path: "{{ config_directory }}"
+        path: "{{ config_directory }}/{{ item }}"
         state: directory
         owner: 12021
         group: "{{ common_group_id }}"
         mode: "0751"
         recurse: true
+      loop:
+        - cache
+        - repos
+
+    - name: Create PGP directory
+      ansible.builtin.file:
+        path: "{{ config_directory }}/pgp"
+        state: directory
+        owner: 12021
+        group: "{{ common_group_id }}"
+        mode: "0700"
+
+    - name: Write PGP private key (armored)
+      ansible.builtin.copy:
+        src: "{{ files_directory }}/pgp/private.key"
+        dest: "{{ config_directory }}/pgp/private.key"
+        decrypt: true
+        owner: 12021
+        group: "{{ common_group_id }}"
+        mode: "0600"
+      no_log: true
+
+    - name: Read PGP private key for Renovate env var
+      ansible.builtin.slurp:
+        src: "{{ config_directory }}/pgp/private.key"
+      register: _renovate_pgp_private_key
+      no_log: true
 
     - name: Create container
       ansible.builtin.include_role:
         name: podman_container
+      no_log: true
       vars:
         image: ghcr.io/renovatebot/renovate:43
         stop_signal: "{{ signal_map['SIGKILL'] }}"
@@ -52,6 +80,7 @@
 
           RENOVATE_AUTODISCOVER: "true"
           RENOVATE_GIT_AUTHOR: 'Renovate Bot <bot@renovateapp.com>'
+          RENOVATE_GIT_PRIVATE_KEY: "{{ _renovate_pgp_private_key.content | b64decode | regex_replace('\\r?\\n$', '') | regex_replace('\\r?\\n', '\\\\n') }}"
 
           # for release notes
           RENOVATE_GITHUB_COM_TOKEN: &github_token !vault |
