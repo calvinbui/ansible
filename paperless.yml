@@ -74,7 +74,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/paperless-ngx/paperless-ngx:2.20.8
+        image: ghcr.io/paperless-ngx/paperless-ngx:2.20.9
         env:
           USERMAP_UID: "{{ common_user_id | ansible.builtin.string }}"
           USERMAP_GID: "{{ common_group_id | ansible.builtin.string }}"
