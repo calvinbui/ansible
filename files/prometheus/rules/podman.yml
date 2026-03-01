@@ -33,7 +33,13 @@ groups:
           description: "Container {{ $labels.name }} ({{ $labels.image }}) has exited with a non-zero exit code: {{ $value }}."
 
       - alert: PodmanContainerHighCPU
-        expr: rate(podman_container_cpu_seconds_total[5m]) > 1.5
+        # Plex is excluded between 14:00-20:00 UTC to avoid alerting during scheduled maintenance tasks
+        expr: >
+          rate(podman_container_cpu_seconds_total[5m]) > 1.5
+          unless (
+            rate(podman_container_cpu_seconds_total{name="plex"}[5m]) > 1.5
+            and on() (hour() >= 14 and hour() < 20)
+          )
         for: 10m
         annotations:
           summary: "Container has high CPU usage"
