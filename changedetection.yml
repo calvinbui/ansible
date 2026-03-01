@@ -37,7 +37,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/dgtlmoon/changedetection.io:0.54.2
+        image: ghcr.io/dgtlmoon/changedetection.io:0.54.3
         ip: "{{ container_network.subnet | ansible.utils.nthhost(9) }}"
         env:
           BASE_URL: "https://{{ application }}.{{ common_tld }}"
