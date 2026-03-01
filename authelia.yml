@@ -162,4 +162,5 @@
           - com.centurylinklabs.watchtower.enable=false
           - "traefik.http.middlewares.{{ application }}.forwardauth.address=http://{{ application }}.{{ common_local_tld }}:9091/api/verify?rd=https://{{ application }}.{{ common_tld }}"
           - "traefik.http.middlewares.{{ application }}.forwardauth.trustForwardHeader=true"
+          - "traefik.http.middlewares.{{ application }}.forwardauth.maxResponseBodySize=4096"
           - "traefik.http.middlewares.{{ application }}.forwardauth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email"
