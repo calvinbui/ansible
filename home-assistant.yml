@@ -151,7 +151,7 @@
             name: podman_container
           vars:
             container_name: eufy-security-ws
-            image: docker.io/bropat/eufy-security-ws:2.0.1
+            image: docker.io/bropat/eufy-security-ws:2.1.0
             env:
               USERNAME: "{{ application }}{{ common_email_to }}"
               PASSWORD: !vault |
