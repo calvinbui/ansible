@@ -284,6 +284,7 @@
           # SECURITY
           ControlUsername: ''
           ControlPassword: ''
+          UpdateCheck: 'none'
           UMask: '022'
 
           # CATEGORIES
