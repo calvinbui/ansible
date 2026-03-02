@@ -5,6 +5,14 @@
   vars:
     application: tracearr
 
+    tracearr_mattermost_webhook_id: !vault |
+      $ANSIBLE_VAULT;1.1;AES256
+      66663866396132336433653266353562363039616331633530643435323133333135323065353833
+      3364373238343366396364393466653238633233373231330a633761666132333566336439383935
+      35613835376237313165613162393931306136326232623836373136623233363732383665353639
+      6237663739323331370a373062613933343064623161663032333066336630326433386364636132
+      34666635376435356638643030646333643333643230316238353634656238663032
+
     container_network: "{{ networks.pub }}"
 
   tasks:
@@ -44,6 +52,20 @@
           3066323530616230620a336535653731643764376438623630663835323637323864326339393438
           31323838356535353966653762633862623634353166396465623933326638653862333937373664
           3137633166646639633261343662643632643038323434323931
+
+    - name: Create apprise container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        container_name: "{{ application }}-apprise"
+        image: docker.io/caronc/apprise:1.3.1
+        env:
+          APPRISE_ALLOW_SERVICES: mmosts
+          APPRISE_STATELESS_URLS: "mmosts://mattermost.{{ common_tld }}/{{ tracearr_mattermost_webhook_id }}"
+          APPRISE_STATEFUL_MODE: disabled
+          APPRISE_CONFIG_LOCK: "yes"
+        blackbox:
+          path: /status
 
     - name: Create container
       ansible.builtin.include_role:
