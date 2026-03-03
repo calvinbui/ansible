@@ -13,12 +13,19 @@
     loop_var: network_item
   vars:
     calculated_values:
-      mac: "{{ '0a:0a:%02d:%02d:%02d:%02d' | ansible.builtin.format(
-                (networks[network_item.name].vlan | ansible.builtin.int),
-                ((network_item.ip | ansible.builtin.split('.'))[2] | ansible.builtin.int),
-                ((network_item.ip | ansible.builtin.split('.'))[3] | ansible.builtin.int) // 100,
-                ((network_item.ip | ansible.builtin.split('.'))[3] | ansible.builtin.int) % 100
-              ) | upper if network_item.ip is defined else omit }}"
+      mac: "{{ '0a:0a:%s:%s:%s:%s' | format(
+                ((container_name | default(application) ~ network_item.name) | hash('md5'))[0:2],
+                ((container_name | default(application) ~ network_item.name) | hash('md5'))[2:4],
+                ((container_name | default(application) ~ network_item.name) | hash('md5'))[4:6],
+                ((container_name | default(application) ~ network_item.name) | hash('md5'))[6:8]
+              ) | upper if network_item.ip is not defined
+              else
+              '0a:0a:%02d:%02d:%02d:%02d' | ansible.builtin.format(
+                (networks[network_item.name].vlan | int),
+                ((network_item.ip.split('.'))[2] | int),
+                ((network_item.ip.split('.'))[3] | int) // 100,
+                ((network_item.ip.split('.'))[3] | int) % 100
+              ) | upper }}"
     final_item: "{{ network_item | combine(calculated_values) }}"
 
 - name: Create OPNsense DHCP reservation for MAC address
