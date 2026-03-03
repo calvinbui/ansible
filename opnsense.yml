@@ -446,7 +446,7 @@
 
         # DNS
         dns_port: 53053
-        local_ttl: 30
+        local_ttl: 0
 
         # DNS Query Forwarding
         resolv_system: true
@@ -1032,3 +1032,18 @@
       notify: Reload firewall rules
       tags:
         - firewall
+
+- hosts: opnsense
+
+  tasks:
+    - name: Dnsmasq - Ignore client identifier option sent by DHCP clients and only use MAC addresses
+      ansible.builtin.copy:
+        content: |
+          dhcp-ignore-clid
+        dest: /usr/local/etc/dnsmasq.conf.d/01-ignore-clid.conf
+        owner: root
+        group: wheel
+        mode: '0644'
+      notify: Reload dnsmasq
+      tags:
+        - dnsmasq
