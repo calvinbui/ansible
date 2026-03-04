@@ -10,3 +10,6 @@ postgres_name: "{{ application }}-postgres"
 postgres_user: "{{ application }}"
 postgres_password: "changeme"
 postgres_database: "{{ application }}"
+
+postgres_uid: 999
+postgres_gid: 999

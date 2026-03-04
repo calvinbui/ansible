@@ -4,8 +4,8 @@
   ansible.builtin.file:
     path: "{{ postgres_directory }}"
     state: directory
-    owner: 999
-    group: 999
+    owner: "{{ postgres_uid }}"
+    group: "{{ postgres_gid }}"
     mode: "0700"
 
 - name: Create Postgres container

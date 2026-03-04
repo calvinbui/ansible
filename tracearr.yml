@@ -38,6 +38,10 @@
           3232623135613638350a633433386136326534356433636635623833363762663561303732303461
           38333736393038613866303061643238666162633534376635653135613034626163626534643738
           6432353762636436633362303735323534306335633837643565
+        postgres_directories:
+          - "{{ config_directory }}/postgres:/home/postgres/pgdata/data"
+        postgres_uid: 1000
+        postgres_gid: 1000
 
     - name: Create valkey container
       ansible.builtin.include_role:
