@@ -124,12 +124,22 @@
       matchPackageNames: ['/.*\\/grafana$/'],
       sourceUrl: 'https://github.com/grafana/grafana',
     },
-    /* mattermost */
+    /* mattermost (source: GitHub releases) */
     {
-      matchPackageNames: ['/.*\\/mattermost-(team|enterprise)-edition$/'],
+      matchDatasources: ['github-releases'],
+      matchPackageNames: ['mattermost/mattermost-server'],
       separateMajorMinor: true,
+      versioning: 'semver',
+      extractVersion: '^v?(?<version>\\d+\\.\\d+\\.\\d+)$',
+      allowedVersions: '/^\\d+\\.\\d+\\.\\d+$/',
       sourceUrl: 'https://github.com/mattermost/mattermost-server',
       changelogUrl: 'https://docs.mattermost.com/about/mattermost-server-releases.html#latest-releases',
+    },
+    /* mattermost docker image updates disabled (we source from GitHub releases instead) */
+    {
+      matchDatasources: ['docker'],
+      matchPackageNames: ['/.*\\/mattermost-(team|enterprise)-edition$/'],
+      enabled: false,
     },
     /* onlyoffice */
     {
@@ -402,6 +412,18 @@
   ],
 
   customManagers: [
+    /* mattermost */
+    {
+      customType: "regex",
+      managerFilePatterns: ['^mattermost\\.ya?ml$'],
+      matchStrings: [
+        'image: docker\\.io/mattermost/mattermost-(team|enterprise)-edition:(?<currentValue>\\d+\\.\\d+\\.\\d+)',
+      ],
+      depNameTemplate: "mattermost/mattermost-server",
+      datasourceTemplate: "github-releases",
+      versioningTemplate: "semver",
+    },
+
     /* postgres */
     {
       customType: "regex",
