@@ -54,7 +54,7 @@ groups:
 
       - alert: PodmanContainerNetworkErrors
         expr: (rate(podman_container_net_input_dropped_total[5m]) + rate(podman_container_net_input_errors_total[5m]) + rate(podman_container_net_output_dropped_total[5m]) + rate(podman_container_net_output_errors_total[5m])) > 0.1
-        for: 5m
+        for: 10m
         annotations:
           summary: "Container is experiencing network errors"
           description: "Container {{ $labels.name }} ({{ $labels.image }}) is dropping packets or experiencing network errors. Current rate: {{ $value | humanize }} errors/sec."
