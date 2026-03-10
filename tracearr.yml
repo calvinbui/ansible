@@ -15,6 +15,12 @@
 
     container_network: "{{ networks.pub }}"
 
+  handlers:
+    - name: Restart apprise
+      containers.podman.podman_container:
+        name: "{{ application }}-apprise"
+        force_restart: true
+
   tasks:
     - name: Create config folder
       ansible.builtin.file:
@@ -57,6 +63,71 @@
           31323838356535353966653762633862623634353166396465623933326638653862333937373664
           3137633166646639633261343662643632643038323434323931
 
+    - name: Create apprise folder
+      ansible.builtin.file:
+        path: "{{ config_directory }}/apprise"
+        state: directory
+        owner: "{{ common_user }}"
+        group: "{{ common_group }}"
+        mode: "0771"
+
+    - name: Create apprise htpasswd file
+      community.general.htpasswd:
+        path: "{{ config_directory }}/apprise/htpasswd"
+        name: "{{ item.name }}"
+        password: "{{ item.password }}"
+        mode: "0644"
+        owner: "{{ common_root_id }}"
+        group: "{{ common_root_group }}"
+      no_log: true
+      loop:
+        - name: "{{ application }}"
+          password: !vault |
+            $ANSIBLE_VAULT;1.1;AES256
+            37626663373632366261656261646434326161346336653561613735636534346639396161653635
+            3165643138376134393363363931396164663430646234360a633937646335343038373031336634
+            38366563366532633466396562626131643639313061306666373633333964323238656630326362
+            3336376535323330330a343733633336653735636139656336643062373738363532346134653463
+            34636338656632663531646637663263656631353335366462393664613130613839
+
+    - name: Create apprise location-override file
+      ansible.builtin.copy:
+        content: |
+          auth_basic            "Apprise API Restricted Area";
+          auth_basic_user_file  /etc/nginx/.htpasswd;
+        dest: "{{ config_directory }}/apprise/location-override.conf"
+        mode: "0644"
+        owner: "{{ common_root_id }}"
+        group: "{{ common_root_group }}"
+      notify: Restart apprise
+
+    - name: Create apprise server-override file
+      ansible.builtin.copy:
+        content: |
+          location ~ ^/status/?$ {
+            auth_basic off;
+            proxy_pass http://apprise_upstream;
+            proxy_http_version 1.1;
+            proxy_set_header Connection "";
+            proxy_set_header Accept-Encoding "";
+            proxy_set_header Transfer-Encoding "";
+            proxy_set_header Host $host;
+            proxy_set_header X-Forwarded-Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_connect_timeout 1s;
+            proxy_send_timeout 2s;
+            proxy_read_timeout 2s;
+            proxy_buffering off;
+            access_log off;
+            add_header Cache-Control "no-store" always;
+          }
+        dest: "{{ config_directory }}/apprise/server-override.conf"
+        mode: "0644"
+        owner: "{{ common_root_id }}"
+        group: "{{ common_root_group }}"
+      notify: Restart apprise
+
     - name: Create apprise container
       ansible.builtin.include_role:
         name: podman_container
@@ -68,7 +139,14 @@
           APPRISE_STATELESS_URLS: "mmosts://mattermost.{{ common_tld }}/{{ tracearr_mattermost_webhook_id }}"
           APPRISE_STATEFUL_MODE: disabled
           APPRISE_CONFIG_LOCK: "yes"
+          APPRISE_WORKER_COUNT: "1"
+        volumes:
+          - "{{ config_directory }}/apprise/location-override.conf:/etc/nginx/location-override.conf:ro"
+          - "{{ config_directory }}/apprise/server-override.conf:/etc/nginx/server-override.conf:ro"
+          - "{{ config_directory }}/apprise/htpasswd:/etc/nginx/.htpasswd:ro"
         blackbox:
+          protocol: http
+          host: "{{ application }}-apprise:8000"
           path: /status
 
     - name: Create container
