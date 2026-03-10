@@ -62,7 +62,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-apprise"
-        image: docker.io/caronc/apprise:1.3.1
+        image: docker.io/caronc/apprise:v1.3.2
         env:
           APPRISE_ALLOW_SERVICES: mmosts
           APPRISE_STATELESS_URLS: "mmosts://mattermost.{{ common_tld }}/{{ tracearr_mattermost_webhook_id }}"
