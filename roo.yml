@@ -1,0 +1,39 @@
+---
+
+- hosts: homeserver
+
+  vars:
+    application: roo
+
+    container_network: "{{ networks.pub }}"
+
+  tasks:
+    - name: Create config folder
+      ansible.builtin.file:
+        path: "{{ config_directory }}"
+        state: directory
+        owner: "{{ common_user }}"
+        group: "{{ common_group }}"
+        mode: "0771"
+
+    - name: Create container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        container_name: "{{ application }}-qdrant"
+        image: ghcr.io/qdrant/qdrant/qdrant:v1.17.0
+        env:
+          QDRANT__SERVICE__API_KEY: !vault |
+            $ANSIBLE_VAULT;1.1;AES256
+            61376130373834313764326235646135666233623837313037653538633932613032633161656134
+            3434383061366464613363393163343264353830643135610a353662316164363965353766643437
+            61646562643931336430356534363432353438666261646165313666383262383165346334383335
+            3532623133633635390a373165393236316663623535383162336430316533373339343837366238
+            30373336386135333530356362386263626461343831653863323937626135363261356438303366
+            3830313665613336343063653536646332323164333234323237
+
+          QDRANT__TELEMETRY_DISABLED: "true"
+        volumes:
+          - "{{ config_directory }}:/qdrant/storage"
+        traefik:
+          - port: 6333
