@@ -86,7 +86,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-rag-api"
-        image: ghcr.io/danny-avila/librechat-rag-api-dev:latest@sha256:22410091cbb161f2a0b55821a937d92b959ae6acb1e7a6448270b16bc531bd80
+        image: ghcr.io/danny-avila/librechat-rag-api-dev:latest@sha256:20ffdd206e20b3cea17d0ff2d457dc40a0a44c3f4ab84f9e3bbd4878cb2b508f
         env:
           RAG_OPENAI_API_KEY: "{{ openai_api_key }}"
 
