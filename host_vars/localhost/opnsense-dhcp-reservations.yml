@@ -124,7 +124,7 @@ opnsense_dhcp_reservations:
   -
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(7) }}"
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
-    mac: 70:4a:0e:bc:b3:48
+    mac: c0:f5:35:78:48:e0
     hostname: alarm-panel
     comment: "alarm touchscreen"
   -
