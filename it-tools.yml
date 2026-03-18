@@ -1,0 +1,23 @@
+---
+
+- hosts: homeserver
+
+  vars:
+    application: it-tools
+
+    container_network: "{{ networks.pub }}"
+
+  tasks:
+    - name: Create container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        image: ghcr.io/sharevb/it-tools:2026.1.4
+        traefik:
+          - port: 8080
+            auth: page
+        homepage:
+          name: IT Tools
+          group: Tools
+          weight: 150
+          description: "Collection of handy online tools"
