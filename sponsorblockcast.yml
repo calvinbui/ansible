@@ -12,7 +12,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/gabe565/castsponsorskip:0.8.2
+        image: ghcr.io/gabe565/castsponsorskip:0.8.3
         env:
           TZ: "{{ common_timezone }}"
 
