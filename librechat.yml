@@ -58,7 +58,7 @@
         name: postgres
       vars:
         postgres_image: docker.io/pgvector/pgvector
-        postgres_version: 0.8.1-pg18
+        postgres_version: 0.8.2-pg18
         postgres_password: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           63626431336239643665633437343739666638366534353439616335623539623935353565643161
