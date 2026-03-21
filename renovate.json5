@@ -415,7 +415,7 @@
     /* mattermost */
     {
       customType: "regex",
-      managerFilePatterns: ['^mattermost\\.ya?ml$'],
+      managerFilePatterns: ['/^mattermost\\.ya?ml$/'],
       matchStrings: [
         'image: docker\\.io/mattermost/mattermost-(team|enterprise)-edition:(?<currentValue>\\d+\\.\\d+\\.\\d+)',
       ],
@@ -476,7 +476,7 @@
     /* immich postgres */
     {
       customType: "regex",
-      managerFilePatterns: ['^immich\\.ya?ml$'],
+      managerFilePatterns: ['/^immich\\.ya?ml$/'],
       matchStrings: ['postgres_version: (?<currentValue>.*)'],
       depNameTemplate: "ghcr.io/immich-app/postgres",
       datasourceTemplate: "docker",
@@ -484,7 +484,7 @@
     },
     {
       customType: "regex",
-      managerFilePatterns: ['^immich\\.ya?ml$'],
+      managerFilePatterns: ['/^immich\\.ya?ml$/'],
       matchStrings: ['postgres_version: (?<currentValue>\\d+)-vectorchord\\d+\\.\\d+\\.\\d+-\\w+\\d+\\.\\d+\\.\\d+'],
       depNameTemplate: "ghcr.io/immich-app/postgres",
       datasourceTemplate: "docker",
@@ -495,7 +495,7 @@
     /* librechat postgres */
     {
       customType: "regex",
-      managerFilePatterns: ['^librechat\\.ya?ml$'],
+      managerFilePatterns: ['/^librechat\\.ya?ml$/'],
       matchStrings: ['postgres_version: (?<currentValue>.*)'],
       depNameTemplate: "pgvector/pgvector",
       datasourceTemplate: "docker",
@@ -503,7 +503,7 @@
     },
     {
       customType: "regex",
-      managerFilePatterns: ['^librechat\\.ya?ml$'],
+      managerFilePatterns: ['/^librechat\\.ya?ml$/'],
       matchStrings: ['postgres_version: (?<extensionVersion>\\d+\\.\\d+\\.\\d+)-pg(?<currentValue>\\d+)'],
       depNameTemplate: "pgvector/pgvector",
       datasourceTemplate: "docker",
