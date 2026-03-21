@@ -341,6 +341,11 @@
       sourceUrl: 'https://github.com/nzbgetcom/nzbget',
       changelogUrl: 'https://github.com/nzbgetcom/nzbget/blob/develop/ChangeLog.md',
     },
+    /* pgvector */
+    {
+      matchPackageNames: ['/pgvector\\/pgvector$/'],
+      changelogUrl: 'https://github.com/pgvector/pgvector/blob/master/CHANGELOG.md',
+    },
     /* librechat */
     {
       matchPackageNames: ['/.*\\/librechat$/'],
