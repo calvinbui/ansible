@@ -1,0 +1,57 @@
+---
+
+- hosts: homeserver
+
+  vars:
+    application: forgejo-renovate-digest
+
+    container_network: "{{ networks.pub }}"
+
+  tasks:
+    - name: Clone
+      ansible.builtin.git:
+        repo: "https://github.com/calvinbui/forgejo-renovate-digest.git"
+        dest: "{{ config_directory }}"
+        update: true
+
+    - name: Create container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        image: public.ecr.aws/docker/library/python:3.14.3-slim
+        entrypoint: /bin/bash
+        init: true
+        command:
+          - -c
+          - pip install --root-user-action=ignore -r /app/requirements.txt && tail -f /dev/null
+        env:
+          FORGEJO_URL: "https://forgejo.{{ common_tld }}"
+
+          FORGEJO_TOKEN: !vault |
+            $ANSIBLE_VAULT;1.1;AES256
+            33643861616663346363346162656334653937636364303038323232333736353438333232613332
+            6365313462343461313132343662376437626163633837340a646261313031323739303461386461
+            62376161663664353563356137643062366331663136373464346131376162613638336238313961
+            3766306462326361610a633763383231303533366633323338393736616637663463366330623430
+            34343032363364383163353936353732363235663836386233656432663831623739636666393235
+            6435626437393662396134646237656465666634643731366466
+
+          FORGEJO_REPO: calvin/ansible
+
+          SMTP_HOST: "{{ common_email_server }}"
+          SMTP_PORT: "{{ common_email_port | ansible.builtin.string }}"
+          SMTP_USER: "{{ common_email_username }}"
+          SMTP_PASSWORD: "{{ common_email_password }}"
+          SMTP_TLS: "true"
+
+          EMAIL_FROM: "{{ common_email_username }}"
+          EMAIL_TO: "calvin{{ common_email_to }}"
+        volumes:
+          - "{{ config_directory }}:/app"
+        labels:
+          - "ofelia.enabled=true"
+          - "ofelia.job-exec.{{ application }}-cron.user=0"
+          - "ofelia.job-exec.{{ application }}-cron.schedule=15 17 * * *"
+          - "ofelia.job-exec.{{ application }}-cron.command=/usr/local/bin/python3 /app/main.py"
+          - "ofelia.job-exec.{{ application }}-cron.tty=true"
+          - "ofelia.job-exec.{{ application }}-cron.no-overlap=true"
