@@ -23,8 +23,6 @@
 
   timezone: 'Australia/Sydney',
 
-  reviewers: ['calvin'],
-
   commitMessagePrefix: '{{depName}}:',
   commitMessageAction: 'update',
   commitMessageTopic: 'version',
