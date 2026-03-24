@@ -72,8 +72,8 @@
           - --objstore.config={{ thanos_objstore_config | ansible.builtin.to_nice_yaml }}
 
           - --wait
-          - --retention.resolution-raw=7d
-          - --retention.resolution-5m=30d
+          - --retention.resolution-raw=30d
+          - --retention.resolution-5m=90d
           - --retention.resolution-1h=365d
         volumes:
           - "{{ config_directory }}/compactor:/compactor"
