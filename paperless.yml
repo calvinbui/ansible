@@ -61,7 +61,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-tika"
-        image: docker.io/apache/tika:3.2.3.0
+        image: docker.io/apache/tika:3.3.0.0
 
     - name: Create gotenberg container
       ansible.builtin.include_role:
