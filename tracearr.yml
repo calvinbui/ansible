@@ -153,7 +153,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/connorgallopo/tracearr:1.4.23
+        image: ghcr.io/connorgallopo/tracearr:1.4.24
         env:
           NODE_ENV: production
 
