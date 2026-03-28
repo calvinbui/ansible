@@ -21,7 +21,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-qdrant"
-        image: ghcr.io/qdrant/qdrant/qdrant:v1.17.0
+        image: ghcr.io/qdrant/qdrant/qdrant:v1.17.1
         env:
           QDRANT__SERVICE__API_KEY: !vault |
             $ANSIBLE_VAULT;1.1;AES256
