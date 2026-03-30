@@ -14,6 +14,7 @@
   vars:
     container_name: "{{ postgres_name }}"
     image: "{{ postgres_image }}:{{ postgres_version }}"
+    command: "{{ postgres_command | default(omit) }}"
     env:
       POSTGRES_USER: "{{ postgres_user }}"
       POSTGRES_PASSWORD: "{{ postgres_password }}"
@@ -24,7 +25,6 @@
     healthcheck_interval: 30s
     healthcheck_timeout: 20s
     healthcheck_retries: 3
-
   register: postgres_container
 
 - name: Set variables

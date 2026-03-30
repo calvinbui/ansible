@@ -1,6 +1,7 @@
 ---
 
 postgres_image: "public.ecr.aws/docker/library/postgres"
+postgres_command: null
 
 postgres_directory: "{{ config_directory }}/postgres"
 postgres_directory_extra: []
