@@ -285,7 +285,7 @@
             middlewares:
               - "{{ application }}-notify-push-stripprefix"
         blackbox:
-          path: /push/test/remote/1.2.3.4
+          enable: false
         labels:
           - "traefik.http.middlewares.{{ application }}-notify-push-stripprefix.stripprefix.prefixes=/push"
 
