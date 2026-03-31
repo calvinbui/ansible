@@ -263,12 +263,12 @@ opnsense_dhcp_reservations:
     mac: 28:ee:52:74:47:e8
     hostname: kasa-kp303-01
     comment: "3D Printer"
-  -
-    ip: "{{ networks.iot.subnet | ansible.utils.nthhost(33) }}"
-    subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
-    mac: 14:2b:2f:d5:c3:3b
-    hostname: slzb-06m
-    comment: zigbee coordinator
+  # -
+  #   ip: "{{ networks.iot.subnet | ansible.utils.nthhost(33) }}"
+  #   subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
+  #   mac: 14:2b:2f:d5:c3:3b
+  #   hostname: slzb-06m
+  #   comment: zigbee coordinator
   -
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(34) }}"
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
@@ -291,6 +291,12 @@ opnsense_dhcp_reservations:
     mac: 28:56:2f:5c:3e:e0
     hostname: battery-inverter-dongle-wifi
     comment: "WiFi"
+  -
+    ip: "{{ networks.iot.subnet | ansible.utils.nthhost(38) }}"
+    subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
+    mac: ea:f6:0a:d2:c5:54
+    hostname: slzb-mr5u
+    comment: smlight zigbee and thread coordinator
   -
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(40) }}"
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"

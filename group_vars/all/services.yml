@@ -132,10 +132,10 @@ services:
   - group: Home Automation
     items:
       -
-        name: SMLIGHT SLZB-06M
+        name: SMLIGHT SLZB-MR5U
         icon: /icons/smlight.png
         description: Zigbee Coordinator
-        url: "http://slzb-06m.{{ common_local_tld }}"
+        url: "http://slzb-mr5u.{{ common_local_tld }}"
         weight: 150
         monitor: true
       -

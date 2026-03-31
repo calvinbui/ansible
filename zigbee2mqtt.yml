@@ -47,7 +47,7 @@
             version: 5
 
           serial:
-            port: tcp://slzb-06m.{{ common_local_tld }}:6638
+            port: tcp://slzb-mr5u.{{ common_local_tld }}:6638
             adapter: ember
             rtscts: false
 
