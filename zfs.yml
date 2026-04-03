@@ -128,6 +128,18 @@
         mode: "0755"
       loop: "{{ zfs_datasets }}"
 
+    - name: Set ZFS ARC min size
+      ansible.builtin.copy:
+        content: |
+          options zfs zfs_arc_min={{ 8 * 1024 * 1024 * 1024 }}
+        dest: /etc/modprobe.d/zfs-arc-min-size.conf
+        owner: root
+        group: root
+        mode: "0644"
+      notify:
+        - Regenerate the kernel initramfs
+        - Reboot
+
     - name: Set ZFS ARC max size
       ansible.builtin.copy:
         content: |
