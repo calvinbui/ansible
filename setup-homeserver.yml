@@ -213,6 +213,34 @@
         - /etc/systemd/system.conf.d
         - /etc/systemd/user.conf.d
 
+    - name: Configure transparent huge pages
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/thp-madvise.service
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=Set Transparent Huge Pages to madvise
+          DefaultDependencies=no
+          After=sysinit.target local-fs.target
+          Before=basic.target
+
+          [Service]
+          Type=oneshot
+          ExecStart=/bin/sh -c 'echo madvise > /sys/kernel/mm/transparent_hugepage/enabled'
+          RemainAfterExit=yes
+
+          [Install]
+          WantedBy=sysinit.target
+      notify: Reload systemd
+
+    - name: Enable and start thp-madvise.service
+      ansible.builtin.systemd_service:
+        name: thp-madvise.service
+        enabled: true
+        state: started
+
     - name: Configure systemd service limits
       community.general.ini_file:
         path: "{{ item.0 }}"
