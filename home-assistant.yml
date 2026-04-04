@@ -173,7 +173,7 @@
             name: podman_container
           vars:
             container_name: govee2mqtt
-            image: ghcr.io/wez/govee2mqtt:2025.11.11-1ef2cc66
+            image: ghcr.io/wez/govee2mqtt:2026.03.25-ab9deb66
             stop_signal: "{{ signal_map['SIGKILL'] }}"
             env:
               GOVEE_EMAIL: govee{{ common_email_to }}
