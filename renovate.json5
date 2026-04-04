@@ -412,6 +412,13 @@
       matchPackageNames: ['/.*\\/wyoming-piper$/'],
       sourceUrl: 'https://github.com/rhasspy/wyoming-piper',
     },
+    /* govee2mqtt */
+    {
+      matchPackageNames: ['/wez\\/govee2mqtt$/'],
+      versioning: 'loose',
+      allowedVersions: '/^\\d+\\.\\d+\\.\\d+-[0-9a-f]+$/',
+      sourceUrl: 'https://github.com/wez/govee2mqtt',
+    },
   ],
 
   customManagers: [
