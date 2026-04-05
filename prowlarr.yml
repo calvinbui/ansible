@@ -57,7 +57,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: lscr.io/linuxserver/prowlarr:version-2.3.0.5236
+        image: lscr.io/linuxserver/prowlarr:version-2.3.5.5327
         env:
           PUID: "{{ common_user_id | ansible.builtin.string }}"
           PGID: "{{ common_root_group | ansible.builtin.string }}"
