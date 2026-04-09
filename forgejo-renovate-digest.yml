@@ -18,7 +18,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: public.ecr.aws/docker/library/python:3.14.3-slim
+        image: public.ecr.aws/docker/library/python:3.14.4-slim
         entrypoint: /bin/bash
         init: true
         command:
