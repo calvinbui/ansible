@@ -1,0 +1,163 @@
+---
+
+- hosts: homeserver
+
+  vars:
+    application: dawarich
+
+    container_network: "{{ networks.pub }}"
+
+  tasks:
+    - name: Create directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ common_user }}"
+        group: "{{ common_root_group }}"
+        mode: "0771"
+      loop:
+        - "{{ config_directory }}"
+        - "{{ config_directory }}/public"
+        - "{{ config_directory }}/watched"
+        - "{{ config_directory }}/storage"
+
+    - name: Create photon data directory
+      ansible.builtin.file:
+        path: "{{ config_directory }}/photon"
+        state: directory
+        owner: 9011
+        group: 9011
+        mode: "0771"
+
+    - name: Create valkey container
+      ansible.builtin.include_role:
+        name: valkey
+      vars:
+        valkey_version: 9.0.3
+        valkey_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          63633733656431376433356237633962626231343336353839373061366165636139303565613461
+          6434636165333931373530363661333466376663613236610a326238376362306461343034626466
+          61646661663430393431353636393936303930313566326462623865346461643866633537306464
+          6233653763303635300a396461306236636332396262623165346565363966363934356131303532
+          61343566393666646339653132326135666138633639633763653338303634643539356161636431
+          3165363334333434386233323836386435626439626434353739
+
+    - name: Create postgres container
+      ansible.builtin.include_role:
+        name: postgres
+      vars:
+        postgres_image: docker.io/postgis/postgis
+        postgres_version: 18-3.6
+        postgres_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          33343037303963363364646666303630396435643232663862363565343336303631646130396535
+          6263313464633164626239653562303437393130326461620a353039303238363237646336666666
+          64646136363234336465303761343836636464616164613233316139623937653935616437303738
+          3437633866656532370a313239323239306335373032363064613437636466383665653536653833
+          62366530643565353931336630376163363163333133313736633234656164393338356565306330
+          6238613938303961386662656132663730663636366330626130
+
+    - name: Create photon container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        container_name: "{{ application }}-photon"
+        image: docker.io/rtuszik/photon-docker:latest
+        env:
+          UPDATE_STRATEGY: PARALLEL
+          UPDATE_INTERVAL: 720h
+          REGION: planet
+        volumes:
+          - "{{ config_directory }}/photon:/photon/data"
+
+    - name: Create app container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        container_name: "{{ application }}-app"
+        image: docker.io/freikin/dawarich:1.6.1
+        entrypoint: web-entrypoint.sh
+        command:
+          - bin/rails
+          - server
+          - -p
+          - "3000"
+          - -b
+          - "::"
+        env: &dawarich_env
+          RAILS_ENV: production
+          RAILS_LOG_TO_STDOUT: "true"
+
+          REDIS_URL: "{{ _valkey_url }}"
+
+          DATABASE_HOST: "{{ _postgres_hostname }}"
+          DATABASE_PORT: "{{ _postgres_port | ansible.builtin.string }}"
+          DATABASE_USERNAME: "{{ _postgres_username }}"
+          DATABASE_PASSWORD: "{{ _postgres_password }}"
+          DATABASE_NAME: "{{ _postgres_database }}"
+
+          APPLICATION_HOSTS: "{{ application }}.{{ common_tld }}"
+
+          TIME_ZONE: "{{ common_timezone }}"
+
+          APPLICATION_PROTOCOL: http
+
+          PHOTON_API_HOST: "{{ application }}-photon:2322"
+          PHOTON_API_USE_HTTPS: "false"
+
+          SECRET_KEY_BASE: !vault |
+            $ANSIBLE_VAULT;1.1;AES256
+            64326564323661633530323832333161626365636238363736636466633233306332336431626330
+            6161663166333739393135353361383731663331373033350a623062326530376437316663333665
+            62303938373733343035373134313036303966353262306661363331643731373466353835376466
+            3034323238386139390a366333356433663739653135343032333436336263346366623262383764
+            34366666343438333835373537653662376437653261326238633566616538376463623530356462
+            61353461663237663630373433343963623963313839353365333262373866373766386161633361
+            66386662313537393739633130376534636361623839646464326364616630653965373266316632
+            35383339663066666266323435646630383231343766323061336236323362356537306431383831
+            66616433633262643737396237653831366231626234663864616339313638333163393062306330
+            66333461646138363461323163386137666436356234393466306334646662633236653635663064
+            653336376362623138356335633338383931
+
+          OIDC_CLIENT_ID: "{{ application }}"
+          OIDC_CLIENT_SECRET: "{{ oidc_auth.dawarich.secret }}"
+          OIDC_ISSUER: "{{ oidc_base_url }}"
+          OIDC_REDIRECT_URI: "https://{{ application }}.{{ common_tld }}/users/auth/openid_connect/callback"
+          OIDC_PROVIDER_NAME: "{{ oidc_provider | ansible.builtin.title }}"
+          OIDC_AUTO_REGISTER: "true"
+          ALLOW_EMAIL_PASSWORD_REGISTRATION: "false"
+
+          SELF_HOSTED: "true"
+
+          STORE_GEODATA: "true"
+        volumes:
+          - "{{ config_directory }}/public:/var/app/public"
+          - "{{ config_directory }}/watched:/var/app/tmp/imports/watched"
+          - "{{ config_directory }}/storage:/var/app/storage"
+        traefik:
+          - port: 3000
+            rule: Host(`{{ application }}.{{ common_tld }}`)
+        homepage:
+          group: Tools
+          weight: 350
+          description: "Location tracking"
+        blackbox:
+          path: /api/v1/health
+
+    - name: Create sidekiq container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        container_name: "{{ application }}-sidekiq"
+        image: docker.io/freikin/dawarich:1.6.1
+        entrypoint: sidekiq-entrypoint.sh
+        command:
+          - sidekiq
+        env:
+          <<: *dawarich_env
+          BACKGROUND_PROCESSING_CONCURRENCY: "5"
+        volumes:
+          - "{{ config_directory }}/public:/var/app/public"
+          - "{{ config_directory }}/watched:/var/app/tmp/imports/watched"
+          - "{{ config_directory }}/storage:/var/app/storage"
