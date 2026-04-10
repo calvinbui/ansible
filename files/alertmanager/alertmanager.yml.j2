@@ -16,21 +16,17 @@ receivers:
       -
         webhook_url: {{ alertmanager_mattermost_url }}
         channel: 'home-lab-alerts'
-        text: '' # disables default
-        attachments:
-          -
-            {%- raw %}
-            color: '{{ if eq .Status "resolved" }}#00FF00{{ else }}#FF0000{{ end }}'
-            title: |-
-              {{ with index .Alerts 0 }}{{ if .Annotations.summary }}{{ .Annotations.summary }}{{ end }}{{ end }}
-            title_link: >-
-              {{ with index .Alerts 0 -}}
-                {{ .GeneratorURL }}
-              {{- end }}
-            text: >-
-              {{ range .Alerts }}
-                {{ .Annotations.description }}
-              {{ end }}
+        {%- raw %}
+        title: |-
+          {{ with index .Alerts 0 }}{{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else }}{{ .Labels.alertname }}{{ end }}{{ end }}
+        title_link: >-
+          {{ with index .Alerts 0 -}}
+            {{ .GeneratorURL }}
+          {{- end }}
+        text: >-
+          {{ range .Alerts }}
+            {{ .Annotations.description }}
+          {{ end }}
         {% endraw %}
 
   - name: "null"
