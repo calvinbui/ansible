@@ -114,7 +114,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-machine-learning"
-        image: ghcr.io/immich-app/immich-machine-learning:v2.7.3-openvino
+        image: ghcr.io/immich-app/immich-machine-learning:v2.7.4-openvino
         group_add:
           - 992 # 'render'
         volumes:
