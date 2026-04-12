@@ -53,6 +53,7 @@
             3364353834666537316633333133636461363764366639326536
 
           MONGO_ENDPOINT: "{{ _mongo_url }}"
+        stop_signal: "{{ signal_map['SIGKILL'] }}"
         traefik:
           - port: 8080
             rule: Host(`{{ application }}-server.{{ common_tld }}`)
