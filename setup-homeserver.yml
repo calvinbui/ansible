@@ -145,6 +145,7 @@
           vm.dirty_bytes: 8589934592 # 8GB
           vm.max_map_count: 524288 # for some databases like ES, TSDB
           vm.min_free_kbytes: 1048576 # 1GB reserved; ZFS ARC can spike to 128GB, default 66MB is unsafe at this scale
+          vm.watermark_scale_factor: 100 # 1% of zone size; default 10 (0.1%). fix for direct-reclaim storms
 
           # kernel
           kernel.pid_max: 4194304
