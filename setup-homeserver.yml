@@ -262,3 +262,6 @@
           -
             option: DefaultLimitNPROC
             value: 32768
+          -
+            option: DefaultTimeoutStopSec
+            value: 300
