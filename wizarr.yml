@@ -32,6 +32,7 @@
         volumes:
           - "{{ config_directory }}/database:/data/database"
           - "{{ config_directory }}/wizard:/data/wizard_steps"
+        stop_signal: "{{ signal_map['SIGKILL'] }}"
         traefik:
           - port: 5690
         homepage:
