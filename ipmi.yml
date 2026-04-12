@@ -16,7 +16,30 @@
 
     container_network: "{{ networks.mgmt }}"
 
+  handlers:
+    - name: Regenerate the kernel initramfs
+      ansible.builtin.command: update-initramfs -u
+      changed_when: true
+
+    - name: Reboot
+      ansible.builtin.reboot:
+        reboot_timeout: 360
+
   tasks:
+    - name: Blacklist IPMI kernel modules
+      ansible.builtin.copy:
+        dest: /etc/modprobe.d/blacklist-ipmi.conf
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          blacklist ipmi_si
+          blacklist ipmi_devintf
+          blacklist ipmi_msghandler
+      notify:
+        - Regenerate the kernel initramfs
+        - Reboot
+
     - name: Create config folder
       ansible.builtin.file:
         path: "{{ config_directory }}"
