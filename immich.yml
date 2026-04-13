@@ -63,7 +63,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-server"
-        image: ghcr.io/immich-app/immich-server:v2.7.3
+        image: ghcr.io/immich-app/immich-server:v2.7.4
         group_add:
           - 992 # 'render'
         env:
