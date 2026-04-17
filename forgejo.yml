@@ -72,7 +72,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: codeberg.org/forgejo/forgejo:14.0.4
+        image: codeberg.org/forgejo/forgejo:15.0.0
         env:
           TZ: "{{ common_timezone }}"
 
