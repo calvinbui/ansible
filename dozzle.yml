@@ -12,7 +12,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/amir20/dozzle:v10.3.3
+        image: ghcr.io/amir20/dozzle:v10.4.1
         env:
           DOZZLE_NO_ANALYTICS: "true"
         volumes:
