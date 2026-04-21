@@ -95,7 +95,7 @@
     command: "{{ command | ansible.builtin.default(omit) }}"
 
     state: "{{ state | ansible.builtin.default('started') }}"
-    restart_policy: "{{ restart_policy | ansible.builtin.default('on-failure:10') }}"
+    restart_policy: "{{ restart_policy | ansible.builtin.default('always') }}"
     stop_timeout: "{{ stop_timeout | ansible.builtin.default(60) }}"
     stop_signal: "{{ stop_signal | ansible.builtin.default(omit) }}"
 

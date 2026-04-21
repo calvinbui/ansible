@@ -83,17 +83,9 @@
         mode: "0644"
       notify: Restart podman
 
-    - name: Copy podman-startup.service systemd unit
-      ansible.builtin.copy:
-        src: "{{ files_directory }}/podman-startup.service"
-        dest: /etc/systemd/system/podman-startup.service
-        owner: root
-        group: root
-        mode: "0644"
-
-    - name: Enable podman-startup service
+    - name: Enable podman-restart service
       ansible.builtin.systemd_service:
-        name: podman-startup.service
+        name: podman-restart.service
         enabled: true
         daemon_reload: true
 
