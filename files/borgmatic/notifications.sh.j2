@@ -3,6 +3,12 @@
 step=$1
 name=$2
 
+# Prevent recursive invocation when inner borgmatic calls fail and re-trigger this hook
+if [ -n "$BORGMATIC_NOTIFICATION_RUNNING" ]; then
+  exit 0
+fi
+export BORGMATIC_NOTIFICATION_RUNNING=1
+
 # check backup exists or if something else has locked it
 if /usr/local/bin/borgmatic list; then
   # running repair if that's the problem
@@ -14,11 +20,11 @@ if /usr/local/bin/borgmatic list; then
   fi
 fi
 
-if [ $step = "before" ]; then
+if [ "$step" = "before" ]; then
   message="Starting backup :speaker:"
-elif [ $step = "after" ]; then
+elif [ "$step" = "after" ]; then
   message="Backup created successfully :+1:"
-elif [ $step = "error" ]; then
+elif [ "$step" = "error" ]; then
   message="Error creating backup :x:"
 fi
 
