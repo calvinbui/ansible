@@ -9,7 +9,7 @@
 
     borg_mount_uuids:
       borg-01: 55afaad4-5f77-409a-adab-8c24e2f42b5b
-      borg-02: 82304c8f-9f05-47b5-bff7-3d9593debdb6
+      # borg-02: 82304c8f-9f05-47b5-bff7-3d9593debdb6
 
   handlers:
     - name: Restart ssh
