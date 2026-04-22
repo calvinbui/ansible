@@ -1,4 +1,3 @@
 ---
 
-homepage_icons_local_dir: files/homepage/icons
 homepage_icons_remote_dir: "{{ common_directory }}/homepage/icons"

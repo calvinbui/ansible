@@ -8,7 +8,6 @@ oidc_auth_url: "{{ oidc_base_url }}/api/oidc/authorization"
 oidc_token_url: "{{ oidc_base_url }}/api/oidc/token"
 oidc_userinfo_url: "{{ oidc_base_url }}/api/oidc/userinfo"
 oidc_signout_url: "{{ oidc_base_url }}/application/o/{{ application }}/end-session/"
-oidc_jwks_url: "{{ oidc_base_url }}/jwks.json"
 
 
 # run `$ podman exec authelia authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986 | grep 'Random'`
