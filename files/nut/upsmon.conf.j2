@@ -14,9 +14,9 @@ HOSTSYNC 15
 
 DEADTIME 15
 
-{% if ansible_os_family == 'RedHat' %}
+{% if ansible_facts['os_family'] == 'RedHat' %}
 POWERDOWNFLAG /etc/killpower
-{% elif ansible_os_family == 'Debian' %}
+{% elif ansible_facts['os_family'] == 'Debian' %}
 POWERDOWNFLAG /etc/nut/killpower
 {% endif %}
 

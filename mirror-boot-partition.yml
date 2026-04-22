@@ -44,6 +44,7 @@
         opts: utf8,errors=remount-ro,nofail,noauto
         dump: "0"
         passno: "0"
+        boot: false
         state: mounted
       notify:
         - Reload systemd

@@ -70,12 +70,12 @@
       loop:
         -
           name: debian-contrib
-          suites: "{{ ansible_distribution_release }}"
+          suites: "{{ ansible_facts['distribution_release'] }}"
           components:
             - contrib
         -
           name: debian-non-free
-          suites: "{{ ansible_distribution_release }}"
+          suites: "{{ ansible_facts['distribution_release'] }}"
           components:
             - non-free
         -

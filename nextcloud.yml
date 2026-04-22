@@ -66,7 +66,7 @@
             64663865643961313431333430373362353366323836386238623831646139356537
 
           NEXTCLOUD_TRUSTED_DOMAINS: "{{ application }} {{ application }}.{{ common_local_tld }} {{ application }}.{{ common_tld }}"
-          TRUSTED_PROXIES: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] | ansible.builtin.string }} {{ container_network.subnet }}"
+          TRUSTED_PROXIES: "{{ ansible_facts['default_ipv4']['address'] | ansible.builtin.string }} {{ container_network.subnet }}"
           OVERWRITEPROTOCOL: "https"
           OVERWRITEHOST: "{{ application }}.{{ common_tld }}"
           OVERWRITECLIURL: "https://{{ application }}.{{ common_tld }}"
