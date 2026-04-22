@@ -7,7 +7,20 @@
     traefik_labels: {}
     homepage_labels: {}
     blackbox_labels: {}
+    container_requires: "{{ requires | ansible.builtin.default([]) }}"
     # watchtower_labels: {}
+
+- name: Add database dependency requires
+  vars:
+    _current_name: "{{ container_name | ansible.builtin.default(application) }}"
+    _db_name: "{{ item.value }}"
+    _hostname: "{{ lookup('ansible.builtin.vars', '_' ~ item.key ~ '_hostname', default='') }}"
+  ansible.builtin.set_fact:
+    container_requires: "{{ container_requires + [_hostname] }}"
+  when:
+    - _current_name is not match('.*-(' ~ (_db_types.values() | ansible.builtin.join('|')) ~ ')$')
+    - _hostname == (application | ansible.builtin.default('')) ~ '-' ~ _db_name
+  loop: "{{ _db_types | ansible.builtin.dict2items }}"
 
 - name: Generate network for the container
   ansible.builtin.include_tasks: networking.yml
@@ -96,6 +109,7 @@
 
     state: "{{ state | ansible.builtin.default('started') }}"
     restart_policy: "{{ restart_policy | ansible.builtin.default('always') }}"
+    requires: "{{ container_requires | ansible.builtin.unique | ansible.builtin.sort if container_requires | ansible.builtin.length > 0 else omit }}"
     stop_timeout: "{{ stop_timeout | ansible.builtin.default(60) }}"
     stop_signal: "{{ stop_signal | ansible.builtin.default(omit) }}"
 

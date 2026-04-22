@@ -5,3 +5,11 @@ labels: {}
 network:
   - name: "{{ container_network.name }}"
     ip: "{{ ip | default(omit) }}"
+
+_db_types:
+  postgres: postgres
+  valkey: valkey
+  mariadb: mariadb
+  mongo: mongodb
+  influxdb: influxdb
+  elasticsearch: elasticsearch
