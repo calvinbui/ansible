@@ -5,9 +5,6 @@
   vars:
     application: acme.sh
 
-    cert_cloudflare_email: "{{ cloudflare_email }}"
-    cert_cloudflare_api_token: "{{ cloudflare_api }}"
-
   tasks:
     - name: Create repo folder
       ansible.builtin.file:
@@ -65,12 +62,21 @@
       ansible.builtin.lineinfile:
         path: "{{ config_directory }}/config/account.conf"
         regex: "{{ item.regex }}"
-        line: "{{ item.line }}"
+        line: "{{ item.line | default(omit) }}"
+        state: "{{ item.state | default('present') }}"
       loop:
-        - regex: "^SAVED_CF_Key"
-          line: "SAVED_CF_Key='{{ cert_cloudflare_api_token }}'"
-        - regex: "^SAVED_CF_Email"
-          line: "SAVED_CF_Email='{{ cert_cloudflare_email }}'"
+        - regex: "^SAVED_CF_Token"
+          line: "SAVED_CF_Token='{{ cloudflare_api_token }}'"
+      vars:
+        cloudflare_api_token: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          30386261646637323863623436383438633931653530313430313861383531643738383939383333
+          6162646133633639613731643138343864326539666464360a656637393861313039306262366638
+          64656563343736383362316339653561343430383637356135616337343732623562343039313039
+          3033393133613339310a633439633236666435376431303863643737613330653536353633316531
+          62623138653832633462353732656562666662366361393030363431623130313634653635313036
+          62663932636631343165303061303031643238643233343834393331336237363762613630383432
+          633433663161383966666335663133643362
 
     - name: Generate certs for each domain
       ansible.builtin.shell: |
