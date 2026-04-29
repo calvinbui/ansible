@@ -46,7 +46,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-acme"
-        image: docker.io/neilpang/acme.sh:3.1.2
+        image: docker.io/neilpang/acme.sh:3.1.3
         command: daemon
         env:
           CERT_DOMAIN: "{{ application }}.{{ common_local_tld }}"
