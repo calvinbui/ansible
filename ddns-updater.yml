@@ -148,7 +148,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/qdm12/ddns-updater:2.9.0
+        image: ghcr.io/qdm12/ddns-updater:v2.10.0
         volumes:
           - "{{ config_directory }}:/updater/data"
         traefik:
