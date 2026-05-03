@@ -76,7 +76,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-app"
-        image: docker.io/freikin/dawarich:1.7.2
+        image: docker.io/freikin/dawarich:1.7.3
         entrypoint: web-entrypoint.sh
         command:
           - bin/rails
@@ -150,7 +150,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-sidekiq"
-        image: docker.io/freikin/dawarich:1.7.2
+        image: docker.io/freikin/dawarich:1.7.3
         entrypoint: sidekiq-entrypoint.sh
         command:
           - sidekiq
