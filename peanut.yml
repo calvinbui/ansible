@@ -69,6 +69,8 @@
         name: podman_container
       vars:
         image: docker.io/brandawg93/peanut:6.0.0
+        env:
+          AUTH_DISABLED: "true"
         volumes:
           - "{{ config_directory }}/config:/config"
         traefik:
