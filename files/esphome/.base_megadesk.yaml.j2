@@ -31,6 +31,10 @@ external_components:
       url: https://github.com/robertklep/esphome-custom-component
     components: [ custom, custom_component ]
 
+custom_component:
+  - lambda: |-
+      return {get_megadesk_component(id(uart_desk))};
+
 # https://esphome.io/components/sensor/index.html
 # https://esphome.io/components/sensor/custom.html
 sensor:
@@ -38,8 +42,7 @@ sensor:
     # these values are set by the .h file
     platform: custom
     lambda: |-
-      auto megadesk = new Megadesk(id(uart_desk));
-      App.register_component(megadesk);
+      auto megadesk = get_megadesk_component(id(uart_desk));
       return {
         megadesk->height_raw,
         {% for i in range(2, 11) %}

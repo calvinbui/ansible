@@ -106,3 +106,11 @@ class Megadesk: public Component, public UARTDevice {
     }
   }
 };
+
+inline Megadesk *get_megadesk_component(UARTComponent *uart_desk) {
+  static Megadesk *megadesk_component = nullptr;
+  if (megadesk_component == nullptr) {
+    megadesk_component = new Megadesk(uart_desk);
+  }
+  return megadesk_component;
+}
