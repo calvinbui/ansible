@@ -37,6 +37,11 @@
         name: octoprint
         state: restarted
 
+    - name: Restart OctoDash
+      ansible.builtin.systemd:
+        name: getty@tty1.service
+        state: restarted
+
   tasks:
     - name: Disable requiretty to enable Ansible pipelining
       ansible.builtin.lineinfile:
@@ -187,8 +192,8 @@
             dest: "/home/{{ common_user }}/.config/octodash/config.json"
             owner: "{{ common_user }}"
             group: "{{ common_user }}"
-            mode: "0740"
-          notify: Reboot
+            mode: "0644"
+          notify: Restart OctoDash
 
         - name: Rotate X11 for Octodash
           ansible.builtin.copy:
@@ -228,16 +233,28 @@
         - v4l2-ctl --set-ctrl=focus_automatic_continuous=0
         - v4l2-ctl --set-ctrl=focus_absolute=4
 
+    - name: Check I2C status
+      ansible.builtin.command: raspi-config nonint get_i2c
+      register: _octopi_i2c_status
+      changed_when: false
+      failed_when: false
+
+    - name: Disable I2C for HyperPixel display
+      ansible.builtin.command: raspi-config nonint do_i2c 1
+      changed_when: true
+      when: _octopi_i2c_status.stdout | trim != "1"
+      notify: Reboot
+
     # https://github.com/pimoroni/hyperpixel4/issues/177
     - name: Enable HyperPixel display
       community.general.ini_file:
-        path: /boot/config.txt
+        path: /boot/firmware/config.txt
         section: null
         option: dtoverlay
         value: "{{ item }}"
         state: present
         no_extra_spaces: true
-        mode: "0755"
+        mode: "0644"
         exclusive: false
       loop:
         - vc4-kms-v3d

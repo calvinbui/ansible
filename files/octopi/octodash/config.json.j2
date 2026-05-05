@@ -1,131 +1,146 @@
 {
-  "config": {
-    "octoprint": {
-      "url": "http://localhost:80/",
-      "accessToken": "{{ octodash_api_key }}"
-    },
-    "printer": {
-      "name": "Bear MK3S+",
-      "xySpeed": 150,
-      "zSpeed": 5,
-      "disableExtruderGCode": "M18 E",
-      "zBabystepGCode": "M290 Z",
-      "defaultTemperatureFanSpeed": {
-        "hotend": 210,
-        "heatbed": 60,
-        "fan": 100
-      }
-    },
-    "filament": {
-      "thickness": 1.75,
-      "density": 1.25,
-      "feedLength": 60,
-      "feedSpeed": 20,
-      "feedSpeedSlow": 3,
-      "purgeDistance": 30,
-      "useM600": false
-    },
-    "plugins": {
-      "displayLayerProgress": {
-        "enabled": true
-      },
-      "enclosure": {
-        "enabled": false,
-        "ambientSensorID": null,
-        "filament1SensorID": null,
-        "filament2SensorID": null
-      },
-      "filamentManager": {
-        "enabled": false
-      },
-      "preheatButton": {
-        "enabled": true
-      },
-      "printTimeGenius": {
-        "enabled": true
-      },
-      "psuControl": {
-        "enabled": false,
-        "turnOnPSUWhenExitingSleep": true
-      },
-      "tpLinkSmartPlug": {
-        "enabled": true,
-        "smartPlugIP": "{{ networks.iot.subnet | ansible.utils.nthhost(32) }}/3"
-      },
-      "tasmota": {
-        "enabled": false,
-        "ip": "127.0.0.1",
-        "index": null
-      },
-      "tasmotaMqtt": {
-        "enabled": false,
-        "topic": "topic",
-        "relayNumber": null
-      },
-      "spoolManager": {
-        "enabled": false
-      },
-      "ophom": {
-        "enabled": false
-      }
-    },
-    "octodash": {
-      "customActions": [
-        {
-          "color": "#4bae50",
-          "command": "[!WEB]http://localhost:80/plugin/octodashcompanion/webcam",
-          "confirm": false,
-          "exit": false,
-          "icon": "camera"
-        },
-        {
-          "color": "#FF0000",
-          "command": "[!WEB]http://localhost:80/plugin/octodashcompanion/restart",
-          "confirm": true,
-          "exit": false,
-          "icon": "recycle"
-        },
-        {
-          "color": "#ffff00",
-          "command": "[!DISCONNECT]",
-          "confirm": true,
-          "exit": false,
-          "icon": "unlink"
-        },
-        {
-          "color": "#0097e6",
-          "command": "[!WEB]http://localhost:80/plugin/octodashcompanion/sleep",
-          "confirm": false,
-          "exit": false,
-          "icon": "bed"
-        },
-        {
-          "color": "#e10000",
-          "command": "[!SHUTDOWN]",
-          "confirm": false,
-          "exit": true,
-          "icon": "power-off"
-        }
-      ],
-      "fileSorting": {
-        "attribute": "date",
-        "order": "dsc"
-      },
-      "invertAxisControl": {
-        "x": false,
-        "y": false,
-        "z": false
-      },
-      "pollingInterval": 2000,
-      "touchscreen": true,
-      "turnScreenOffWhileSleeping": true,
-      "turnOnPrinterWhenExitingSleep": true,
-      "preferPreviewWhilePrinting": true,
-      "previewProgressCircle": true,
-      "screenSleepCommand": "xset dpms force standby",
-      "screenWakeupCommand": "xset s off && xset -dpms && xset s noblank",
-      "showExtruderControl": true,
-      "showNotificationCenterIcon": false
-    }
-  }
+	"config": {
+		"octoprint": {
+			"url": "http://localhost:80/",
+			"accessToken": "{{ octodash_api_key }}"
+		},
+		"printer": {
+			"name": "Bear MK3S+",
+			"xySpeed": 150,
+			"zSpeed": 5,
+			"disableExtruderGCode": "M18 E",
+			"zBabystepGCode": "M290 Z",
+			"defaultTemperatureFanSpeed": {
+				"hotend": 210,
+				"heatbed": 60,
+				"fan": 100
+			}
+		},
+		"filament": {
+			"thickness": 1.75,
+			"density": 1.25,
+			"feedLength": 60,
+			"feedSpeed": 20,
+			"feedSpeedSlow": 3,
+			"purgeDistance": 30,
+			"useM600": false
+		},
+		"plugins": {
+			"displayLayerProgress": {
+				"enabled": true
+			},
+			"enclosure": {
+				"enabled": false,
+				"ambientSensorID": null,
+				"filament1SensorID": null,
+				"filament2SensorID": null
+			},
+			"filamentManager": {
+				"enabled": false
+			},
+			"preheatButton": {
+				"enabled": true
+			},
+			"printTimeGenius": {
+				"enabled": true
+			},
+			"psuControl": {
+				"enabled": false
+			},
+			"tpLinkSmartPlug": {
+				"enabled": true,
+				"smartPlugIP": "{{ networks.iot.subnet | ansible.utils.nthhost(32) }}/3"
+			},
+			"tasmota": {
+				"enabled": false,
+				"ip": "127.0.0.1",
+				"index": null
+			},
+			"tasmotaMqtt": {
+				"enabled": false,
+				"topic": "topic",
+				"relayNumber": null
+			},
+			"spoolManager": {
+				"enabled": false
+			},
+			"ophom": {
+				"enabled": false
+			},
+			"companion": {
+				"enabled": true
+			},
+			"spoolman": {
+				"enabled": false
+			},
+			"tuya": {
+				"enabled": false,
+				"label": "label"
+			},
+			"wemo": {
+				"enabled": false,
+				"ip": "127.0.0.1",
+				"port": 49152
+			}
+		},
+		"octodash": {
+			"customActions": [
+				{
+					"color": "#4bae50",
+					"command": "[!WEB]http://localhost:80/plugin/octodashcompanion/webcam",
+					"confirm": false,
+					"exit": false,
+					"icon": "camera"
+				},
+				{
+					"color": "#FF0000",
+					"command": "[!WEB]http://localhost:80/plugin/octodashcompanion/restart",
+					"confirm": true,
+					"exit": false,
+					"icon": "recycle"
+				},
+				{
+					"color": "#ffff00",
+					"command": "[!DISCONNECT]",
+					"confirm": true,
+					"exit": false,
+					"icon": "unlink"
+				},
+				{
+					"color": "#0097e6",
+					"command": "[!WEB]http://localhost:80/plugin/octodashcompanion/sleep",
+					"confirm": false,
+					"exit": false,
+					"icon": "bed"
+				},
+				{
+					"color": "#e10000",
+					"command": "[!SHUTDOWN]",
+					"confirm": false,
+					"exit": true,
+					"icon": "power-off"
+				}
+			],
+			"fileSorting": {
+				"attribute": "date",
+				"order": "dsc"
+			},
+			"invertAxisControl": {
+				"x": false,
+				"y": false,
+				"z": false
+			},
+			"pollingInterval": 2000,
+			"touchscreen": true,
+			"turnScreenOffWhileSleeping": true,
+			"turnOnPrinterWhenExitingSleep": true,
+			"preferPreviewWhilePrinting": true,
+			"previewProgressCircle": true,
+			"screenSleepCommand": "xset dpms force standby",
+			"screenWakeupCommand": "xset s off && xset -dpms && xset s noblank",
+			"showExtruderControl": true,
+			"showActionCenterIcon": false,
+			"defaultDirectory": "/"
+		}
+	}
 }
