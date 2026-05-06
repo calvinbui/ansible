@@ -520,6 +520,17 @@
       versioningTemplate: "loose",
       extractVersionTemplate: "^\\d+\\.\\d+\\.\\d+-pg(?<version>\\d+)$",
     },
+
+    /* ansible.builtin.git */
+    {
+      customType: "regex",
+      managerFilePatterns: ['/^.*\\.ya?ml$/'],
+      matchStrings: [
+        'ansible\\.builtin\\.git:\\s*\\n(?:\\s+\\w+:.*\\n)*?\\s+repo:\\s*["\']?https://github\\.com/(?<depName>[^/\\s"\']+/[^/\\s"\']+?)(?:\\.git)?["\']?\\s*\\n(?:\\s+\\w+:.*\\n)*?\\s+version:\\s*["\']?(?<currentValue>v?\\d+(?:\\.\\d+)+)["\']?',
+      ],
+      datasourceTemplate: "github-tags",
+      versioningTemplate: "semver",
+    },
   ],
 
   prBodyTemplate: '{{{table}}}{{{notes}}}{{{changelogs}}}{{{controls}}}',
