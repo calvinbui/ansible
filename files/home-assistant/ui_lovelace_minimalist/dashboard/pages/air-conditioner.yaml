@@ -36,15 +36,22 @@ cards:
             icons: true
             headings: true
         hide:
-          temperature: false
           state: true
         control:
           hvac:
             _name: Mode
+            "off":
+              name: "Off"
+            heat:
+              name: Heat
+            cool:
+              name: Cool
             heat_cool:
-              name: auto
+              name: Auto
+            dry:
+              name: Dry
             fan_only:
-              name: fan
+              name: Fan
           fan:
             _name: Fan
         header: false
