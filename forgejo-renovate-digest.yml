@@ -7,12 +7,19 @@
 
     container_network: "{{ networks.pub }}"
 
+  handlers:
+    - name: Restart
+      containers.podman.podman_container:
+        name: "{{ application }}"
+        force_restart: true
+
   tasks:
     - name: Clone
       ansible.builtin.git:
         repo: "https://github.com/calvinbui/forgejo-renovate-digest.git"
         dest: "{{ config_directory }}"
         update: true
+      notify: Restart
 
     - name: Create container
       ansible.builtin.include_role:
