@@ -254,7 +254,7 @@
         state: directory
         owner: "{{ common_user_id }}"
         group: "{{ common_group_id }}"
-        mode: "0750"
+        mode: "0770"
 
     - name: Create samba container
       ansible.builtin.include_role:
