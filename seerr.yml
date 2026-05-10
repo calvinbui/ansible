@@ -95,7 +95,7 @@
         _seerr_configuration:
           main/applicationTitle: "{{ application }}"
           main/applicationUrl: "https://{{ application }}.{{ common_tld }}"
-          main/defaultPermissions: 1283473568
+          main/defaultPermissions: 1283481760
           main/localLogin: false
           main/streamingRegion: "{{ common_country_iso_3166 }}"
           main/mediaServerType: 1 # Plex
