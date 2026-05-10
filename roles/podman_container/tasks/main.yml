@@ -98,6 +98,25 @@
 #     - watchtower_labels is defined
 #     - watchtower_labels | ansible.builtin.length > 0
 
+- name: Inspect existing container state
+  containers.podman.podman_container_info:
+    name: "{{ container_name | ansible.builtin.default(application) }}"
+  register: _container_info
+  failed_when: false
+
+- name: Remove container if non-running or image will change
+  vars:
+    _is_database: "{{ (container_name | ansible.builtin.default(application)) is match('.*-(' ~ (_db_types.values() | ansible.builtin.join('|')) ~ ')$') }}"
+  containers.podman.podman_container:
+    name: "{{ container_name | ansible.builtin.default(application) }}"
+    state: absent
+    delete_depend: "{{ _is_database }}"
+  when:
+    - _container_info.containers | ansible.builtin.length > 0
+    - >-
+      _container_info.containers[0].State.Status != 'running'
+      or (image is defined and _container_info.containers[0].ImageName != image)
+
 - name: "Create podman container for {{ container_name | ansible.builtin.default(application) }}"
   containers.podman.podman_container:
     name: "{{ container_name | ansible.builtin.default(application) }}"
