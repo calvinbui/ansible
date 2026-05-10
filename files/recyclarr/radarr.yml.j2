@@ -45,6 +45,78 @@ radarr:
               - WEBRip-1080p
               - WEBDL-1080p
       -
+        name: Any
+        reset_unmatched_scores:
+          enabled: true
+        score_set: default
+        min_format_score: 0
+        upgrade:
+          allowed: true
+          until_quality: Remux-2160p
+          until_score: 10000
+        quality_sort: top
+        qualities:
+          -
+            name: Remux-2160p
+          -
+            name: Bluray-2160p
+          -
+            name: WEB 2160p
+            qualities:
+              - WEBRip-2160p
+              - WEBDL-2160p
+          -
+            name: HDTV-2160p
+          -
+            name: Remux-1080p
+          -
+            name: Bluray-1080p
+          -
+            name: WEB 1080p
+            qualities:
+              - WEBRip-1080p
+              - WEBDL-1080p
+          -
+            name: HDTV-1080p
+          -
+            name: Bluray-720p
+          -
+            name: WEB 720p
+            qualities:
+              - WEBRip-720p
+              - WEBDL-720p
+          -
+            name: HDTV-720p
+          -
+            name: Bluray-576p
+          -
+            name: Bluray-480p
+          -
+            name: WEB 480p
+            qualities:
+              - WEBRip-480p
+              - WEBDL-480p
+          -
+            name: DVD-R
+          -
+            name: DVD
+          -
+            name: SDTV
+          -
+            name: DVDSCR
+          -
+            name: REGIONAL
+          -
+            name: TELECINE
+          -
+            name: TELESYNC
+          -
+            name: CAM
+          -
+            name: WORKPRINT
+          -
+            name: Unknown
+      -
         name: Anime
         reset_unmatched_scores:
           enabled: true
@@ -108,6 +180,7 @@ radarr:
         # HDR Formats
         assign_scores_to:
           - name: Best
+          - name: Any
         trash_ids:
           - 493b6d1dbec3c3364c59d7607f7e3405 # HDR
           - b337d6812e06c200ec9a2d3cfa9d20a7 # DV Boost
@@ -117,6 +190,7 @@ radarr:
         # HQ Release Groups
         assign_scores_to:
           - name: Best
+          - name: Any
         trash_ids:
           - 3a3ff47579026e76d6504ebea39390de # Remux Tier 01
           - 9f98181fe5a3fbeb0cc29340da2a468a # Remux Tier 02
@@ -128,6 +202,7 @@ radarr:
         # Misc
         assign_scores_to:
           - name: Best
+          - name: Any
         trash_ids:
           - e7718d7a3ce595f289bfee26adc178f5 # Repack/Proper
           - ae43b294509409a6a13919dedd4764c4 # Repack2
@@ -136,6 +211,7 @@ radarr:
         # Unwanted
         assign_scores_to:
           - name: Best
+          - name: Any
         trash_ids:
           - ed38b889b31be83fda192888e2286d83 # BR-DISK
           - e6886871085226c3da1830830146846c # Generated Dynamic HDR
@@ -151,6 +227,7 @@ radarr:
         # General Streaming Services
         assign_scores_to:
           - name: Best
+          - name: Any
         trash_ids:
           - b3b3a6ac74ecbd56bcdbefa4799fb9df # AMZN
           - df13ed57843877b21ad969184ab6888f # ATV
@@ -174,6 +251,7 @@ radarr:
         # Audio
         assign_scores_to:
           - name: Best
+          - name: Any
         trash_ids:
           - 496f355514737f7d83bf7aa4d24f8169 # TrueHD ATMOS
           - 2f22d89048b01681dde8afe203bf2e95 # DTS X
@@ -193,6 +271,7 @@ radarr:
         # Miscellaneous (Optional)
         assign_scores_to:
           - name: Best
+          - name: Any
         trash_ids:
           - b6832f586342ef70d9c128d40c07b872 # Bad Dual Groups
           - cc444569854e9de0b084ab2b8b1532b2 # Black and White Editions
@@ -204,6 +283,7 @@ radarr:
         # Miscellaneous UHD (Optional)
         assign_scores_to:
           - name: Best
+          - name: Any
         trash_ids:
           # - 9c38ebb7384dada637be8899efa68e6f # SDR
           # - 25c12f78430a3a23413652cbd1d48d77 # SDR (no WEBDL)
@@ -212,6 +292,7 @@ radarr:
         # Movie Versions
         assign_scores_to:
           - name: Best
+          - name: Any
         trash_ids:
           - 0f12c086e289cf966fa5948eac571f44 # Hybrid
           - 570bc9ebecd92723d2d21500f4be314c # Remaster
