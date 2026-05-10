@@ -62,7 +62,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-ml_api"
-        image: "{{ application }}-ml_api"
+        image: "localhost/{{ application }}-ml_api:latest"
         command:
           - bash
           - -c
@@ -96,7 +96,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-web"
-        image: "{{ application }}-backend"
+        image: "localhost/{{ application }}-backend:latest"
         command:
           - sh
           - -c
@@ -152,7 +152,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-tasks"
-        image: "{{ application }}-backend"
+        image: "localhost/{{ application }}-backend:latest"
         command:
           - sh
           - -c
