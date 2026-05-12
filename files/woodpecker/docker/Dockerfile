@@ -5,7 +5,7 @@ FROM ghcr.io/opentofu/opentofu:1.11.7-minimal AS opentofu
 FROM ghcr.io/terraform-linters/tflint:v0.62.0 AS tflint
 FROM ghcr.io/aquasecurity/tfsec-scratch:v1.28.14 AS tfsec
 
-FROM public.ecr.aws/docker/library/python:3.14.4-slim
+FROM public.ecr.aws/docker/library/python:3.14.5-slim
 
 RUN groupadd -g 1000 woodpecker \
   && useradd -m -u 1000 -g 1000 woodpecker \
