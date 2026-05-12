@@ -1,6 +1,6 @@
 ansible==13.6.0
 ansible-lint==26.4.0
-paramiko==4.0.0
+paramiko==5.0.0
 
 # argon2 stuff for authelia
 argon2_cffi==25.1.0
