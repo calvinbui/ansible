@@ -42,7 +42,7 @@
         env:
           BASE_URL: "https://{{ application }}.{{ common_tld }}"
 
-          PLAYWRIGHT_DRIVER_URL: "ws://{{ application }}-chrome:3000?token={{ changedetection_browserless_token }}&launch={{ changedetection_browserless_launch_args | ansible.builtin.to_json | ansible.builtin.replace(' ', '') }}"
+          PLAYWRIGHT_DRIVER_URL: "ws://{{ application }}-chrome:3000?token={{ changedetection_browserless_token }}&stealth=true&blockAds=true&launch={{ changedetection_browserless_launch_args | ansible.builtin.to_json | ansible.builtin.urlencode }}"
 
           PUID: "{{ common_user_id | ansible.builtin.string }}"
           PGID: "{{ common_group_id | ansible.builtin.string }}"
