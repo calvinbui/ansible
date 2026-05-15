@@ -19,7 +19,7 @@ groups:
           description: "Some processes waiting for I/O {{ $value | humanizePercentage }} of the time"
       -
         alert: IOPressureStalledHigh
-        expr: rate(node_pressure_io_stalled_seconds_total[5m]) > 0.1
+        expr: rate(node_pressure_io_stalled_seconds_total[5m]) > 0.3
         for: 10m
         annotations:
           summary: I/O Pressure Critical

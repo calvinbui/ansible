@@ -53,7 +53,14 @@ groups:
           description: "Container {{ $labels.name }} ({{ $labels.image }}) has been using more than 90% of its memory limit for 10 minutes.\nCurrent usage: {{ $value | humanizePercentage }}."
 
       - alert: PodmanContainerNetworkErrors
-        expr: (rate(podman_container_net_input_dropped_total[5m]) + rate(podman_container_net_input_errors_total[5m]) + rate(podman_container_net_output_dropped_total[5m]) + rate(podman_container_net_output_errors_total[5m])) > 0.1
+        expr: >
+          (
+            rate(podman_container_net_input_dropped_total[5m])
+            + rate(podman_container_net_input_errors_total[5m])
+            + rate(podman_container_net_output_dropped_total[5m])
+            + rate(podman_container_net_output_errors_total[5m])
+          ) > 0.1
+          unless on(name) podman_container_info{name="qbittorrent"}
         for: 10m
         annotations:
           summary: "Container is experiencing network errors"

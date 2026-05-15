@@ -24,10 +24,3 @@ groups:
         annotations:
           summary: Swap Activity Detected
           description: "System is swapping pages to/from disk - memory pressure detected"
-      -
-        alert: PageFaultRateHigh
-        expr: rate(node_vmstat_pgfault[5m]) > 100000
-        for: 30m
-        annotations:
-          summary: High Page Fault Rate
-          description: "System experiencing {{ $value | humanize }} page faults per second"
