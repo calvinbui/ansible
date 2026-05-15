@@ -7,31 +7,27 @@
 
     changedetection_browserless_token: !vault |
       $ANSIBLE_VAULT;1.1;AES256
-      65663961663733333833633562643435316565303839646638343835393364393632353665323636
-      6530343163323232626665343130346264346130306437340a333132336262613562626562323866
-      32386234623861396664643230343563356161353434663964383363366436623761613432306261
-      3931346438636162610a363965363661636635303530636164336366363664633661333439393637
-      65336234623537353366633338386366336432656632336461306164663466393335
-
-    changedetection_browserless_launch_args:
-      args:
-        - --disable-web-security
-      stealth: true
-      ignoreHTTPSErrors: true
+      61626437336535613435656164373833636466323931346665306366333364353230313233386365
+      3865336566396438653363336236316465646261663062380a666339626532356262373939386365
+      35353831376331633934363566393030323933613732383537666265333532656233643933353735
+      6335383534373339620a616431326338393530363034353538663832353166633131306265626234
+      63346665383630313865636337393365313538656362393964373330646237313332633661353039
+      65343563313763626330303363386334383466363736316565663039353134626439666330653661
+      393639633836346335626432613734626234
 
     container_network: "{{ networks.pub }}"
 
   tasks:
-    - name: Create playwright container
-      ansible.builtin.include_role:
-        name: podman_container
-      vars:
-        container_name: "{{ application }}-chrome"
-        image: ghcr.io/browserless/chromium:v2.49.0
-        env:
-          TOKEN: "{{ changedetection_browserless_token }}"
-          CONCURRENT: "10"
-          TIMEOUT: "60000"
+    # - name: Create playwright container
+    #   ansible.builtin.include_role:
+    #     name: podman_container
+    #   vars:
+    #     container_name: "{{ application }}-chrome"
+    #     image: ghcr.io/browserless/chromium:v2.49.0
+    #     env:
+    #       TOKEN: "{{ changedetection_browserless_token }}"
+    #       CONCURRENT: "10"
+    #       TIMEOUT: "60000"
 
     - name: Create "{{ application }}" container
       ansible.builtin.include_role:
@@ -42,7 +38,8 @@
         env:
           BASE_URL: "https://{{ application }}.{{ common_tld }}"
 
-          PLAYWRIGHT_DRIVER_URL: "ws://{{ application }}-chrome:3000?token={{ changedetection_browserless_token }}&stealth=true&blockAds=true&launch={{ changedetection_browserless_launch_args | ansible.builtin.to_json | ansible.builtin.urlencode }}"
+          # PLAYWRIGHT_DRIVER_URL: "ws://{{ application }}-chrome:3000?token={{ changedetection_browserless_token }}&stealth=true"
+          PLAYWRIGHT_DRIVER_URL: "wss://production-sfo.browserless.io/chromium/stealth?token={{ changedetection_browserless_token }}"
 
           PUID: "{{ common_user_id | ansible.builtin.string }}"
           PGID: "{{ common_group_id | ansible.builtin.string }}"
