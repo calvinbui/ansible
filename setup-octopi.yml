@@ -56,15 +56,13 @@
       vars:
         ansible_ssh_pipelining: false
 
-    - name: Set authorized keys
-      ansible.posix.authorized_key:
-        user: "{{ item }}"
-        state: present
-        key: https://github.com/calvinbui.keys
-        comment: github keys
-      loop:
-        - root
-        - "{{ common_user }}"
+    - name: Set authorized keys from GitHub
+      ansible.builtin.include_role:
+        name: github_authorized_keys
+      vars:
+        github_authorized_keys_users:
+          - root
+          - "{{ common_user }}"
 
     - name: No password sudo
       community.general.sudoers:

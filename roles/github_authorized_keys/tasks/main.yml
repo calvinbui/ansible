@@ -1,0 +1,20 @@
+---
+
+- name: Fetch SSH keys from GitHub API
+  ansible.builtin.uri:
+    url: "https://api.github.com/user/keys"
+    headers:
+      Authorization: "Bearer {{ github_api_token }}"
+      Accept: "application/vnd.github+json"
+  register: _github_keys_result
+  delegate_to: localhost
+  run_once: true
+  become: false
+
+- name: Set authorized keys from GitHub
+  ansible.posix.authorized_key:
+    user: "{{ item.0 }}"
+    state: present
+    key: "{{ (_github_keys_result.json | ansible.builtin.selectattr('id', 'equalto', item.1.id) | ansible.builtin.list | first).key }}"
+    comment: "github:{{ item.1.comment }}"
+  loop: "{{ github_authorized_keys_users | ansible.builtin.product(github_ssh_key_ids) | ansible.builtin.list }}"

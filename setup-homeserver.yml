@@ -103,11 +103,11 @@
       become_user: "{{ common_user }}"
 
     - name: Set authorized keys from GitHub
-      ansible.posix.authorized_key:
-        user: "{{ common_user }}"
-        state: present
-        key: https://github.com/calvinbui.keys
-        comment: github
+      ansible.builtin.include_role:
+        name: github_authorized_keys
+      vars:
+        github_authorized_keys_users:
+          - "{{ common_user }}"
 
     - name: Set hostname
       ansible.builtin.hostname:

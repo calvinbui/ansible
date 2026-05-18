@@ -27,12 +27,12 @@
         state: restarted
 
   tasks:
-    - name: Set authorized keys
-      ansible.posix.authorized_key:
-        user: root
-        state: present
-        key: https://github.com/calvinbui.keys
-        comment: github keys
+    - name: Set authorized keys from GitHub
+      ansible.builtin.include_role:
+        name: github_authorized_keys
+      vars:
+        github_authorized_keys_users:
+          - root
 
     - name: Create Lego directory
       ansible.builtin.file:

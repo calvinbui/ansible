@@ -4,8 +4,8 @@
 
   tasks:
     - name: Set authorized keys from GitHub
-      ansible.posix.authorized_key:
-        user: root
-        state: present
-        key: "https://github.com/calvinbui.keys"
-        comment: github
+      ansible.builtin.include_role:
+        name: github_authorized_keys
+      vars:
+        github_authorized_keys_users:
+          - root
