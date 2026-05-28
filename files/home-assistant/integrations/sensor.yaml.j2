@@ -2,48 +2,6 @@
 
 {%- raw %}
 
-# https://github.com/mampfes/hacs_waste_collection_schedule
--
-  name: Waste Collection Schedule - Waste
-  source_index: 0
-  types: [Waste]
-  <<: &waste_collection_schedule
-    platform: waste_collection_schedule
-    details_format: upcoming
-    add_days_to: true
-    value_template: >-
-      {% set today = now() %}
-
-      {% if value.daysTo == 0 %}
-        Today
-
-      {% elif value.daysTo == 1 %}
-        Tomorrow
-
-      {% elif value.date.isocalendar().week == today.isocalendar().week %}
-        {{ value.date.strftime("%A")}}
-
-      {% elif value.date.isocalendar().week - today.isocalendar().week == 1 %}
-        Next {{ value.date.strftime("%A")}}
-
-      {% elif value.date.isocalendar().week - today.isocalendar().week == 2 %}
-        In 2 weeks
-
-      {% else %}
-        {{ value.date }} ({{value.daysTo}} days)
-
-      {% endif %}
--
-  name: Waste Collection Schedule - Recycling
-  source_index: 0
-  types: [Recycling]
-  <<: *waste_collection_schedule
--
-  name: Waste Collection Schedule - Organics
-  source_index: 0
-  types: [Organics]
-  <<: *waste_collection_schedule
-
 # converts kW to kWh for the following solar/grid import/export sensors
 # https://www.home-assistant.io/integrations/integration/
 -

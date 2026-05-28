@@ -41,7 +41,7 @@ cards:
       -
         type: custom:button-card
         template: custom_card_calvin_waste
-        entity: sensor.waste_collection_schedule_organics
+        entity: sensor.waste_collection_schedule_organic
         variables:
           ulm_card_generic_swap_name: Organics
           ulm_card_generic_swap_icon: "mdi:leaf"
@@ -53,7 +53,7 @@ cards:
       -
         type: custom:button-card
         template: custom_card_calvin_waste
-        entity: sensor.waste_collection_schedule_recycling
+        entity: sensor.waste_collection_schedule_recycle
         variables:
           ulm_card_generic_swap_name: Recycling
           ulm_card_generic_swap_icon: "mdi:recycle"

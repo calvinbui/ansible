@@ -1,8 +1,0 @@
----
-
-# https://github.com/mampfes/hacs_waste_collection_schedule
-
-day_switch_time: "08:30"
-
-sources:
-{{ home_assistant_integrations.waste_collection_schedule | ansible.builtin.to_json(vault_to_text=True) | ansible.builtin.from_json | ansible.builtin.to_nice_yaml(indent=2) }}
