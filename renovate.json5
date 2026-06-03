@@ -397,11 +397,6 @@
       matchPackageNames: ['/.*\\/plex-auto-languages$/'],
       sourceUrl: 'https://github.com/JourneyDocker/Plex-Auto-Languages',
     },
-    /* your_spotify */
-    {
-      groupName: 'your_spotify',
-      matchPackageNames: ['/.*\\/your_spotify_.*$/'],
-    },
     /* prometheus-podman-exporter */
     {
       matchPackageNames: ['/.*\\/prometheus-podman-exporter$/'],
