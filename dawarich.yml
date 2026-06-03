@@ -126,7 +126,7 @@
           OIDC_REDIRECT_URI: "https://{{ application }}.{{ common_tld }}/users/auth/openid_connect/callback"
           OIDC_PROVIDER_NAME: "{{ oidc_provider | ansible.builtin.title }}"
           OIDC_AUTO_REGISTER: "true"
-          ALLOW_EMAIL_PASSWORD_REGISTRATION: "false"
+          ALLOW_EMAIL_PASSWORD_LOGIN: "false"
 
           SELF_HOSTED: "true"
 
