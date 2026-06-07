@@ -1,0 +1,160 @@
+---
+
+- hosts: homeserver
+
+  vars:
+    application: immich-kiosk
+
+    container_network: "{{ networks.pub }}"
+
+  tasks:
+    - name: Create config folder
+      ansible.builtin.file:
+        path: "{{ config_directory }}"
+        state: directory
+        owner: "{{ common_user }}"
+        group: "{{ common_group }}"
+        mode: "0771"
+
+    - name: Create config
+      ansible.builtin.copy:
+        content: |
+          # https://docs.immichkiosk.app/configuration/#configyaml
+
+          immich_api_key: "{{ _immich_api_key }}"
+          immich_url: "http://immich-server:2283"
+
+          show_time: true
+          time_format: 12
+          show_date: true
+          date_format: DDDD D MMMM YYYY
+          clock_source: client
+
+          duration: 10
+
+          albums:
+            - 439e6de4-9ab5-4441-9ce1-ea994c6863ef@tammy # Digital Photo Frame
+            - d9cde0fe-8323-4477-a6f3-d9927a543a26@calvin # Kai Maternity Photoshoot Story Lens
+            - 2f267e6f-0a99-40df-8e1b-e8756ca4c4a5@calvin # Kai Newborn Photoshoot Story Lens
+            - 0231aaa0-dcf2-42e3-95c7-41331205b30d@calvin # Hanbok Photoshoot South Korea Bomyou
+            - f55ff40a-1f80-45fe-874e-f883430ec144@calvin # Jeju Photoshoot Detailed Edit Soymilk
+            - 7630c8d6-00e6-44b0-89f0-9cb3009b7612@calvin # RTW 2023 - New York (curated)
+            - e6bdb8f2-464e-438e-a4d7-eb18312157b3@calvin # RTW 2023 - Tokyo (curated)
+            - dec659c9-5e56-4089-b288-2b86ebde72e3@calvin # RTW 2023 - Spain (curated)
+            - 0f030ab8-495e-4bc4-b7cf-f9a1fd302fc3@calvin # Paris Photoshoot 2023 (Edited)
+            - 99ff622b-40a6-4a0b-9b09-6ee1d8020fde@calvin # RTW 2023 - France (curated)
+            - 15f8dbc9-ae5f-4409-9d74-8c2006aaed27@calvin # RTW 2023 - Switzerland (curated)
+            - 099c9976-6511-4d40-9bd5-80e5172e6a95@calvin # RTW 2023 - Venice (curated)
+            - b9201652-3edd-4f3f-9d5d-f85af28f53d3@calvin # RTW 2023 - Pisa (curated)
+            - 2bcc074e-ef94-4264-af49-dc972c8aa405@calvin # RTW 2023 - Florence (curated)
+
+          disable_navigation: true
+          show_progress_bar: true
+          theme: bubble
+          layout: splitview
+
+          show_videos: false
+          live_photos: false
+          live_photo_loop_delay: 0
+
+          show_owner: false
+          show_album_name: true
+          show_person_name: true
+          show_person_age: true
+          show_image_time: true
+          image_time_format: 12
+          show_image_date: true
+          image_date_format: MMMM YYYY
+          show_image_location: true
+          show_more_info: false
+          show_more_info_image_link: false
+          show_more_info_qr_code: false
+
+          weather:
+            locations:
+              - name: home
+                lat: {{ weather.lat }}
+                lon: {{ weather.lon }}
+                api: "{{ weather.api_key }}"
+                unit: metric
+                lang: {{ common_language_iso_639 }}
+                forecast: true
+                default: true
+
+          immich_users_api_keys:
+            calvin: "{{ _immich_api_key }}"
+            tammy: "{{ tammy_api_key }}"
+
+          disable_sleep: true
+
+          kiosk:
+            disable_url_queries: true
+            disable_config_endpoint: true
+            enable_url_builder: false
+            watch_config: true
+            fetched_assets_size: 1000
+            http_timeout: 20
+        dest: "{{ config_directory }}/config.yaml"
+        mode: "0644"
+      vars:
+        _immich_api_key: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          38316365313735383666303965363662353633333566643235636566353861366361336465653263
+          3536653436626462306631386665333438313838656662610a656331313239653238343561316661
+          30643635386165613830303439643435613963306231363063613535623630366566303737346234
+          6337313938396638370a313935376538623638613430303563613839303536326163663337393364
+          32393534613164313036396264383538636533316562383231363131313663383263633034656662
+          3832613731643361643666363834303238343538653831353666
+        tammy_api_key: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          33313038623465663331616262363261393334313164303666613264303932306562653036396264
+          6334333434626133663333353735643161306130346636640a356333336663633266376261313064
+          39303639393064646361643265323335393965316433663531333035323730396264616439353463
+          3863383363623730370a386134646564366632326633646430663762346162373230616337356333
+          64383537656536306433656266373033366631383130646133316232666334666539663532643365
+          6163333161306336643039346337346231376436353763626134
+        weather:
+          name: !vault |
+            $ANSIBLE_VAULT;1.1;AES256
+            36303735633166383639323266356336376139306630336438353732373235656237383365326161
+            3234313935663763613233343664303932323866643064370a653666666633376439646532316538
+            64313235376666613038333933373962386530303563303130643831363364646330353834633838
+            3266363263393530630a376237663038383664383838303439346466393530643234333931613837
+            33323434333662336638356433643139333233343265316265646661353039653763
+          lat: !vault |
+            $ANSIBLE_VAULT;1.1;AES256
+            38333130643232646363316533333662613865303738323831313462336162323332616435356631
+            6462393864303336643165353439313838636130306137320a663639356631323764626664336230
+            63353235303839313336663466326535343036636266646461633731303766363231313435616164
+            6437316661343839340a343161326664303235653335636336373631626139626634623436303633
+            3962
+          lon: !vault |
+            $ANSIBLE_VAULT;1.1;AES256
+            35326361363836363132313161376663623933643633393066636332313035373030373038643964
+            3831313831326130323337623435633961613036306465610a326138363763373263396131383761
+            39306534333030333535393336346662303836303232613631666335613338373938303463343733
+            6263333736623738620a366639616461626665393663393063613336343331303538366135306135
+            3932
+          api_key: !vault |
+            $ANSIBLE_VAULT;1.1;AES256
+            37313939396539333363366530363231643330356534656137336361366162663731643632333264
+            3935303031653365303131616530336634633632383233650a666136303436356338643539313365
+            34333731653534373530373138653635326630333832306235393131343866646132306332353163
+            3730393836646633630a333761626630356139623961313334386139333338663037613564663064
+            66646532363136653761323861633337366666623834386664616436383136636263376262336135
+            6463303565326635353139623335383931393766616238643138
+
+    - name: Create container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        image: ghcr.io/damongolding/immich-kiosk:0.39.3
+        env:
+          LANG: "{{ common_language_iso_639 }}_{{ common_country_iso_3166 }}"
+          TZ: "{{ common_timezone }}"
+        volumes:
+          - "{{ config_directory }}:/config"
+        blackbox:
+          protocol: http
+          host: "{{ application }}:3000"
+          path: /health
