@@ -32,7 +32,7 @@
                 config:
                   disableIndexing: true
             externalUrl: "https://{{ application }}.{{ common_tld }}"
-            internalUrl: "http://{{ application }}.{{ common_local_tld }}"
+            internalUrl: "http://{{ application }}.{{ common_local_tld }}:8080"
 
           auth:
             methods:
