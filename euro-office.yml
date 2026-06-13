@@ -1,0 +1,90 @@
+---
+
+- hosts: homeserver
+
+  vars:
+    application: euro-office
+
+    container_network: "{{ networks.pub }}"
+
+  tasks:
+    - name: Create euro-office container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        container_name: "euro-office"
+        image: ghcr.io/euro-office/documentserver:v9.3.1
+        stop_signal: "{{ signal_map['SIGKILL'] }}"
+        env:
+          JWT_ENABLED: "true"
+          JWT_SECRET: "{{ eurooffice_jwt_secret }}"
+        traefik:
+          - port: 80
+            rule: Host(`euro-office.{{ common_tld }}`)
+            middlewares:
+              - "{{ application }}-euro-office-sslheaders"
+        blackbox:
+          - path: /healthcheck
+        labels:
+          - "traefik.http.middlewares.{{ application }}-euro-office-sslheaders.headers.customrequestheaders.X-Forwarded-Proto=https"
+
+    - name: Install euro-office app
+      containers.podman.podman_container_exec:
+        name: nextcloud
+        user: www-data
+        command: "php occ app:install eurooffice"
+      register: _command_result
+      failed_when: "'Could not download app' in _command_result.stdout"
+      changed_when: "'already installed' not in _command_result.stdout"
+      retries: 3
+      delay: 2
+
+    - name: Configure euro-office app
+      containers.podman.podman_container_exec:
+        name: nextcloud
+        user: www-data
+        command: "php occ config:app:set eurooffice {{ item.name }} --value={{ item.value }}"
+      register: _command_result
+      failed_when:
+        - "'for app eurooffice set to' not in _command_result.stdout"
+        - "'Config value were not updated' not in _command_result.stdout"
+      changed_when: "'is now set to' in _command_result.stdout"
+      retries: 3
+      delay: 2
+      loop:
+        -
+          name: DocumentServerUrl
+          value: "https://euro-office.{{ common_tld }}/"
+        -
+          name: jwt_secret
+          value: "{{ eurooffice_jwt_secret }}"
+        -
+          name: DocumentServerInternalUrl
+          value: "http://euro-office/"
+        -
+          name: StorageUrl
+          value: "http://{{ application }}/"
+        -
+          name: preview
+          value: false
+        -
+          name: advanced
+          value: true
+        -
+          name: defFormats
+          value: '{\"csv\":\"true\",\"doc\":\"true\",\"docm\":\"true\",\"docx\":\"true\",\"docxf\":\"true\",\"oform\":\"true\",\"dotx\":\"true\",\"epub\":\"false\",\"html\":\"false\",\"odp\":\"true\",\"ods\":\"true\",\"odt\":\"true\",\"otp\":\"true\",\"ots\":\"true\",\"ott\":\"true\",\"pdf\":\"false\",\"potm\":\"true\",\"potx\":\"true\",\"ppsm\":\"true\",\"ppsx\":\"true\",\"ppt\":\"true\",\"pptm\":\"true\",\"pptx\":\"true\",\"rtf\":\"true\",\"txt\":\"true\",\"xls\":\"true\",\"xlsm\":\"true\",\"xlsx\":\"true\",\"xltm\":\"true\",\"xltx\":\"true\"}'
+        -
+          name: customizationChat
+          value: false
+        -
+          name: customizationCompactHeader
+          value: true
+        -
+          name: customizationFeedback
+          value: false
+        -
+          name: customizationHelp
+          value: false
+        -
+          name: customizationTheme
+          value: "theme-light"
