@@ -139,11 +139,6 @@
       matchPackageNames: ['/.*\\/mattermost-(team|enterprise)-edition$/'],
       enabled: false,
     },
-    /* onlyoffice */
-    {
-      matchPackageNames: ['/onlyoffice\\/documentserver$/'],
-      sourceUrl: 'https://github.com/ONLYOFFICE/DocumentServer',
-    },
     /* eufy-security-ws */
     {
       matchPackageNames: ['/bropat\\/eufy-security-ws$/'],

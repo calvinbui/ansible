@@ -66,11 +66,6 @@
             loginMethod: "oidc"
             disableUpdateNotifications: true
 
-          integrations:
-            office:
-              url: "https://onlyoffice.{{ common_tld }}"
-              internalUrl: "http://nextcloud-onlyoffice.{{ common_local_tld }}"
-              secret: "{{ onlyoffice_jwt_secret }}"
 
         dest: "{{ config_directory }}/config.yaml"
         owner: "{{ common_user }}"
