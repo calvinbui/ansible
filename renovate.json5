@@ -402,6 +402,12 @@
       matchPackageNames: ['/.*\\/wyoming-piper$/'],
       sourceUrl: 'https://github.com/rhasspy/wyoming-piper',
     },
+    /* timescaledb-ha */
+    {
+      matchPackageNames: ['/timescale\\/timescaledb-ha$/'],
+      sourceUrl: 'https://github.com/timescale/timescaledb',
+      changelogUrl: 'https://github.com/timescale/timescaledb/blob/main/CHANGELOG.md',
+    },
     /* govee2mqtt */
     {
       matchPackageNames: ['/wez\\/govee2mqtt$/'],
@@ -490,6 +496,25 @@
       datasourceTemplate: "docker",
       versioningTemplate: "loose",
       extractVersionTemplate: "^(?<version>\\d+)-vectorchord\\d+\\.\\d+\\.\\d+-\\w+\\d+\\.\\d+\\.\\d+$",
+    },
+
+    /* tracearr timescaledb-ha */
+    {
+      customType: "regex",
+      managerFilePatterns: ['/^tracearr\\.ya?ml$/'],
+      matchStrings: ['postgres_version: (?<currentValue>.*)'],
+      depNameTemplate: "docker.io/timescale/timescaledb-ha",
+      datasourceTemplate: "docker",
+      versioningTemplate: "regex:^pg(?<major>\\d+)\\.(?<minor>\\d+)-ts(?<patch>\\d+)\\.(?<build>\\d+)\\.(?<revision>\\d+)$",
+    },
+    {
+      customType: "regex",
+      managerFilePatterns: ['/^tracearr\\.ya?ml$/'],
+      matchStrings: ['postgres_version: pg(?<currentValue>\\d+)\\.\\d+-ts\\d+\\.\\d+\\.\\d+'],
+      depNameTemplate: "docker.io/timescale/timescaledb-ha",
+      datasourceTemplate: "docker",
+      versioningTemplate: "loose",
+      extractVersionTemplate: "^pg(?<version>\\d+)\\.\\d+-ts\\d+\\.\\d+\\.\\d+$",
     },
 
     /* librechat postgres */
