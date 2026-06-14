@@ -190,6 +190,9 @@
 
               # outline
               - evt.Parsed.traefik_router_name startsWith 'outline' && evt.Meta.http_path startsWith '/api/'
+
+              # nextcloud
+              - evt.Parsed.traefik_router_name startsWith 'nextcloud' && (evt.Meta.http_path startsWith '/index.php/core/preview' || evt.Meta.http_path startsWith '/ocs/' || evt.Meta.http_path startsWith '/remote.php/' || evt.Meta.http_path startsWith '/login/')
         dest: "{{ config_directory }}/my-whitelist.yaml"
         owner: "{{ common_root_id }}"
         group: "{{ common_root_group }}"
