@@ -26,7 +26,7 @@
   ansible.builtin.include_role:
     name: postgres
   vars:
-    postgres_version: 18.1
+    postgres_version: 18.4
     postgres_database: "{{ application }}-main"
     postgres_directory_extra:
       - "{{ config_directory }}/init-log-db.sh:/docker-entrypoint-initdb.d/init-log-db.sh:ro"
