@@ -144,6 +144,18 @@
       retries: 3
       delay: 2
 
+    - name: Disable bruteforce protection
+      containers.podman.podman_container_exec:
+        name: "{{ application }}"
+        user: www-data
+        command: "php occ config:system:set auth.bruteforce.protection.enabled --type=boolean --value=false"
+      register: _command_result
+      failed_when: "'set to boolean' not in _command_result.stdout"
+      changed_when: false
+      until: _command_result is success
+      retries: 3
+      delay: 2
+
     - name: Enable preview providers
       containers.podman.podman_container_exec:
         name: "{{ application }}"
