@@ -66,6 +66,11 @@
             loginMethod: "oidc"
             disableUpdateNotifications: true
 
+          integrations:
+            office:
+              url: "https://euro-office.{{ common_tld }}"
+              internalUrl: "http://euro-office"
+              secret: "{{ eurooffice_jwt_secret }}"
 
         dest: "{{ config_directory }}/config.yaml"
         owner: "{{ common_user }}"
