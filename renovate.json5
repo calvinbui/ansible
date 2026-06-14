@@ -434,7 +434,7 @@
     {
       customType: "regex",
       managerFilePatterns: ['/^.*\\.ya?ml$/'],
-      matchStrings: ['postgres_version: (?<currentValue>\\d+\\.\\d+)'],
+      matchStrings: ['postgres_version: (?<currentValue>\\d+\\.\\d+)(?!\\S)'],
       depNameTemplate: "public.ecr.aws/docker/library/postgres",
       datasourceTemplate: "docker",
     },
