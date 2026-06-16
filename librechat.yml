@@ -25,6 +25,145 @@
         - images
         - uploads
         - logs
+        - searxng
+
+    - name: Create SearXNG configuration
+      ansible.builtin.copy:
+        content: |
+          use_default_settings: true
+
+          server:
+            secret_key: "{{ oidc_auth.librechat.secret | ansible.builtin.hash('sha256') }}"
+            limiter: false
+
+          search:
+            formats:
+              - html
+              - json
+
+        dest: "{{ config_directory }}/searxng/settings.yml"
+        owner: "{{ common_user }}"
+        group: "{{ common_group }}"
+        mode: "0600"
+
+    - name: Create SearXNG container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        container_name: "{{ application }}-searxng"
+        image: ghcr.io/searxng/searxng:latest
+        env:
+          SEARXNG_BASE_URL: "http://{{ application }}-searxng:8080/"
+        volumes:
+          - "{{ config_directory }}/searxng/settings.yml:/etc/searxng/settings.yml"
+
+    - name: Create Firecrawl valkey container
+      ansible.builtin.include_role:
+        name: valkey
+      vars:
+        valkey_name: "{{ application }}-firecrawl-valkey"
+        valkey_directory: "{{ config_directory }}/firecrawl-valkey"
+        valkey_version: 9.1.0
+        valkey_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          36653539303364356362323861306233656332313832336236363139323730336265313838346438
+          3432623864373262633838336538366233613938653562390a616330383536323230396266396463
+          33633337303366396132353835326139646162616231633034633333663634306336336466373232
+          3032656336316562300a386335326530326533666161633534343832363432336465356136333162
+          62613731396363396639356361303432666539613664656634646466656336316437336536616530
+          6538353562316532646432323835303833373231653262363838
+
+    - name: Set Firecrawl valkey variables
+      ansible.builtin.set_fact:
+        _firecrawl_valkey_url: "{{ _valkey_url }}"
+      no_log: true
+
+    - name: Create Firecrawl RabbitMQ container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        container_name: "{{ application }}-firecrawl-rabbitmq"
+        image: docker.io/library/rabbitmq:3.13.7-management
+        command: rabbitmq-server
+        healthcheck: rabbitmq-diagnostics -q check_running
+        healthcheck_start_period: 5s
+        healthcheck_interval: 5s
+        healthcheck_timeout: 5s
+        healthcheck_retries: 3
+
+    - name: Create Firecrawl queue postgres container
+      ansible.builtin.include_role:
+        name: postgres
+      vars:
+        postgres_name: "{{ application }}-firecrawl-postgres"
+        postgres_image: ghcr.io/firecrawl/nuq-postgres
+        postgres_version: latest
+        postgres_directory: "{{ config_directory }}/firecrawl-postgres"
+        postgres_command: "postgres -c cron.database_name={{ application }}"
+        postgres_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          62343664343865323337323062626161343335393464626335333130623339373436623835363638
+          6465623938313432623939613264353863333739376266380a393731346337323333363439393833
+          38323334613930373736383664643561376361343039393462626330616231653132643762636139
+          3938333563323530640a653534646439373935343262386535376665393632353461373561336365
+          62386365633166313231616434383438323638643563663639633663653436393430356465376139
+          6235643362333634346364303337363762636666666232623362
+
+    - name: Set Firecrawl postgres variables
+      ansible.builtin.set_fact:
+        _firecrawl_postgres_hostname: "{{ _postgres_hostname }}"
+        _firecrawl_postgres_port: "{{ _postgres_port }}"
+        _firecrawl_postgres_username: "{{ _postgres_username }}"
+        _firecrawl_postgres_password: "{{ _postgres_password }}"
+        _firecrawl_postgres_database: "{{ _postgres_database }}"
+      no_log: true
+
+    - name: Create Firecrawl Playwright container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        container_name: "{{ application }}-firecrawl-playwright"
+        image: ghcr.io/firecrawl/playwright-service:latest
+        env:
+          PORT: "3000"
+          ALLOW_LOCAL_WEBHOOKS: "true"
+          BLOCK_MEDIA: "true"
+          MAX_CONCURRENT_PAGES: "4"
+        tmpfs:
+          /tmp/.cache: noexec,nosuid,size=1g
+
+    - name: Create Firecrawl API container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        container_name: "{{ application }}-firecrawl-api"
+        image: ghcr.io/firecrawl/firecrawl:2.10.17
+        command:
+          - node
+          - dist/src/harness.js
+          - --start-docker
+        env:
+          HOST: "0.0.0.0"
+          PORT: "3002"
+          EXTRACT_WORKER_PORT: "3004"
+          WORKER_PORT: "3005"
+          ENV: local
+          USE_DB_AUTHENTICATION: "false"
+          NUM_WORKERS_PER_QUEUE: "4"
+          CRAWL_CONCURRENT_REQUESTS: "4"
+          MAX_CONCURRENT_JOBS: "2"
+          BROWSER_POOL_SIZE: "2"
+          HARNESS_STARTUP_TIMEOUT_MS: "60000"
+          REDIS_URL: "{{ _firecrawl_valkey_url }}"
+          REDIS_RATE_LIMIT_URL: "{{ _firecrawl_valkey_url }}"
+          NUQ_RABBITMQ_URL: "amqp://{{ application }}-firecrawl-rabbitmq:5672"
+          POSTGRES_USER: "{{ _firecrawl_postgres_username }}"
+          POSTGRES_PASSWORD: "{{ _firecrawl_postgres_password }}"
+          POSTGRES_DB: "{{ _firecrawl_postgres_database }}"
+          POSTGRES_HOST: "{{ _firecrawl_postgres_hostname }}"
+          POSTGRES_PORT: "{{ _firecrawl_postgres_port | ansible.builtin.string }}"
+          PLAYWRIGHT_MICROSERVICE_URL: "http://{{ application }}-firecrawl-playwright:3000/scrape"
+          SEARXNG_ENDPOINT: "http://{{ application }}-searxng:8080"
 
     - name: Create mongodb container
       ansible.builtin.include_role:
@@ -124,6 +263,22 @@
             provider: openAI
             model: gpt-5.4-nano
 
+          webSearch:
+            searchProvider: searxng
+            searxngInstanceUrl: "${SEARXNG_INSTANCE_URL}"
+
+            scraperProvider: firecrawl
+            firecrawlApiKey: "${FIRECRAWL_API_KEY}"
+            firecrawlApiUrl: "${FIRECRAWL_API_URL}"
+            firecrawlVersion: "${FIRECRAWL_VERSION}"
+            firecrawlOptions:
+              timeout: 15000
+
+            rerankerType: jina
+            jinaApiKey: "${JINA_API_KEY}"
+
+            safeSearch: 0
+
           modelSpecs:
             enforce: true
             prioritize: true
@@ -131,6 +286,9 @@
               - name: gpt-5.5
                 label: GPT-5.5
                 default: true
+                webSearch: true
+                fileSearch: true
+                executeCode: true
                 preset:
                   endpoint: openAI
                   model: gpt-5.5
@@ -145,7 +303,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/danny-avila/librechat:v0.8.6
+        image: ghcr.io/danny-avila/librechat:v0.8.7-rc1
         user: "{{ common_user_id }}:{{ common_group_id }}"
         env:
           HOST: "0.0.0.0"
@@ -186,6 +344,23 @@
           DEBUG_PLUGINS: "false"
 
           IMAGE_GEN_OAI_API_KEY: "{{ openai_api_key }}"
+
+          SEARXNG_INSTANCE_URL: "http://{{ application }}-searxng:8080"
+          SEARXNG_API_KEY: ""
+          FIRECRAWL_API_URL: "http://{{ application }}-firecrawl-api:3002"
+          FIRECRAWL_API_KEY: self-hosted
+          FIRECRAWL_VERSION: v1
+          JINA_API_KEY: !vault |
+            $ANSIBLE_VAULT;1.1;AES256
+            63616136393762643337333662663835663939346462666562356562333162383932333265613437
+            3065346635376466383264623935326366396530353132620a636232666332616537373137666539
+            33306633343135626237636239363939353061303137663939306139633133303461366163333934
+            3037356137626335640a376532316337356632333236313762653434623138356432343263346661
+            34306432363866366137333537306434363530373364653837333638393635353264643630353262
+            30666633383037346465326335623936633533356334626563333532393133316331653733623033
+            33663863343833333733663238666331366163303462346462363263646264343235393539366463
+            35373866646333613836
+          JINA_API_URL: https://api.jina.ai/v1/rerank
 
           SEARCH: "true"
           MEILI_NO_ANALYTICS: "true"
