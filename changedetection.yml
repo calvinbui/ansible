@@ -39,7 +39,7 @@
           BASE_URL: "https://{{ application }}.{{ common_tld }}"
 
           # PLAYWRIGHT_DRIVER_URL: "ws://{{ application }}-chrome:3000?token={{ changedetection_browserless_token }}&stealth=true"
-          PLAYWRIGHT_DRIVER_URL: "wss://production-sfo.browserless.io/chromium/stealth?token={{ changedetection_browserless_token }}"
+          PLAYWRIGHT_DRIVER_URL: "wss://production-sfo.browserless.io/chromium/stealth?token={{ changedetection_browserless_token }}&proxy=residential&proxyCountry=au"
 
           PUID: "{{ common_user_id | ansible.builtin.string }}"
           PGID: "{{ common_group_id | ansible.builtin.string }}"
