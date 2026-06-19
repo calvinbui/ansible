@@ -28,9 +28,11 @@
           server:
             port: 8080
             sources:
-              - path: "/srv"
+              - path: "/data"
                 config:
-                  disableIndexing: true
+                  rules:
+                    - folderPath: "/"
+                      viewable: true
             externalUrl: "https://{{ application }}.{{ common_tld }}"
             internalUrl: "http://{{ application }}.{{ common_local_tld }}:8080"
 
@@ -85,7 +87,7 @@
         image: ghcr.io/gtsteffaniak/filebrowser:1.4.0-stable
         user: "{{ common_user_id }}:{{ common_group_id }}"
         volumes:
-          - "{{ common_directory_storage }}:/srv"
+          - "{{ common_directory_storage }}:/data"
           - "{{ config_directory }}:/home/filebrowser/data"
         traefik:
           - port: 8080
