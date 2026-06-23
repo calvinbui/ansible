@@ -36,7 +36,7 @@
       vars:
         postgres_image: docker.io/timescale/timescaledb-ha
         postgres_command: postgres -c timescaledb.license=timescale -c timescaledb.max_tuples_decompressed_per_dml_transaction=0 -c max_locks_per_transaction=4096 -c timescaledb.telemetry_level=off
-        postgres_version: pg18.4-ts2.27.2
+        postgres_version: pg18.4-ts2.28.0
         postgres_password: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           34326336646463633234323732366136353438326461626366343662636664383264633434663133
