@@ -156,33 +156,17 @@
       retries: 3
       delay: 2
 
-    - name: Enable preview providers
+    - name: Disable preview generation
       containers.podman.podman_container_exec:
         name: "{{ application }}"
         user: www-data
-        command: "php occ config:system:set enabledPreviewProviders {{ ansible_loop.index0 }} --value={{ item }}"
+        command: "php occ config:system:set enable_previews --type=boolean --value=false"
       register: _command_result
-      failed_when: "'set to string' not in _command_result.stdout"
+      failed_when: "'set to boolean' not in _command_result.stdout"
       changed_when: false
       until: _command_result is success
       retries: 3
       delay: 2
-      loop_control:
-        extended: true
-      loop:
-        - 'OC\\Preview\\MP3'
-        - 'OC\\Preview\\TXT'
-        - 'OC\\Preview\\MarkDown'
-        - 'OC\\Preview\\OpenDocument'
-        - 'OC\\Preview\\Krita'
-        # imaginary
-        - 'OC\\Preview\\Imaginary'
-        # disabled by default
-        - 'OC\\Preview\\PDF'
-        - 'OC\\Preview\\SVG'
-        - 'OC\\Preview\\Font'
-        - 'OC\\Preview\\TIFF'
-        - 'OC\\Preview\\Movie'
 
     - name: Install notify_push app
       containers.podman.podman_container_exec:
