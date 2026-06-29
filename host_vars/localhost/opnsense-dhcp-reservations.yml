@@ -254,9 +254,9 @@ opnsense_dhcp_reservations:
   -
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(31) }}"
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
-    mac: e4:5f:01:ae:ff:fb
+    mac: e4:5f:01:ae:ff:fc
     hostname: octopi
-    comment: Ethernet
+    comment: WiFi
   -
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(32) }}"
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
