@@ -339,7 +339,7 @@
           plugins.Octoslack.supported_events.PrintCancelled.Enabled: false
           plugins.Octoslack.supported_events.PrintPaused.Enabled: false
           plugins.Octoslack.supported_events.PrintResumed.Enabled: false
-          plugins.Octoslack.supported_events.Error.Enabled: true
+          plugins.Octoslack.supported_events.Error.Enabled: false
           plugins.Octoslack.supported_events.PrintDone.Enabled: true
           plugins.Octoslack.supported_events.PrintDone.CaptureSnapshot: true
 
