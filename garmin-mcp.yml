@@ -1,0 +1,104 @@
+---
+
+- hosts: homeserver
+
+  vars:
+    application: garmin-mcp
+
+    container_network: "{{ networks.pub }}"
+
+  tasks:
+    - name: Create config folder
+      ansible.builtin.file:
+        path: "{{ config_directory }}"
+        state: directory
+        owner: "{{ common_user }}"
+        group: "{{ common_group }}"
+        mode: "0771"
+
+    - name: Clone
+      ansible.builtin.git:
+        repo: "https://github.com/Taxuspt/garmin_mcp.git"
+        dest: "{{ config_directory }}/repo"
+        update: true
+      register: _garmin_mcp_repo_updated
+
+    - name: Build image
+      containers.podman.podman_image:
+        name: "{{ application }}"
+        path: "{{ config_directory }}/repo"
+        state: build
+        force: "{{ true if _garmin_mcp_repo_updated.changed else false }}"
+
+    - name: Create tokens folder
+      ansible.builtin.file:
+        path: "{{ config_directory }}/tokens"
+        state: directory
+        owner: "{{ common_user }}"
+        group: "{{ common_group }}"
+        mode: "0771"
+
+    - name: Create container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        container_name: "{{ application }}"
+        image: "localhost/{{ application }}:latest"
+        env:
+          GARMIN_EMAIL: !vault |
+            $ANSIBLE_VAULT;1.1;AES256
+            62653162363639333432333166643065663033313239393233316132636661366261363766346662
+            6562386633373662646638303461346566336336626437330a366631643831393032633337333038
+            63343765326366393936326231373930376434386436373066613139373031386365643039666235
+            6664303837663065620a646531633539623136326434343664363564386663303332656538356435
+            66333834386439333630363161353936316466356361653364366530623333356138
+          GARMIN_PASSWORD: !vault |
+            $ANSIBLE_VAULT;1.1;AES256
+            64373533613233333334636133633564366131333736643637366638656238663866633737303835
+            3263323837383638353966363435626663313966343836650a303339386336333936336562353164
+            36656232383264303134313136626634626536613363666537383537623338316534333863626332
+            3766306263393234660a306339623438636564373531643434626430646665616339326536653536
+            63613134383533333037623235326366613765386632646536386562653730613765
+
+          GARMIN_MCP_TRANSPORT: streamable-http
+
+          # remove tools to stay under OpenAI's 128-tool limit
+          # tuned for a Forerunner 570.
+          #
+          # Drops:
+          # - nutrition/food logging
+          # - badge & challenge admin
+          # - power-meter activity-file analysis (cycling/Di2).
+          GARMIN_DISABLED_TOOLS: |-
+            {{
+              [
+                "get_nutrition_daily_food_log",
+                "get_nutrition_daily_meals",
+                "get_nutrition_daily_settings",
+                "get_custom_foods",
+                "get_custom_food_serving_units",
+                "create_custom_food",
+                "update_custom_food",
+                "delete_custom_food",
+                "log_custom_food",
+                "log_food",
+                "delete_food_log",
+                "upsert_and_log",
+
+                "get_earned_badges",
+                "get_adhoc_challenges",
+                "get_available_badge_challenges",
+                "get_badge_challenges",
+                "get_non_completed_badge_challenges",
+                "get_inprogress_virtual_challenges",
+
+                "get_activity_fit_data",
+                "get_power_duration_curve",
+                "download_activity_file",
+                "set_fit_download_dir",
+              ] | join(',')
+            }}
+        volumes:
+          - "{{ config_directory }}/tokens:/root/.garminconnect"
+        labels:
+          - com.centurylinklabs.watchtower.enable=false

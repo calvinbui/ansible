@@ -255,6 +255,10 @@
             prompts: false
             agents: false
 
+          mcpSettings:
+            allowedAddresses:
+              - "garmin-mcp:8000"
+
           registration:
             socialLogins: ["openid"]
 
