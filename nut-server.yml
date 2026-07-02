@@ -16,6 +16,13 @@
         state: restarted
 
   tasks:
+    - name: Set authorized keys from GitHub
+      ansible.builtin.include_role:
+        name: github_authorized_keys
+      vars:
+        github_authorized_keys_users:
+          - "{{ common_user }}"
+
     - name: Install nut
       ansible.builtin.apt:
         name: nut
