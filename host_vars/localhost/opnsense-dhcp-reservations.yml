@@ -87,9 +87,9 @@ opnsense_dhcp_reservations:
   -
     ip: "{{ networks.user.subnet | ansible.utils.nthhost(20) }}"
     subnet: "{{ networks.user.subnet | ansible.utils.ipaddr('subnet') }}"
-    mac: 08:8a:f1:0c:b4:2f
+    mac: 88:c9:b3:bc:04:4c
     hostname: CALVIN-PC
-    comment: 2.5G PCIe Adapter
+    comment: 10G PCIe Adapter
 
   #  _       _
   # (_) ___ | |_
