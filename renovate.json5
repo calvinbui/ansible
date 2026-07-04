@@ -254,7 +254,7 @@
     /* immich */
     {
       groupName: 'Immich',
-      matchPackageNames: ['/.*\\/immich-.*$/'],
+      matchPackageNames: ['/ghcr\\.io\\/immich-app\\/immich-.*$/'],
       sourceUrl: 'https://github.com/immich-app/immich',
     },
     /* wizarr */
