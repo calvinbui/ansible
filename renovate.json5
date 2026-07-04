@@ -255,6 +255,7 @@
     {
       groupName: 'Immich',
       matchPackageNames: ['/ghcr\\.io\\/immich-app\\/immich-.*$/'],
+      commitMessagePrefix: 'immich:',
       sourceUrl: 'https://github.com/immich-app/immich',
     },
     /* wizarr */
