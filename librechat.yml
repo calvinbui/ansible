@@ -83,7 +83,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-firecrawl-rabbitmq"
-        image: docker.io/library/rabbitmq:3.13.7-management
+        image: public.ecr.aws/docker/library/rabbitmq:3.13.7-management
         command: rabbitmq-server
         healthcheck: rabbitmq-diagnostics -q check_running
         healthcheck_start_period: 5s
