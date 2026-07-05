@@ -137,7 +137,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-firecrawl-api"
-        image: ghcr.io/firecrawl/firecrawl:2.10.17
+        image: ghcr.io/firecrawl/firecrawl:2.11.64
         command:
           - node
           - dist/src/harness.js
