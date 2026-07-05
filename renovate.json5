@@ -350,6 +350,11 @@
       matchPackageNames: ['/firecrawl\\/firecrawl$/'],
       sourceUrl: 'https://github.com/firecrawl/firecrawl',
     },
+    /* euro-office */
+    {
+      matchPackageNames: ['/euro-office\\/documentserver$/'],
+      sourceUrl: 'https://github.com/Euro-Office/DocumentServer',
+    },
     /* emqx */
     {
       matchPackageNames: ['/.*\\/emqx$/'],
