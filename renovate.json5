@@ -191,6 +191,11 @@
       matchPackageNames: ['/nginx$/'],
       changelogUrl: 'https://nginx.org/en/CHANGES',
     },
+    /* rabbitmq */
+    {
+      matchPackageNames: ['/rabbitmq$/'],
+      sourceUrl: 'https://github.com/rabbitmq/rabbitmq-server',
+    },
     /* alertmanager */
     {
       matchPackageNames: ['/.*\\/alertmanager$/'],
