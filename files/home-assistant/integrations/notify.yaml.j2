@@ -12,16 +12,3 @@
   platform: group
   services:
     - action: mobile_app_calvin_s_galaxy_z_fold7
-
-- name: EMAIL_CALVIN
-  platform: smtp
-  sender: {{ common_email_username }}
-  recipient: {{ common_user }}{{ common_email_to }}
-  server: {{ common_email_server }}
-  port: {{ common_email_port }}
-  username: {{ common_email_username }}
-  password: {{ common_email_password }}
-  encryption: "{{ 'starttls' if common_email_protocol == 'tls' else 'false' }}"
-  sender_name: Home Assistant
-  debug: false
-  verify_ssl: true
