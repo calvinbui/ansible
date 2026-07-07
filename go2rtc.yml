@@ -29,7 +29,7 @@
             backyard: rtsp://{{ networks.iot.subnet | ansible.utils.nthhost(255) }}:7447/AKV6ed7s96ojGDU0
             downstairs_common: rtsp://{{ networks.iot.subnet | ansible.utils.nthhost(255) }}:7447/pUoYtfbCbSjvhIyR
             downstairs_hallway: rtsp://{{ networks.iot.subnet | ansible.utils.nthhost(255) }}:7447/SiIzjZyICCOaM23e
-            driveway: rtsp://{{ networks.iot.subnet | ansible.utils.nthhost(255) }}:7447/Lb2Mn8bzxrwIAzFH
+            driveway: rtsp://{{ networks.iot.subnet | ansible.utils.nthhost(255) }}:7447/gY9TPHdk3WaVRHV2
             foyer: rtsp://{{ networks.iot.subnet | ansible.utils.nthhost(255) }}:7447/QfbyJT2WbsWBUqXU
             front_bedrooms: rtsp://{{ networks.iot.subnet | ansible.utils.nthhost(255) }}:7447/CwFM91PCiKat6Z7T
             garage: rtsp://{{ networks.iot.subnet | ansible.utils.nthhost(255) }}:7447/hmXnXbDRoF573SZ4
