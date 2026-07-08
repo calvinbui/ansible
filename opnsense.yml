@@ -393,6 +393,8 @@
         domain: "{{ common_tld }}"
         value: "{{ traefik_ip }}"
         description: "Internal resolution for {{ common_tld }}"
+        match_fields:
+          - description
       notify: Reload Unbound
       tags:
         - unbound
