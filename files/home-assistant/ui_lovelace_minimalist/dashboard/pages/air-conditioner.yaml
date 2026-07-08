@@ -29,14 +29,23 @@ cards:
         entity: climate.daikin_airbase
         decimals: 0
         step_size: 1
+        unit: false
         layout:
           step: row
           mode:
             names: true
             icons: true
-            headings: true
+            headings: false
         hide:
+          temperature: true
           state: true
+          setpoint_label: true
+        entities:
+          -
+            entity: climate.daikin_airbase
+            name: Currently
+            attribute: current_temperature
+            template: '{{ state.raw | formatNumber }} <span class="temperature-unit">°C</span>'
         control:
           hvac:
             _name: Mode
@@ -54,69 +63,189 @@ cards:
               name: Fan
           fan:
             _name: Fan
+            _icons: true
+            Auto:
+              icon: mdi:fan-auto
+            Low:
+              icon: mdi:fan-speed-1
+            Mid:
+              icon: mdi:fan-speed-2
+            High:
+              icon: mdi:fan-speed-3
+            Low/Auto:
+              icon: mdi:fan-speed-1
+            Mid/Auto:
+              icon: mdi:fan-speed-2
+            High/Auto:
+              icon: mdi:fan-speed-3
         header: false
-        card_mod:
-          style: |
-            /* move sensors below temp  */
-            section.body {
+        styles: |
+            ha-card {
+              --st-font-size-l: 2rem;
+              --st-font-size-xl: 2rem;
+              --st-mode-border-radius: 4px;
+            }
+
+            .current--value:not(.current--off)::after {
+              content: "°C";
+              align-self: flex-start;
+              font-size: 0.48em;
+              line-height: 1;
+              margin-left: 0.08em;
+              margin-top: 0.20em;
+            }
+
+            .entity-value .temperature-unit {
+              font-size: 0.65em;
+              line-height: 1;
+              margin-left: 0.08em;
+              position: relative;
+              top: -0.25em;
+            }
+
+            /* move entity rows below the setpoint */
+            .body {
               grid-auto-flow: row !important;
-
-              .sensors {
-                grid-row-start: 2;
-
-                .sensor-heading {
-                  padding-right: 0px;
-                }
-              }
+              grid-template-columns: minmax(0, 1fr);
+              justify-items: center;
             }
 
-            /* hide headings */
-            .mode-title {
-              display: none !important;
+            .entities {
+              grid-row-start: 2;
+              padding-block: 0;
             }
 
-            /* temperature */
-            .current--value {
-              font-size: 2rem !important;
+            .entity-heading {
+              padding-right: 0;
             }
 
-            /* hvac and fan mode */
-            .modes {
+            .controls {
               padding: 0 15px !important;
+              gap: 4px;
+            }
 
-              /* both have two rows */
-              grid-template-rows: repeat(2, 1fr); !important;
+            /* keep HVAC controls above fan controls after v4 sorting */
+            .modes.hvac {
+              order: 1;
+            }
 
-              /* left to right, instead of up to down */
+            .modes.fan {
+              order: 2;
+              margin-top: 4px;
+            }
+
+            .controls .modes.hvac,
+            .controls .modes.fan {
+              display: grid !important;
               grid-auto-flow: row !important;
+              gap: 4px !important;
+            }
 
-              .mode-item {
-                text-transform: capitalize;
-              }
+            .controls .modes.hvac .mode-item,
+            .controls .modes.fan .mode-item {
+              box-sizing: border-box;
+              min-width: 0 !important;
+              min-height: 0 !important;
+              padding-block: 6px !important;
+              text-transform: capitalize;
             }
 
             /* hvac mode columns */
-            .modes:nth-child(2) {
-              grid-template-columns: repeat(3, 1fr) !important;
+            .controls .modes.hvac {
+              grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+              grid-template-rows: repeat(2, 48px) !important;
+            }
+
+            .controls .modes.hvac .mode-item {
+              height: 48px !important;
+            }
+
+            .modes.hvac > .mode-item.off {
+              grid-column: 1;
+              grid-row: 1;
+            }
+
+            .modes.hvac > .mode-item.heat {
+              grid-column: 2;
+              grid-row: 1;
+            }
+
+            .modes.hvac > .mode-item.cool {
+              grid-column: 3;
+              grid-row: 1;
+            }
+
+            .modes.hvac > .mode-item.heat_cool,
+            .modes.hvac > .mode-item.auto {
+              grid-column: 1;
+              grid-row: 2;
+            }
+
+            .modes.hvac > .mode-item.dry {
+              grid-column: 2;
+              grid-row: 2;
+            }
+
+            .modes.hvac > .mode-item.fan_only {
+              grid-column: 3;
+              grid-row: 2;
             }
 
             /* fan modes columns */
-            .modes:nth-child(3) {
-              grid-template-columns: repeat(12, 1fr) !important;
+            .controls .modes.fan {
+              grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+              grid-template-rows: repeat(2, 48px) !important;
             }
 
-            .modes:nth-child(3) > .mode-item {
-              min-height: 34px !important;
+            .controls .modes.fan .mode-item {
+              height: 48px !important;
             }
 
-            /* fan mode first row */
-            .modes:nth-child(3) > .mode-item:nth-child(n+2):nth-child(-n+5) {
-              grid-column-end:span 3;
+            .modes.fan > .mode-item.auto,
+            .modes.fan > .mode-item.Auto {
+              grid-column: 1 / span 3;
+              grid-row: 1;
             }
 
-            /* fan mode second row */
-            .modes:nth-child(3) > .mode-item:nth-child(n+6):nth-child(-n+8) {
-              grid-column-end:span 4;
+            .modes.fan > .mode-item.low,
+            .modes.fan > .mode-item.Low {
+              grid-column: 4 / span 3;
+              grid-row: 1;
+            }
+
+            .modes.fan > .mode-item.mid,
+            .modes.fan > .mode-item.Mid,
+            .modes.fan > .mode-item.medium,
+            .modes.fan > .mode-item.Medium {
+              grid-column: 7 / span 3;
+              grid-row: 1;
+            }
+
+            .modes.fan > .mode-item.high,
+            .modes.fan > .mode-item.High {
+              grid-column: 10 / span 3;
+              grid-row: 1;
+            }
+
+            .modes.fan > .mode-item.LowAuto,
+            .modes.fan > .mode-item.lowauto,
+            .modes.fan > .mode-item.low_auto {
+              grid-column: 1 / span 4;
+              grid-row: 2;
+            }
+
+            .modes.fan > .mode-item.MidAuto,
+            .modes.fan > .mode-item.midauto,
+            .modes.fan > .mode-item.mid_auto {
+              grid-column: 5 / span 4;
+              grid-row: 2;
+            }
+
+            .modes.fan > .mode-item.HighAuto,
+            .modes.fan > .mode-item.highauto,
+            .modes.fan > .mode-item.high_auto {
+              grid-column: 9 / span 4;
+              grid-row: 2;
             }
       -
         type: entities
