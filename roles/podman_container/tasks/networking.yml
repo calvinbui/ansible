@@ -31,6 +31,7 @@
 - name: Create OPNsense DHCP reservation for MAC address
   oxlorg.opnsense.dnsmasq_host:
     host: "{{ container_name | ansible.builtin.default(application) }}"
+    domain: "{{ common_local_tld }}"
     local: true
     ip:
       - "{{ network_entry.ip }}"
