@@ -12,12 +12,17 @@
       ansible.builtin.file:
         path: "{{ config_directory }}/{{ item }}"
         state: directory
-        owner: "{{ common_user }}"
-        group: "{{ common_root_group }}"
+        owner: "{{ common_user_id }}"
+        group: "{{ common_group_id }}"
         mode: "0771"
       loop:
         - data
-        - log
+        - etc-rabbitmq-ssl
+        - persistent
+        - srv
+        - var-lib-mongodb
+        - var-lib-unifi
+        - var-log
 
     - name: Create mongodb container
       ansible.builtin.include_role:
@@ -33,103 +38,36 @@
           30363464616562666439326662343034636630663239313937623438633333663765
         mongo_command: --logpath /dev/null --quiet
 
-    - name: Create acme.sh folder
-      ansible.builtin.file:
-        path: "{{ config_directory }}/acme.sh"
-        state: directory
-        owner: "{{ common_user_id }}"
-        group: "{{ common_group_id }}"
-        mode: "0771"
-
-    - name: Create acme.sh container
-      ansible.builtin.include_role:
-        name: podman_container
-      vars:
-        container_name: "{{ application }}-acme"
-        image: docker.io/neilpang/acme.sh:3.1.3
-        command: daemon
-        env:
-          CERT_DOMAIN: "{{ application }}.{{ common_local_tld }}"
-        volumes:
-          - "{{ config_directory }}/acme.sh:/acme.sh"
-
-    - name: Issue cert
-      containers.podman.podman_container_exec:
-        name: "{{ application }}-acme"
-        argv:
-          - /bin/sh
-          - -c
-          - |
-            acme.sh \
-              --issue \
-              --server letsencrypt \
-              --email letsencrypt{{ common_email_to }} \
-              --dns dns_cf \
-              --domain "${CERT_DOMAIN}" \
-              --keylength ec-384
-        env:
-          CERT_DOMAIN: "{{ application }}.{{ common_local_tld }}"
-          CF_Token: !vault |
-            $ANSIBLE_VAULT;1.1;AES256
-            63376164613737383431623464663033616165383534303362653337633164643330353966366561
-            3830356163653039393733663362623663613231353837360a383862653237303739616331623033
-            31383337373362613666346335643536363135346134363933643637656537383966633831646334
-            3461383561303864300a653438623036643530313862623739663734376632303236363165326233
-            35363638346532643534323234356135623636366336666431376532343932646339326530323663
-            3064386632376335646233666537643936633935643665323637
-          CF_Account_ID: !vault |
-            $ANSIBLE_VAULT;1.1;AES256
-            32356662343639383631356431373435613932323065663436346335343562343361373135393765
-            3665626165383561633564643064663263383739643335640a393235306339663336623132663161
-            37353436666334386436656339326430656138383562316331353563343130623562663138303664
-            3561646534663161370a396135663232356337306166663738376464626133653665366334303065
-            61633530653836656537303435663031346131666531393061653063643130356436336130653736
-            3066316234643939663532353039383339343463373836383033
-      register: _result
-      failed_when: _result.rc not in [0, 2]
-      changed_when: _result.rc == 0
-
     - name: Create container
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/jacobalberty/unifi-docker:v10.0.162
+        image: ghcr.io/lemker/unifi-os-server:v1.4.0
         ip: "{{ container_network.subnet | ansible.utils.nthhost(31) }}"
+        cgroupns: host
+        cap_add:
+          - NET_RAW
+          - NET_ADMIN
         env:
-          SYSTEM_IP: "{{ container_network.subnet | ansible.utils.nthhost(31) }}"
-          TZ: "{{ common_timezone }}"
-
-          DB_URI: "{{ _mongo_url }}"
-          STATDB_URI: "mongodb://{{ _mongo_username }}:{{ _mongo_password }}@{{ _mongo_hostname }}:{{ _mongo_port }}/{{ _mongo_database }}_stat?authSource=admin"
-          DB_NAME: "{{ _mongo_database }}"
-
-          UNIFI_ECC_CERT: "true"
-          CERTNAME: "{{ application }}.{{ common_local_tld }}.cer"
-          CERT_PRIVATE_NAME: "{{ application }}.{{ common_local_tld }}.key"
+          UOS_SYSTEM_IP: "{{ application }}.{{ common_local_tld }}"
         volumes:
-          - "{{ config_directory }}/data:/unifi/data"
-          - "{{ config_directory }}/log:/unifi/log"
-          - "{{ config_directory }}/acme.sh/{{ application }}.{{ common_local_tld }}_ecc:/unifi/cert"
+          - /sys/fs/cgroup:/sys/fs/cgroup:rw
+          - "{{ config_directory }}/persistent:/persistent"
+          - "{{ config_directory }}/var-log:/var/log"
+          - "{{ config_directory }}/data:/data"
+          - "{{ config_directory }}/srv:/srv"
+          - "{{ config_directory }}/var-lib-unifi:/var/lib/unifi"
+          - "{{ config_directory }}/var-lib-mongodb:/var/lib/mongodb"
+          - "{{ config_directory }}/etc-rabbitmq-ssl:/etc/rabbitmq/ssl"
+        tmpfs:
+          /run: rw,exec
+          /run/lock: rw
+          /tmp: rw,exec
+          /var/lib/journal: rw
+          /var/opt/unifi/tmp: rw,size=64m
         homepage:
-          name: UniFi Network Application
+          name: UniFi OS
           group: Networking
-          weight: 401
-          description: "Manage UniFi Network devices"
-          href: https://{{ application }}.{{ common_local_tld }}:8443
-          widget:
-            username: homepage
-            password: !vault |
-              $ANSIBLE_VAULT;1.1;AES256
-              37333565613166326436353432323666653464363038323731306234643533343432653536366136
-              6233633263346161623733646434303262373934653432340a303263343761343561393632313931
-              35373033356466353162653039366134313332663539373231356135366130313338653464333935
-              3961623234613237360a633632376666316562633939636238616233366539376639623239666566
-              63316332356230383936346566353736353461373666343733343239633036623237
-            fields: '["wlan_devices"]'
-        labels:
-          - "ofelia.enabled=true"
-          - "ofelia.job-exec.{{ application }}.user=0"
-          - "ofelia.job-exec.{{ application }}.schedule=@daily"
-          - "ofelia.job-exec.{{ application }}.command=/usr/bin/bash -c \"/usr/unifi/init.d/import_cert | grep -q 'Cert has changed' && touch /usr/lib/unifi/run/server.stop || true\""
-          - "ofelia.job-exec.{{ application }}.tty=false"
-          - "ofelia.job-exec.{{ application }}.no-overlap=true"
+          weight: 400
+          description: "Manage UniFi devices"
+          href: "https://{{ application }}.{{ common_local_tld }}"

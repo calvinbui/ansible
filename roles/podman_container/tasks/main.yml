@@ -153,6 +153,7 @@
     sysctl: "{{ sysctl | ansible.builtin.default(omit) }}"
     cap_add: "{{ cap_add | ansible.builtin.default(omit) }}"
     cap_drop: "{{ cap_drop | ansible.builtin.default(omit) }}"
+    cgroupns: "{{ cgroupns | ansible.builtin.default(omit) }}"
     pid_mode: "{{ pid_mode | ansible.builtin.default(omit) }}"
     privileged: "{{ privileged | ansible.builtin.default(omit) }}"
     device: "{{ device | ansible.builtin.default(omit) }}"
