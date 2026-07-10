@@ -288,15 +288,27 @@
             enforce: true
             prioritize: true
             list:
-              - name: gpt-5.5
+              - 
+                name: gpt-5.5
                 label: GPT-5.5
-                default: true
                 webSearch: true
                 fileSearch: true
                 executeCode: true
                 preset:
                   endpoint: openAI
                   model: gpt-5.5
+              - 
+                name: gpt-5.6-sol
+                label: GPT-5.6 Sol
+                default: true
+                webSearch: true
+                fileSearch: true
+                executeCode: true
+                preset:
+                  endpoint: openAI
+                  model: gpt-5.6-sol
+                  useResponsesApi: true
+                  reasoning_summary: auto
 
         dest: "{{ config_directory }}/librechat.yaml"
         owner: "{{ common_user }}"
