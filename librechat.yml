@@ -258,7 +258,7 @@
           mcpSettings:
             allowedAddresses:
               - "garmin-mcp:8000"
-              - "home-assistant:8123"
+              - "home-assistant-mcp:8086"
 
           registration:
             socialLogins: ["openid"]

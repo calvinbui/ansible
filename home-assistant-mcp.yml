@@ -1,0 +1,62 @@
+---
+
+- hosts: homeserver
+
+  vars:
+    application: home-assistant-mcp
+
+    container_network: "{{ networks.iot }}"
+
+  tasks:
+    - name: Create config folder
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ common_user_id }}"
+        group: "{{ common_root_group }}"
+        mode: "0771"
+      loop:
+        - "{{ config_directory }}"
+        - "{{ config_directory }}/data"
+
+    - name: Clone MCP skills
+      ansible.builtin.git:
+        repo: https://github.com/homeassistant-ai/skills.git
+        dest: "{{ config_directory }}/skills"
+        force: true
+        update: true
+
+    - name: Create MCP server
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        container_name: "{{ application }}"
+        image: ghcr.io/homeassistant-ai/ha-mcp:7.11.0
+        command: ha-mcp-web
+        env:
+          HOMEASSISTANT_URL: "http://home-assistant:8123"
+          HOMEASSISTANT_TOKEN: !vault |
+            $ANSIBLE_VAULT;1.1;AES256
+            63666665353264303035316261353966633162666163363362613565623232623531623835393262
+            3637303061306539663032373830313465653233656530610a623335376532643339313039333232
+            63373339326231323963653333346339653036353131643765383437396234633034326463343136
+            3138303565663131330a653764616365616132633939383339613938316664613433366530333938
+            61393166623037366136336235353366346533323262393461663430313239616134373133646231
+            64643334613164623239366561376636663731623463393962393265386463623835613231643431
+            64376164373535393364653530323166326463663763383138623333323739316531643730623362
+            30356131353139313430663535643137356662303630333837656231333133613766396365383931
+            31633431396634383335313935623638626132363366396532336565626131383636333631653938
+            38653837626631393931316563643164353562333133623762653766376336666130316434663536
+            66313431393237643532313663336236663637666536363837353333633032356463343833333130
+            31303365396335306338383766623436633662623362313164356466653939336263666465383137
+            35343663366232346330316664303466663531613232303361336165356266356534
+
+          HA_MCP_CONFIG_DIR: /data
+          HAMCP_BACKUP_DIR: /data/backups
+
+          ENABLE_TOOL_SEARCH: "true"
+          ENABLE_SKILLS: "true"
+          ENABLE_SKILLS_AS_TOOLS: "true"
+        volumes:
+          - "{{ config_directory }}/data:/data"
+          - "{{ config_directory }}/skills/skills:/app/src/ha_mcp/resources/skills-vendor/skills"
