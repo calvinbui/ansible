@@ -350,11 +350,6 @@
       matchPackageNames: ['/.*\\/librechat$/'],
       sourceUrl: 'https://github.com/danny-avila/LibreChat',
     },
-    /* firecrawl */
-    {
-      matchPackageNames: ['/firecrawl\\/firecrawl$/'],
-      sourceUrl: 'https://github.com/firecrawl/firecrawl',
-    },
     /* euro-office */
     {
       matchPackageNames: ['/euro-office\\/documentserver$/'],
