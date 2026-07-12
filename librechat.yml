@@ -112,7 +112,7 @@
               use: true
               create: true
 
-            parameters: false
+            parameters: true
             prompts: false
             agents: false
 
@@ -143,8 +143,6 @@
                 name: gpt-5.6-sol
                 label: GPT-5.6 Sol
                 default: true
-                fileSearch: true
-                executeCode: true
                 preset:
                   endpoint: openAI
                   model: gpt-5.6-sol
