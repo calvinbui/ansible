@@ -33,7 +33,6 @@
           use_default_settings: true
 
           server:
-            secret_key: "{{ oidc_auth.librechat.secret | ansible.builtin.hash('sha256') }}"
             limiter: false
 
           search:
@@ -54,6 +53,16 @@
         image: ghcr.io/searxng/searxng:latest
         env:
           SEARXNG_BASE_URL: "http://{{ application }}-searxng:8080/"
+          SEARXNG_SECRET: !vault |
+            $ANSIBLE_VAULT;1.1;AES256
+            35666135366638646630333164356462613439393133623263613337373435626638643638343264
+            6337303562663539303336303863386138663637313564350a313363373364366439633465393338
+            34363534373436633662643932336563373965623936323239646265396662353162663937353161
+            3766633930303532370a626361326664393232313938346366386464323366323338333338303864
+            38313138323137313235366266613030323766643235343133366565323566313831306634313662
+            39643938333564616637346138363235373232363636326166376562316437306564373864633565
+            38303830336136323132656261623261336339343431643932373437316130356264383130653030
+            65653933633833373662
         volumes:
           - "{{ config_directory }}/searxng/settings.yml:/etc/searxng/settings.yml"
 
@@ -363,7 +372,6 @@
           IMAGE_GEN_OAI_API_KEY: "{{ openai_api_key }}"
 
           SEARXNG_INSTANCE_URL: "http://{{ application }}-searxng:8080"
-          SEARXNG_API_KEY: ""
           FIRECRAWL_API_URL: "http://{{ application }}-firecrawl-api:3002"
           FIRECRAWL_API_KEY: self-hosted
           FIRECRAWL_VERSION: v1
