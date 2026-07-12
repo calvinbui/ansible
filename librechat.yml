@@ -140,16 +140,6 @@
             prioritize: true
             list:
               -
-                name: gpt-5.5
-                label: GPT-5.5
-                fileSearch: true
-                executeCode: true
-                preset:
-                  endpoint: openAI
-                  model: gpt-5.5
-                  useResponsesApi: true
-                  web_search: true
-              -
                 name: gpt-5.6-sol
                 label: GPT-5.6 Sol
                 default: true
