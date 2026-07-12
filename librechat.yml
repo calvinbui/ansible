@@ -272,6 +272,12 @@
           registration:
             socialLogins: ["openid"]
 
+          speech:
+            stt:
+              openai:
+                apiKey: "${OPENAI_API_KEY}"
+                model: gpt-4o-transcribe
+
           summarization:
             enabled: true
             provider: openAI
