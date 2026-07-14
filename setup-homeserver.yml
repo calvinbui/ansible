@@ -20,6 +20,10 @@
       ansible.builtin.systemd_service:
         daemon_reexec: true
 
+    - name: Regenerate the kernel initramfs
+      ansible.builtin.command: update-initramfs -u
+      changed_when: true
+
   tasks:
     - name: No password sudo
       community.general.sudoers:
@@ -266,3 +270,16 @@
           -
             option: DefaultTimeoutStopSec
             value: 300
+
+    - name: Set NVMe shutdown timeout
+      ansible.builtin.copy:
+        content: |
+          # https://github.com/torvalds/linux/blob/v6.12/drivers/nvme/host/core.c#L57-L59
+          options nvme_core shutdown_timeout=60
+        dest: /etc/modprobe.d/nvme-shutdown-timeout.conf
+        owner: root
+        group: root
+        mode: "0644"
+      notify:
+        - Regenerate the kernel initramfs
+        - Reboot
