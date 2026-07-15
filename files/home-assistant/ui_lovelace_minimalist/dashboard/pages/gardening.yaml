@@ -12,8 +12,8 @@ cards:
     columns: 3
     square: false
     cards:
-      - entity: plant.monstera
-        battery_sensor: sensor.monstera_plant_sensor_battery
+      - entity: plant.arrowhead
+        battery_sensor: sensor.arrowhead_plant_sensor_battery
         <<: &gardening_card
           type: custom:flower-card
           show_bars:
@@ -22,16 +22,8 @@ cards:
             - temperature
             - illuminance
 
-      - entity: plant.arrowhead
-        battery_sensor: sensor.arrowhead_plant_sensor_battery
-        <<: *gardening_card
-
       - entity: plant.dwarf_jade
         battery_sensor: sensor.dwarf_jade_plant_sensor_battery
-        <<: *gardening_card
-
-      - entity: plant.monstera_small
-        battery_sensor: sensor.monstera_small_plant_sensor_battery
         <<: *gardening_card
 
       - entity: plant.zanzibar_gem
