@@ -100,5 +100,9 @@
             }}
         volumes:
           - "{{ config_directory }}/tokens:/root/.garminconnect"
+        blackbox:
+          protocol: http
+          host: "{{ application }}.{{ common_local_tld }}:8000"
+          path: /healthz
         labels:
           - com.centurylinklabs.watchtower.enable=false
