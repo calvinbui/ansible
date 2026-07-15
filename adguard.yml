@@ -49,5 +49,5 @@
           - "{{ config_directory }}/conf:/opt/adguardhome/conf"
         blackbox:
           protocol: http
-          host: "adguard.{{ common_local_tld }}"
+          host: "{{ application }}.{{ common_local_tld }}"
           path: /login.html
