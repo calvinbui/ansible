@@ -27,6 +27,10 @@
           ACTUAL_OPENID_CLIENT_SECRET: "{{ oidc_auth.actualbudget.secret }}"
           ACTUAL_OPENID_SERVER_HOSTNAME: "https://{{ application }}.{{ common_tld }}"
           ACTUAL_OPENID_ENFORCE: "true"
+
+          ACTUAL_UPLOAD_FILE_SIZE_LIMIT_MB: "10000"
+          ACTUAL_UPLOAD_FILE_SYNC_SIZE_LIMIT_MB: "10000"
+          ACTUAL_UPLOAD_SYNC_ENCRYPTED_FILE_SYNC_SIZE_LIMIT_MB: "10000"
         volumes:
           - "{{ config_directory }}:/data"
         traefik:
