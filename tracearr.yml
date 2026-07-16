@@ -183,6 +183,12 @@
             61346630313436336131336538323436633635613966346331623630336136376265383735663239
             34316430663063376531
           CORS_ORIGIN: "*"
+
+          OIDC_ISSUER_URL: "{{ oidc_base_url }}"
+          OIDC_CLIENT_ID: "{{ application }}"
+          OIDC_CLIENT_SECRET: "{{ oidc_auth.tracearr.secret }}"
+          OIDC_PROVIDER_NAME: "{{ oidc_provider | ansible.builtin.title }}"
+
           LOG_LEVEL: info
 
           TZ: "{{ common_timezone }}"
