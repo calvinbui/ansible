@@ -5,7 +5,7 @@ groups:
     rules:
       -
         alert: SmartmonDriveTemperature
-        expr: smartmon_temperature_celsius_value > 50
+        expr: smartmon_temperature_celsius_raw_value > 50
         for: 10m
         annotations:
           summary: Drive Temperature
