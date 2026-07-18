@@ -132,6 +132,12 @@
               serverInstructions: true
               timeout: 600000
 
+            garmin-mcp:
+              type: streamable-http
+              url: http://garmin-mcp:8000/mcp
+              requiresOAuth: false
+              timeout: 600000
+
           registration:
             socialLogins: ["openid"]
 
