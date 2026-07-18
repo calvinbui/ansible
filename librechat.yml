@@ -138,6 +138,12 @@
               requiresOAuth: false
               timeout: 600000
 
+            home-assistant-mcp:
+              type: streamable-http
+              url: http://home-assistant-mcp:8086/mcp
+              requiresOAuth: false
+              timeout: 600000
+
           registration:
             socialLogins: ["openid"]
 
