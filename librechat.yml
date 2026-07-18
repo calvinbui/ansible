@@ -118,8 +118,19 @@
 
           mcpSettings:
             allowedAddresses:
+              - "actual-mcp-server:3600"
               - "garmin-mcp:8000"
               - "home-assistant-mcp:8086"
+
+          mcpServers:
+            actual-mcp-server:
+              type: streamable-http
+              url: http://actual-mcp-server:3600/http
+              headers:
+                Authorization: "Bearer ${MCP_BEARER_TOKEN_ACTUAL_MCP_SERVER}"
+              requiresOAuth: false
+              serverInstructions: true
+              timeout: 600000
 
           registration:
             socialLogins: ["openid"]
@@ -197,6 +208,8 @@
           GID: "{{ common_group_id | ansible.builtin.string }}"
 
           OPENAI_API_KEY: "{{ openai_api_key }}"
+
+          MCP_BEARER_TOKEN_ACTUAL_MCP_SERVER: "{{ mcp_tokens.actual_mcp_server }}"
 
           DEBUG_PLUGINS: "false"
 

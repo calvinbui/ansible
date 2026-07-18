@@ -1,0 +1,45 @@
+---
+
+- hosts: homeserver
+
+  vars:
+    application: actual-mcp-server
+
+    container_network: "{{ networks.pub }}"
+
+  tasks:
+    - name: Create config folder
+      ansible.builtin.file:
+        path: "{{ config_directory }}/{{ item }}"
+        state: directory
+        owner: "{{ common_user }}"
+        group: "{{ common_group }}"
+        mode: "0771"
+      loop:
+        - data
+        - logs
+
+    - name: Create MCP server
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        image: ghcr.io/agigante80/actual-mcp-server:0.8.16
+        stop_signal: "{{ signal_map['SIGKILL'] }}"
+        env:
+          ACTUAL_SERVER_URL: http://actualbudget:5006
+          ACTUAL_PASSWORD: !vault |
+            $ANSIBLE_VAULT;1.1;AES256
+            62663863376334383436373932643638623635666334383734346232393439313964346532363738
+            6231393535366463336334646335333638663731386363610a616566303837633433373332343339
+            36333366656463393938653362336265613561626263363665633036663665333233343062663337
+            6232383761396263640a346437303834663465326664653038633630616337633730333431643235
+            35316265363336633364626538613836393663383535393963363565346436376633343438646363
+            3837663839643232636632396363643830303334303035313461
+          ACTUAL_BUDGET_SYNC_ID: e1a01ef9-b16a-4f2f-aeec-7525afb71e9d
+          ALLOW_INSECURE_UPSTREAM: "true"
+
+          MCP_TRANSPORT_MODE: --http
+          MCP_SSE_AUTHORIZATION: "{{ mcp_tokens.actual_mcp_server }}"
+        volumes:
+          - "{{ config_directory }}/data:/app/data"
+          - "{{ config_directory }}/logs:/app/logs"
