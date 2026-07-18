@@ -1,0 +1,100 @@
+---
+
+- hosts: localhost
+
+  become: false
+
+  connection: local
+
+  force_handlers: true
+
+  gather_facts: false
+
+  module_defaults:
+    group/oxlorg.opnsense.all: "{{ oxlorg_opnsense_module_defaults }}"
+    oxlorg.opnsense.rule_multi:
+      match_fields: ["interface", "description"]
+
+  tasks:
+    - name: Install UDP Broadcast Relay package
+      oxlorg.opnsense.package:
+        name: os-udpbroadcastrelay
+        action: install
+
+    - name: UDP Broadcast Relay - Firewall Rules
+      oxlorg.opnsense.rule_multi:
+        rules:
+          # Floating
+          -
+            sequence: 10
+            interface: []
+            action: pass
+            protocol: UDP
+            source_net: any
+            destination_net: 239.255.255.250
+            destination_port: 1900
+            description: SSDP DLNA UPnP
+          -
+            sequence: 11
+            interface: []
+            action: pass
+            protocol: UDP
+            source_net: any
+            destination_net: 224.0.0.251
+            destination_port: 5353
+            description: mDNS Multicast DNS
+
+          # User
+          -
+            sequence: 10
+            interface: "{{ networks.user.opnsense_identifier }}"
+            action: pass
+            protocol: TCP
+            source_net: denon_avr
+            source_port: denon_heos
+            destination_net: "{{ networks.user.opnsense_identifier }}"
+            destination_port: 30000-60000
+            description: Denon HEOS
+
+          # IOT
+          -
+            sequence: 10
+            interface: "{{ networks.iot.opnsense_identifier }}"
+            action: pass
+            protocol: UDP
+            source_net: "{{ networks.user.opnsense_identifier }}"
+            source_port: any
+            destination_net: "{{ networks.iot.subnet | ansible.utils.ipaddr('broadcast') }}"
+            destination_port: 30050
+            description: Access to Daikin UDP Broadcast
+          -
+            sequence: 11
+            interface: "{{ networks.iot.opnsense_identifier }}"
+            action: pass
+            protocol: UDP
+            source_net: "{{ networks.iot.subnet | ansible.utils.nthhost(2) }}"
+            source_port: any
+            destination_net: "{{ networks.user.opnsense_identifier }}"
+            destination_port: 30000
+            description: Daikin Broadcast Response
+
+          -
+            sequence: 12
+            interface: "{{ networks.iot.opnsense_identifier }}"
+            action: pass
+            protocol: TCP
+            source_net: denon_avr
+            source_port: 51000-53000
+            destination_net: "{{ networks.user.opnsense_identifier }}"
+            destination_port: 49200
+            description: Denon HEOS Response 1
+          -
+            sequence: 13
+            interface: "{{ networks.iot.opnsense_identifier }}"
+            action: pass
+            protocol: TCP
+            source_net: denon_avr
+            source_port: 56000-57000
+            destination_net: "{{ networks.user.opnsense_identifier }}"
+            destination_port: 49201
+            description: Denon HEOS Response 2

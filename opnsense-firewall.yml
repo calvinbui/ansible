@@ -1,0 +1,345 @@
+---
+
+- hosts: localhost
+
+  become: false
+
+  connection: local
+
+  force_handlers: true
+
+  gather_facts: false
+
+  module_defaults:
+    group/oxlorg.opnsense.all: "{{ oxlorg_opnsense_module_defaults }}"
+    oxlorg.opnsense.rule_multi:
+      match_fields: ["interface", "description"]
+
+  handlers:
+    - name: Reload firewall rules
+      oxlorg.opnsense.reload:
+        target: rule
+
+  tasks:
+    - name: Alias
+      oxlorg.opnsense.alias_multi:
+        aliases:
+          -
+            name: rfc1918
+            type: network
+            content:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+          -
+            name: calvin_pc
+            content: "{{ networks.user.subnet | ansible.utils.nthhost(20) }}"
+          -
+            name: daikin_airbase
+            content: "{{ networks.iot.subnet | ansible.utils.nthhost(2) }}"
+          -
+            name: google_cast_devices
+            content:
+              - "{{ networks.iot.subnet | ansible.utils.nthhost(41) }}"
+              - "{{ networks.iot.subnet | ansible.utils.nthhost(42) }}"
+              - "{{ networks.iot.subnet | ansible.utils.nthhost(43) }}"
+              - "{{ networks.iot.subnet | ansible.utils.nthhost(44) }}"
+              - "{{ networks.iot.subnet | ansible.utils.nthhost(45) }}"
+          -
+            name: google_dns
+            content:
+              - 8.8.8.8
+              - 8.8.4.4
+          -
+            name: nvidia_gamestream_tcp
+            type: port
+            content:
+              - 47984
+              - 47989
+              - 48010
+          -
+            name: nvidia_gamestream_udp
+            type: port
+            content:
+              - 47998
+              - 47999
+              - 48000
+              - 48002
+              - 48010
+          -
+            name: home_assistant_targets
+            content:
+              - "{{ networks.mgmt.subnet | ansible.utils.nthhost(1) }}" # opnsense
+              - "{{ networks.mgmt.subnet | ansible.utils.nthhost(31) }}" # unifi network application
+          -
+            name: homepage_targets
+            content:
+              - "{{ networks.mgmt.subnet | ansible.utils.nthhost(1) }}" # opnsense
+              - "{{ networks.mgmt.subnet | ansible.utils.nthhost(31) }}" # unifi network application
+          -
+            name: denon_heos
+            type: port
+            content:
+              - 80
+              - 10101
+              - 60006
+          -
+            name: denon_avr
+            content: "{{ networks.iot.subnet | ansible.utils.nthhost(19) }}"
+          -
+            name: bypass_vpn
+            content:
+              - "{{ networks.iot.subnet | ansible.utils.nthhost(16) }}"  # living room tv
+              - "{{ networks.iot.subnet | ansible.utils.nthhost(17) }}"  # nvidia shield tv
+              - "{{ networks.iot.subnet | ansible.utils.nthhost(22) }}"  # nintendo switch dock
+              - "{{ networks.iot.subnet | ansible.utils.nthhost(23) }}"  # nintendo switch wi-fi
+              - "{{ networks.iot.subnet | ansible.utils.nthhost(40) }}"  # chromecast master bedroom
+              - "{{ networks.pub.subnet | ansible.utils.nthhost(4) }}"   # plex
+              - "{{ networks.pub.subnet | ansible.utils.nthhost(8) }}"   # jdownloader
+              - "{{ networks.pub.subnet | ansible.utils.nthhost(9) }}"   # changedetection
+          -
+            name: nut_host
+            content:
+              - "{{ nut_host }}"
+
+    - name: Firewall Rules - floating
+      oxlorg.opnsense.rule_multi:
+        rules:
+          -
+            sequence: 1
+            interface: []
+            action: pass
+            source_net: any
+            destination_net: "{{ networks.user.subnet | ansible.utils.nthhost(10) }}"
+            description: Printer access
+          -
+            sequence: 2
+            interface: []
+            action: pass
+            protocol: TCP
+            source_net: any
+            destination_net: "nut_host"
+            destination_port: 3493
+            description: NUT access
+          -
+            sequence: 3
+            interface: []
+            action: pass
+            source_net: homepage
+            destination_net: homepage_targets
+            description: Homepage Widgets
+          -
+            sequence: 4
+            interface: []
+            action: pass
+            source_net: home_assistant
+            destination_net: home_assistant_targets
+            description: Home Assistant Integrations
+          -
+            sequence: 5
+            interface:
+              - "{{ networks.iot.opnsense_identifier }}"
+              - "{{ networks.pub.opnsense_identifier }}"
+            action: pass
+            protocol: TCP/UDP
+            source_net: "{{ networks.iot.opnsense_identifier }},{{ networks.pub.opnsense_identifier }}"
+            destination_net: traefik
+            destination_port: 443
+            description: Allow Traefik HTTPS
+          -
+            sequence: 6
+            interface:
+              - "{{ networks.iot.opnsense_identifier }}"
+              - "{{ networks.pub.opnsense_identifier }}"
+            action: pass
+            protocol: TCP
+            source_net: "{{ networks.iot.opnsense_identifier }},{{ networks.pub.opnsense_identifier }}"
+            destination_net: traefik
+            destination_port: 80
+            description: Allow Traefik HTTP
+          -
+            sequence: 7
+            interface:
+              - "{{ networks.iot.opnsense_identifier }}"
+              - "{{ networks.pub.opnsense_identifier }}"
+            action: pass
+            protocol: UDP
+            source_net: "{{ networks.iot.opnsense_identifier }},{{ networks.pub.opnsense_identifier }}"
+            destination_net: traefik
+            destination_port: 123
+            description: Allow Traefik NTP
+          -
+            sequence: 8
+            interface:
+              - "{{ networks.iot.opnsense_identifier }}"
+              - "{{ networks.pub.opnsense_identifier }}"
+            action: pass
+            source_net: bypass_vpn
+            destination_invert: true
+            destination_net: "rfc1918"
+            gateway: "WAN"
+            description: Bypass VPN
+      notify: Reload firewall rules
+
+    - name: Firewall Rules - mgmt
+      oxlorg.opnsense.rule_multi:
+        rules:
+          -
+            sequence: 1
+            interface: "{{ networks.mgmt.opnsense_identifier }}"
+            action: pass
+            source_net: "{{ networks.mgmt.opnsense_identifier }}"
+            destination_invert: true
+            destination_net: "rfc1918"
+            gateway: WAN
+            description: Gateway
+          -
+            sequence: 2
+            interface: "{{ networks.mgmt.opnsense_identifier }}"
+            action: pass
+            source_net: "{{ networks.mgmt.opnsense_identifier }}"
+            destination_net: any
+            description: Allow all
+      notify: Reload firewall rules
+
+    - name: Firewall Rules - user
+      oxlorg.opnsense.rule_multi:
+        rules:
+          -
+            sequence: 1
+            interface: "{{ networks.user.opnsense_identifier }}"
+            action: pass
+            source_net: "{{ networks.user.opnsense_identifier }}"
+            destination_invert: true
+            destination_net: "rfc1918"
+            gateway: WAN
+            description: Gateway
+          -
+            sequence: 2
+            interface: "{{ networks.user.opnsense_identifier }}"
+            action: pass
+            source_net: "{{ networks.user.opnsense_identifier }}"
+            destination_net: any
+            description: Allow all
+      notify: Reload firewall rules
+
+    - name: Firewall Rules - iot
+      oxlorg.opnsense.rule_multi:
+        rules:
+          -
+            sequence: 1
+            interface: "{{ networks.iot.opnsense_identifier }}"
+            action: pass
+            source_net: "{{ networks.iot.opnsense_identifier }}"
+            destination_net: "{{ networks.iot.opnsense_identifier }}"
+            description: Allow same network
+          -
+            sequence: 2
+            interface: "{{ networks.iot.opnsense_identifier }}"
+            action: pass
+            source_net: "{{ networks.iot.opnsense_identifier }}"
+            destination_net: "{{ networks.pub.opnsense_identifier }}"
+            description: Allow pub network
+          -
+            sequence: 3
+            interface: "{{ networks.iot.opnsense_identifier }}"
+            action: pass
+            protocol: "TCP"
+            source_net: "{{ networks.iot.opnsense_identifier }}"
+            destination_net: calvin_pc
+            destination_port: nvidia_gamestream_tcp
+            description: Allow NVIDIA Gamestream TCP
+          -
+            sequence: 4
+            interface: "{{ networks.iot.opnsense_identifier }}"
+            action: pass
+            protocol: "UDP"
+            source_net: "{{ networks.iot.opnsense_identifier }}"
+            destination_net: calvin_pc
+            destination_port: nvidia_gamestream_udp
+            description: Allow NVIDIA Gamestream UDP
+          -
+            sequence: 100
+            interface: "{{ networks.iot.opnsense_identifier }}"
+            action: pass
+            source_net: "{{ networks.iot.opnsense_identifier }}"
+            destination_invert: true
+            destination_net: "rfc1918"
+            gateway: "VPN_PUREVPN"
+            description: Gateway
+      notify: Reload firewall rules
+
+    - name: Firewall Rules - pub
+      oxlorg.opnsense.rule_multi:
+        rules:
+          -
+            sequence: 1
+            interface: "{{ networks.pub.opnsense_identifier }}"
+            action: pass
+            source_net: "{{ networks.pub.opnsense_identifier }}"
+            destination_net: "{{ networks.pub.opnsense_identifier }}"
+            description: Allow same network
+          -
+            sequence: 2
+            interface: "{{ networks.pub.opnsense_identifier }}"
+            action: pass
+            source_net: "{{ networks.pub.opnsense_identifier }}"
+            destination_net: "{{ networks.iot.opnsense_identifier }}"
+            description: Allow iot network
+          -
+            sequence: 100
+            interface: "{{ networks.pub.opnsense_identifier }}"
+            action: pass
+            source_net: "{{ networks.pub.opnsense_identifier }}"
+            destination_invert: true
+            destination_net: "rfc1918"
+            gateway: "VPN_PUREVPN"
+            description: Gateway
+      notify: Reload firewall rules
+
+    - name: Firewall Rules - guest
+      oxlorg.opnsense.rule_multi:
+        rules:
+          -
+            sequence: 1
+            interface: "{{ networks.guest.opnsense_identifier }}"
+            action: pass
+            source_net: "{{ networks.guest.opnsense_identifier }}"
+            destination_invert: true
+            destination_net: "rfc1918"
+            gateway: WAN
+            description: Gateway
+          -
+            sequence: 2
+            interface: "{{ networks.guest.opnsense_identifier }}"
+            action: pass
+            source_net: "{{ networks.guest.opnsense_identifier }}"
+            destination_net: "{{ networks.guest.opnsense_identifier }}"
+            description: Allow same network
+      notify: Reload firewall rules
+
+    - name: Firewall Rules - vpn home
+      oxlorg.opnsense.rule_multi:
+        rules:
+          -
+            sequence: 1
+            interface: "{{ networks.vpn_home.opnsense_identifier }}"
+            action: pass
+            source_net: "{{ networks.vpn_home.opnsense_identifier }}"
+            destination_net: any
+            description: Allow all
+      notify: Reload firewall rules
+
+    - name: Firewall Rules - wan
+      oxlorg.opnsense.rule_multi:
+        rules:
+          -
+            sequence: 1
+            interface: "{{ networks.wan.opnsense_identifier }}"
+            action: pass
+            protocol: UDP
+            source_net: "any"
+            destination_net: "{{ networks.wan.opnsense_identifier }}ip"
+            destination_port: 51820
+            description: WireGuard
+      notify: Reload firewall rules

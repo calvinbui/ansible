@@ -1,0 +1,33 @@
+---
+
+- hosts: localhost
+
+  become: false
+
+  connection: local
+
+  force_handlers: true
+
+  gather_facts: false
+
+  module_defaults:
+    group/oxlorg.opnsense.all: "{{ oxlorg_opnsense_module_defaults }}"
+
+  tasks:
+    - name: Install NUT package
+      oxlorg.opnsense.package:
+        name: os-nut
+        action: install
+
+    - name: NUT
+      oxlorg.opnsense.nut:
+        enabled: true
+        mode: netclient
+        name: "{{ nut_ups_devices[0].name }}"
+        listen:
+          - 127.0.0.1
+        netclient_enable: true
+        netclient_address: "{{ nut_host }}"
+        netclient_port: 3493
+        netclient_user: "{{ nut_user['slave'].name }}"
+        netclient_password: "{{ nut_user['slave'].password }}"

@@ -1,0 +1,26 @@
+---
+
+- hosts: localhost
+
+  become: false
+
+  connection: local
+
+  force_handlers: true
+
+  gather_facts: false
+
+  module_defaults:
+    group/oxlorg.opnsense.all: "{{ oxlorg_opnsense_module_defaults }}"
+
+  tasks:
+    - name: Install Packages
+      oxlorg.opnsense.package:
+        name: "{{ item }}"
+        action: install
+      loop:
+        - os-cpu-microcode-intel
+        - os-ddclient
+        - os-iperf
+        - os-sftp-backup
+        - os-smart

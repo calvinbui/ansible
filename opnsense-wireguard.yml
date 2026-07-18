@@ -1,0 +1,151 @@
+---
+
+- hosts: localhost
+
+  become: false
+
+  connection: local
+
+  force_handlers: true
+
+  gather_facts: false
+
+  vars:
+    opnsense_wireguard_vpn:
+      -
+        provider: purevpn
+        location: sydney
+        server:
+          private_key: !vault |
+            $ANSIBLE_VAULT;1.1;AES256
+            62326333636363373461636363336331303331633538323831613539333562396237306162366632
+            3734623062323938376565626437656139643062353537630a653331653064366162663736613833
+            63393733653631666134646432323933383366633861336339626362373064663030656138353431
+            3239643735626364620a656666613531366335343865356536393066373763336562323533313837
+            61386561353635376464353364666663653139646462383234623431646165323233313836383462
+            3363383963623830363936306332336331373234396432636635
+          address: 172.21.5.56
+        peer:
+          endpoint: sx152416-ikev.dnsdialer.com
+          port: 51820
+          public_key: L6MzNBvfugdHFsvWh8vAWMTNSmDpIiWJLiehLgJWjh0=
+          keepalive: 21
+        interface: "{{ networks.vpn_purevpn_sydney.opnsense_identifier }}"
+        used_by:
+          - "{{ networks.iot.opnsense_identifier }}"
+          - "{{ networks.pub.opnsense_identifier }}"
+
+  module_defaults:
+    group/oxlorg.opnsense.all: "{{ oxlorg_opnsense_module_defaults }}"
+    oxlorg.opnsense.rule:
+      match_fields: ["interface", "description"]
+
+  handlers:
+    - name: Reload firewall rules
+      oxlorg.opnsense.reload:
+        target: rule
+
+  tasks:
+    - name: WireGuard - Derive VPN Public Keys
+      ansible.builtin.command:
+        argv:
+          - wg
+          - pubkey
+        stdin: "{{ item.server.private_key }}"
+      register: _wireguard_vpn_public_keys
+      changed_when: false
+      check_mode: false
+      no_log: true
+      loop: "{{ opnsense_wireguard_vpn }}"
+
+    - name: WireGuard - Home Instance
+      oxlorg.opnsense.wireguard_server:
+        name: Home
+        public_key: LyOL+HkCzjVUGMoeSoYt2oLUO5Vu8SGUoguMtMcqxHg=
+        private_key: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          61323235356335343663633631663166633632373532633166353333343162626437663262626234
+          6138393932356430636139316538326336303338313061330a363837383533613230386534363563
+          62313864316166373061636334646534326266383234666661666133363435613234323135643732
+          3632376534656539640a626530633839376566666365623930306331616564343033623535653031
+          62663963373334326261313638363539653363346463633035313838303037613463376336643836
+          3735363738356534393261303962626562393463643331666336
+        port: 51820
+        tunnel_address: "{{ networks.vpn_home.subnet }}"
+        link_peers: false
+
+    - name: WireGuard - VPN Instance
+      oxlorg.opnsense.wireguard_server:
+        name: "{{ item.provider }}-{{ item.location }}"
+        private_key: "{{ item.server.private_key }}"
+        public_key: "{{ _wireguard_vpn_public_keys.results[ansible_loop.index0].stdout }}"
+        port: "{{ 51820 + ansible_loop.index }}"
+        mtu: 1420
+        tunnel_address: "{{ item.server.address }}/32"
+        link_peers: false
+        disable_routes: true
+        gateway: "{{ item.server.address }}"
+      loop: "{{ opnsense_wireguard_vpn }}"
+      loop_control:
+        extended: true
+
+    - name: WireGuard - Peers
+      oxlorg.opnsense.wireguard_peer:
+        name: "{{ item.provider }}-{{ item.location }}"
+        public_key: "{{ item.peer.public_key }}"
+        endpoint: "{{ item.peer.endpoint }}"
+        port: "{{ item.peer.port }}"
+        allowed_ips: ["0.0.0.0/0"]
+        keepalive: "{{ item.peer.keepalive }}"
+        link_servers: true
+        servers: ["{{ item.provider }}-{{ item.location }}"]
+      loop: "{{ opnsense_wireguard_vpn }}"
+
+    # An interface needs to be assigned and enabled manually for this step (API doesn't exist for that yet)
+    # Also set the MSS on the interface to 1380
+
+    - name: WireGuard - Gateway
+      oxlorg.opnsense.gateway:
+        name: "VPN_{{ item.provider | ansible.builtin.upper }}"
+        interface: "{{ item.interface }}"
+        ip_protocol: inet
+        gateway: "{{ query('community.dns.lookup', item.peer.endpoint) | ansible.builtin.first }}"
+        default_gw: false
+        far_gw: true
+        monitor_disable: false
+        monitor: "{{ query('community.dns.lookup', item.peer.endpoint) | ansible.builtin.first }}"
+        match_fields:
+          - name
+        priority: 255
+      loop: "{{ opnsense_wireguard_vpn }}"
+
+    - name: WireGuard - Firewall Rule
+      oxlorg.opnsense.rule:
+        sequence: 400
+        quick: false
+        interface: []
+        direction: in
+        action: pass
+        source_net: "{{ item.interface }}"
+        destination_net: "{{ item.interface }}ip"
+        gateway: "VPN_{{ item.provider | ansible.builtin.upper }}"
+        log: true
+        allow_opts: true
+        description: "VPN_{{ item.provider | ansible.builtin.upper }}"
+      loop: "{{ opnsense_wireguard_vpn }}"
+      notify: Reload firewall rules
+
+    # - name: WireGuard - Next steps
+    #   ansible.builtin.debug:
+    #     msg:
+    #       - Need to be done manually as the API doesn't exist
+    #       - 1. Add NAT Outbound - https://opnsense-web.{{ common_local_tld }}/firewall_nat_out.php
+
+    # - name: WireGuard - Add NAT rule
+    #   oxlorg.opnsense.nat_source:
+    #     interface: "{{ item.interface }}"
+    #     source: "opt1"
+    #     target: any
+    #     description: "VPN_{{ item.provider | ansible.builtin.upper }}"
+    #     match_fields: ["description"]
+    #   loop: "{{ opnsense_wireguard_vpn }}"

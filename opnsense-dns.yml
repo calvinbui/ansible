@@ -1,0 +1,206 @@
+---
+
+- hosts: localhost
+
+  become: false
+
+  connection: local
+
+  force_handlers: true
+
+  gather_facts: false
+
+  module_defaults:
+    group/oxlorg.opnsense.all: "{{ oxlorg_opnsense_module_defaults }}"
+
+  handlers:
+    - name: Reload Unbound
+      oxlorg.opnsense.reload:
+        target: unbound
+
+    - name: Reload dnsmasq
+      oxlorg.opnsense.reload:
+        target: dnsmasq
+
+  tasks:
+    - name: Unbound - General
+      oxlorg.opnsense.unbound_general:
+        dnssec: true
+        register_ipv6_link_local: false
+        register_dhcp_static_mappings: true
+      notify: Reload Unbound
+
+    - name: Unbound - Overrides
+      oxlorg.opnsense.unbound_host:
+        hostname: "*"
+        domain: "{{ common_tld }}"
+        value: "{{ traefik_ip }}"
+        description: "Internal resolution for {{ common_tld }}"
+        match_fields:
+          - description
+      notify: Reload Unbound
+
+    - name: Unbound - DNS-over-TLS
+      oxlorg.opnsense.unbound_dot:
+        domain: "{{ item.domain | ansible.builtin.default('') }}"
+        target: "{{ item.address }}"
+        port: "853"
+        verify: "{{ item.hostname }}"
+      notify: Reload Unbound
+      loop:
+        -
+          address: 1.1.1.1
+          hostname: cloudflare-dns.com
+        -
+          address: 1.0.0.1
+          hostname: cloudflare-dns.com
+        -
+          address: 76.76.2.11
+          hostname: p0.freedns.controld.com
+        -
+          address: 9.9.9.10
+          hostname: dns10.quad9.net
+        -
+          address: 149.112.112.10
+          hostname: dns10.quad9.net
+
+    - name: KEA - Disable
+      oxlorg.opnsense.dhcp_general:
+        enabled: false
+        reload: true
+
+    - name: Dnsmasq - General
+      oxlorg.opnsense.dnsmasq_general:
+        # Default
+        enabled: true
+        interfaces: "{{ networks | ansible.builtin.dict2items | selectattr('value.dhcp_pool', 'defined') | map(attribute='value.opnsense_identifier') | list }}"
+
+        # DNS
+        dns_port: 53053
+        local_ttl: 0
+
+        # DNS Query Forwarding
+        resolv_system: true
+        forward_private_reverse: false
+
+        # DHCP
+        dhcp_disable_interfaces: "{{ networks | ansible.builtin.dict2items | selectattr('value.dhcp_pool', 'undefined') | map(attribute='value.opnsense_identifier') | list }}"
+        dhcp_fqdn: true
+        dhcp_domain: "{{ common_local_tld }}"
+        dhcp_local: true
+        dhcp_authoritative: true
+      notify: Reload dnsmasq
+
+    - name: Dnsmasq - DHCP ranges
+      oxlorg.opnsense.dnsmasq_range:
+        interface: "{{ item.value.opnsense_name }}"
+        start_addr: "{{ item.value.dhcp_pool.start }}"
+        end_addr: "{{ item.value.dhcp_pool.end }}"
+        lease_time: 86400
+        domain: "{{ common_local_tld }}"
+        ra_mode: []
+        description: "{{ item.value.name }}"
+      loop: "{{ networks | ansible.builtin.dict2items }}"
+      when: item.value.dhcp_pool is defined
+      notify: Reload dnsmasq
+
+    - name: Dnsmasq - Hosts
+      oxlorg.opnsense.dnsmasq_host:
+        host: "{{ item.hostname }}"
+        domain: "{{ common_local_tld }}"
+        local: true
+        ip:
+          - "{{ item.ip }}"
+        hardware_addr: "{{ item.mac | ansible.builtin.default(omit) }}"
+        description: "{{ item.hostname }} - Created by Ansible"
+        comments: "{{ item.comment | ansible.builtin.default(omit) }}"
+      loop: "{{ opnsense_dhcp_reservations }}"
+      notify: Reload dnsmasq
+
+    - name: Unbound - Forward internal domain to dnsmasq
+      oxlorg.opnsense.unbound_forward:
+        domain: "{{ common_local_tld }}"
+        server: 127.0.0.1
+        port: 53053
+        description: Forward internal domain to dnsmasq
+      notify: Reload Unbound
+
+    - name: Unbound - Reverse DNS Lookup
+      oxlorg.opnsense.unbound_forward:
+        domain: "{{ network_reverse_dns_lookup_coverage | ansible.builtin.split('.') | ansible.builtin.reverse | ansible.builtin.join('.') }}.in-addr.arpa"
+        server: 127.0.0.1
+        port: 53053
+        description: Reverse DNS Lookup
+      notify: Reload Unbound
+
+    - name: Dnsmasq - DHCP Tags
+      oxlorg.opnsense.dnsmasq_tag:
+        tag: "{{ item }}"
+      notify: Reload dnsmasq
+      loop:
+        - BIOS
+        - EFI
+        - ARM64
+
+    - name: Dnsmasq - DHCP options
+      oxlorg.opnsense.dnsmasq_option:
+        type: match
+        option: 93
+        set_tag: "{{ item.tag }}"
+        value: "{{ item.value }}"
+        description: "{{ item.tag }}"
+      notify: Reload dnsmasq
+      loop:
+        - tag: BIOS
+          value: 0
+        - tag: EFI
+          value: 7
+        - tag: ARM64
+          value: 11
+
+    - name: Dnsmasq - DHCP Boot
+      oxlorg.opnsense.dnsmasq_boot:
+        interface: "{{ item.0.value.opnsense_name }}"
+        tag: "{{ item.1.tag }}"
+        filename: "{{ item.1.filename }}"
+        servername: "{{ item.0.value.tftp_server }}"
+        address: "{{ item.0.value.tftp_server }}"
+        description: "{{ item.0.value.name }} {{ item.1.tag }}"
+      loop: "{{ networks | ansible.builtin.dict2items | product(boot_configs) }}"
+      vars:
+        boot_configs:
+          - tag: BIOS
+            filename: netboot.xyz.kpxe
+          - tag: EFI
+            filename: netboot.xyz.efi
+          - tag: ARM64
+            filename: netboot.xyz-arm64.efi
+      when: item.0.value.tftp_server is defined
+      notify: Reload dnsmasq
+
+- hosts: opnsense
+
+  force_handlers: true
+
+  gather_facts: false
+
+  module_defaults:
+    group/oxlorg.opnsense.all: "{{ oxlorg_opnsense_module_defaults }}"
+
+  handlers:
+    - name: Reload dnsmasq
+      oxlorg.opnsense.reload:
+        target: dnsmasq
+      become: false
+      delegate_to: localhost
+
+  tasks:
+    - name: Dnsmasq - Ignore client identifier option sent by DHCP clients and only use MAC addresses
+      ansible.builtin.copy:
+        content: |
+          dhcp-ignore-clid
+        dest: /usr/local/etc/dnsmasq.conf.d/01-ignore-clid.conf
+        owner: root
+        group: wheel
+        mode: "0644"
+      notify: Reload dnsmasq

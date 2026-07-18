@@ -1,0 +1,79 @@
+---
+
+- hosts: localhost
+
+  become: false
+
+  connection: local
+
+  force_handlers: true
+
+  gather_facts: false
+
+  module_defaults:
+    group/oxlorg.opnsense.all: "{{ oxlorg_opnsense_module_defaults }}"
+
+  tasks:
+    - name: Install ACME package
+      oxlorg.opnsense.package:
+        name: os-acme-client
+        action: install
+
+    - name: ACME - Settings
+      oxlorg.opnsense.acme_general:
+        enabled: true
+        auto_renewal: true
+        show_intro: false
+
+    - name: ACME - Accounts
+      oxlorg.opnsense.acme_account:
+        name: "{{ common_user }}"
+        ca: letsencrypt
+      register: _acme_account
+
+    - name: ACME - Challenge Types
+      oxlorg.opnsense.acme_validation:
+        name: Cloudflare
+        method: dns01
+        dns_service: dns_cf
+        dns_sleep: 120
+        dns_cf_zone_id: fdab030df06b16c36c704bff2da42a7e
+        dns_cf_account_id: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          61393964323234653539336138363136333338393837343561663834653835646432346335633335
+          3239343638356630383234343438663533383861613132310a393534383530303236636134626134
+          64323361643330613963373832343464643933373437656538656537373334363433326538643666
+          3938646530663236360a313330363862343238353934623136643963346562636330373731333639
+          38363536313939333164656135663836333432386662333739383035366131373265646237366365
+          6437303130646234626236396562393734383032306135356561
+        dns_cf_token: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          35313530336261373863383131313433373934356264656433613539393831633665363335396338
+          6366626334303461653432613231323436343765373965370a393438616631343661656165323433
+          35663965363832316331623936343163633836313134643666303739643631633633313962633661
+          3236363334303738310a366562643332346639353063626335333230396436613132303165393962
+          32616664313633323239353239383234393761313865356434346562316133336364616435663930
+          3335303765393461623831663131613564623039613631326265
+      changed_when: false
+      register: _acme_challenge
+
+    - name: ACME - Automation
+      oxlorg.opnsense.acme_action:
+        enabled: true
+        name: Reload OPNsense Web UI
+        type: configd_restart_gui
+      register: _acme_automation
+
+    - name: ACME - Certificate
+      oxlorg.opnsense.acme_certificate:
+        enabled: true
+        name: "opnsense-web.{{ common_local_tld }}"
+        description: ""
+        account: "{{ _acme_account.diff.after.name }}"
+        validation: "{{ _acme_challenge.diff.after.name }}"
+        auto_renewal: true
+        renew_interval: 60
+        key_length: key_ec256
+        ocsp: false
+        restart_actions: "{{ _acme_automation.diff.after.name }}"
+        aliasmode: automatic

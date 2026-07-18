@@ -1,0 +1,38 @@
+---
+
+- hosts: localhost
+
+  become: false
+
+  connection: local
+
+  force_handlers: true
+
+  gather_facts: false
+
+  module_defaults:
+    group/oxlorg.opnsense.all: "{{ oxlorg_opnsense_module_defaults }}"
+
+  handlers:
+    - name: Reload Monit
+      oxlorg.opnsense.reload:
+        target: monit
+
+  tasks:
+    - name: Monit - Alert Settings
+      oxlorg.opnsense.monit_alert:
+        recipient: "opnsense{{ common_email_to }}"
+        not_on: true
+        events:
+          - instance
+        reminder: 10
+      notify: Reload Monit
+
+    - name: Monit - Wireguard
+      oxlorg.opnsense.monit_service:
+        name: WireGuardIfaceTest
+        type: network
+        interface: "{{ networks.vpn_purevpn_sydney.opnsense_identifier }}"
+        tests:
+          - NetworkLink
+      notify: Reload Monit

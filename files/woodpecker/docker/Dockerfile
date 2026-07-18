@@ -24,6 +24,7 @@ RUN apt-get update \
     libssh-dev \
     rsync \
     ssh \
+    wireguard-tools \
 
     # texlive
     fonts-roboto-slab \

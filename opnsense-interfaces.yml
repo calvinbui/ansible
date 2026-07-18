@@ -1,0 +1,65 @@
+---
+
+- hosts: localhost
+
+  become: false
+
+  connection: local
+
+  force_handlers: true
+
+  gather_facts: false
+
+  vars:
+    opnsense_hardware_interfaces:
+      lan:
+        - igc0
+        - igc1
+        - igc2
+        - igc3
+      wan: ix1
+      vlan: ix0
+
+  module_defaults:
+    group/oxlorg.opnsense.all: "{{ oxlorg_opnsense_module_defaults }}"
+
+  handlers:
+    - name: Reload VLANs
+      oxlorg.opnsense.reload:
+        target: interface_vlan
+
+    - name: Reload LAGG
+      oxlorg.opnsense.reload:
+        target: interface_lagg
+
+  tasks:
+    - name: Gateway - WAN
+      oxlorg.opnsense.gateway:
+        name: WAN
+        interface: wan
+        ip_protocol: inet
+        priority: 1
+        default_gw: true
+        monitor_disable: false
+        match_fields:
+          - name
+
+    - name: Interface - VLANs
+      oxlorg.opnsense.interface_vlan:
+        device: "{{ opnsense_hardware_interfaces.vlan }}_vlan{{ item.value.vlan }}"
+        parent: "{{ opnsense_hardware_interfaces.vlan }}"
+        vlan: "{{ item.value.vlan }}"
+        priority: 0
+        description: "{{ item.value.name | ansible.builtin.upper }}"
+      loop: "{{ networks | ansible.builtin.dict2items }}"
+      when: item.value.vlan is defined
+      notify: Reload VLANs
+
+    # pending https://github.com/O-X-L/ansible-opnsense/pull/321
+    - name: Interface - LAGG
+      oxlorg.opnsense.interface_lagg:
+        device: lagg0
+        members: "{{ opnsense_hardware_interfaces.lan }}"
+        proto: failover
+        lagghash: []
+      notify: Reload LAGG
