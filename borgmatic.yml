@@ -27,6 +27,31 @@
     container_network: "{{ networks.pub }}"
 
   tasks:
+    - name: Set USB repository
+      ansible.builtin.set_fact:
+        _borg_repository_usb: >-
+          {{
+            borg_repositories
+            | ansible.builtin.selectattr('name', 'equalto', 'usb')
+            | ansible.builtin.selectattr('protocol', 'equalto', 'local')
+            | ansible.builtin.list
+            | ansible.builtin.first
+          }}
+
+    - name: Create USB mount point
+      ansible.builtin.file:
+        path: "{{ _borg_repository_usb.mount_point }}"
+        state: directory
+        mode: "0755"
+
+    - name: Add fstab entry and mount USB drive
+      ansible.posix.mount:
+        path: "{{ _borg_repository_usb.mount_point }}"
+        src: "UUID={{ _borg_repository_usb.uuid }}"
+        fstype: "{{ _borg_repository_usb.fstype }}"
+        opts: "{{ _borg_repository_usb.mount_options }}"
+        state: mounted
+
     - name: Create Borgmatic directories
       ansible.builtin.file:
         path: "{{ config_directory }}"
@@ -77,12 +102,12 @@
         group: root
         mode: "0600"
 
-    - name: Add servers to known hosts
+    - name: Add SSH repositories to known hosts
       ansible.builtin.known_hosts:
         path: "{{ config_directory }}/ssh/known_hosts"
         name: "[{{ item.hostname }}]:{{ item.port }}"
         key: "{{ lookup('pipe', 'ssh-keyscan -t ed25519 -p ' + (item.port | string) + ' ' + item.hostname + ' 2>/dev/null | grep ssh-ed25519') }}"
-      loop: "{{ borg_servers }}"
+      loop: "{{ borg_repositories | ansible.builtin.selectattr('protocol', 'equalto', 'ssh') | ansible.builtin.list }}"
 
     - name: Template notification script
       ansible.builtin.template:
@@ -106,6 +131,7 @@
           # data to backup. mount as rw when a restore is needed
           - "{{ item.source }}:/mnt/source:ro"
 
+          - "{{ _borg_repository_usb.mount_point }}/{{ item.name }}:{{ _borg_repository_usb.path }}"
           - "{{ config_directory }}/borgbackup:/mnt/borg-repository"
           - "{{ config_directory }}/ssh:/root/.ssh"
 
@@ -119,14 +145,6 @@
       containers.podman.podman_container_exec:
         name: "borgmatic-{{ item.name }}"
         command: borgmatic repo-create --encryption=repokey-blake2
-      register: _command_result
-      changed_when: _command_result.stdout != ''
-      loop: "{{ borgmatic_backups }}"
-
-    - name: Disable older versions for security
-      containers.podman.podman_container_exec:
-        name: "borgmatic-{{ item.name }}"
-        command: borgmatic borg upgrade --disable-tam
       register: _command_result
       changed_when: _command_result.stdout != ''
       loop: "{{ borgmatic_backups }}"

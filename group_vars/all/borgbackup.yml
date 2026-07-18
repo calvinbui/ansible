@@ -1,6 +1,6 @@
 ---
 
-borg_servers:
+borg_repositories:
   -
     name: hetzner
     protocol: ssh
@@ -20,6 +20,14 @@ borg_servers:
       66666266636166363230656336363661643465656530646165653665653030306361
     port: 23
     path: /./borg
+  -
+    name: usb
+    protocol: local
+    path: /mnt/repositories/usb
+    mount_point: /mnt/borg-usb
+    uuid: 55afaad4-5f77-409a-adab-8c24e2f42b5b
+    fstype: ext4
+    mount_options: "noatime,nofail,x-systemd.automount,errors=remount-ro,x-systemd.device-timeout=10s"
 
 borgmatic_backups:
   - name: backups
