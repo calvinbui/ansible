@@ -274,11 +274,11 @@ opnsense_dhcp_reservations:
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
     mac: 02:4b:5c:2d:1c:33
     hostname: linktap-gateway
-  -
-    ip: "{{ networks.iot.subnet | ansible.utils.nthhost(35) }}"
-    subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
-    mac: d8:8b:4c:04:f4:d3
-    hostname: yolink-speaker-hub
+  # -
+  #   ip: "{{ networks.iot.subnet | ansible.utils.nthhost(35) }}"
+  #   subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
+  #   mac: d8:8b:4c:04:f4:d3
+  #   hostname: yolink-speaker-hub
   -
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(36) }}"
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
