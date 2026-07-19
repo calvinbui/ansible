@@ -165,10 +165,28 @@
               -
                 name: gpt-5.6-sol
                 label: GPT-5.6 Sol
-                default: true
                 preset:
                   endpoint: openAI
                   model: gpt-5.6-sol
+                  useResponsesApi: true
+                  web_search: true
+                  reasoning_summary: auto
+              -
+                name: gpt-5.6-terra
+                label: GPT-5.6 Terra
+                preset:
+                  endpoint: openAI
+                  model: gpt-5.6-terra
+                  useResponsesApi: true
+                  web_search: true
+                  reasoning_summary: auto
+              -
+                name: gpt-5.6-luna
+                label: GPT-5.6 Luna
+                default: true
+                preset:
+                  endpoint: openAI
+                  model: gpt-5.6-luna
                   useResponsesApi: true
                   web_search: true
                   reasoning_summary: auto
