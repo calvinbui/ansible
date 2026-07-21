@@ -265,7 +265,7 @@
             source_net: "{{ networks.iot.opnsense_identifier }}"
             destination_invert: true
             destination_net: "rfc1918"
-            gateway: "VPN_PUREVPN"
+            gateway: "VPN_WINDSCRIBE_SYDNEY"
             description: Gateway
       notify: Reload firewall rules
 
@@ -293,7 +293,7 @@
             source_net: "{{ networks.pub.opnsense_identifier }}"
             destination_invert: true
             destination_net: "rfc1918"
-            gateway: "VPN_PUREVPN"
+            gateway: "VPN_WINDSCRIBE_SYDNEY"
             description: Gateway
       notify: Reload firewall rules
 

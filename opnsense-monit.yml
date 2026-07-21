@@ -32,7 +32,7 @@
       oxlorg.opnsense.monit_service:
         name: WireGuardIfaceTest
         type: network
-        interface: "{{ networks.vpn_purevpn_sydney.opnsense_identifier }}"
+        interface: "{{ networks.vpn_windscribe_sydney.opnsense_identifier }}"
         tests:
           - NetworkLink
       notify: Reload Monit

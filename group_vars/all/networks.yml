@@ -74,5 +74,5 @@ networks:
     opnsense_identifier: opt6
     subnet: 10.127.60.1/23
 
-  vpn_purevpn_sydney:
+  vpn_windscribe_sydney:
     opnsense_identifier: opt7

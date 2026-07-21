@@ -13,24 +13,38 @@
   vars:
     opnsense_wireguard_vpn:
       -
-        provider: purevpn
+        interface: "{{ networks.vpn_windscribe_sydney.opnsense_identifier }}"
+
+        provider: windscribe
         location: sydney
+
         server:
           private_key: !vault |
             $ANSIBLE_VAULT;1.1;AES256
-            62326333636363373461636363336331303331633538323831613539333562396237306162366632
-            3734623062323938376565626437656139643062353537630a653331653064366162663736613833
-            63393733653631666134646432323933383366633861336339626362373064663030656138353431
-            3239643735626364620a656666613531366335343865356536393066373763336562323533313837
-            61386561353635376464353364666663653139646462383234623431646165323233313836383462
-            3363383963623830363936306332336331373234396432636635
-          address: 172.21.5.56
+            31313331343961633962313264623733366362323365376333613463633463363939366464316461
+            6462323835646363306663356234306639326665326464300a353535303966663263613037643538
+            30393061643866363561353938353832333237656561626361373030353039343034656339663235
+            6135363934383831320a386336373134306330366638323439313565393038316264386438633139
+            34326339303261353162323733633837313134303036613331613035366466656639656133616233
+            3766303463623037313665633161633934613962363965323735
+          address: 100.83.42.92
+          gateway: 10.255.255.1
+
         peer:
-          endpoint: sx152416-ikev.dnsdialer.com
-          port: 51820
-          public_key: L6MzNBvfugdHFsvWh8vAWMTNSmDpIiWJLiehLgJWjh0=
-          keepalive: 21
-        interface: "{{ networks.vpn_purevpn_sydney.opnsense_identifier }}"
+          public_key: jCi1I5HBTtwCblBbMzOFmOOFNG1GilYOZgst0kyq9gY=
+          endpoint: syd-226-wg.whiskergalaxy.com
+          port: 443
+          psk: !vault |
+            $ANSIBLE_VAULT;1.1;AES256
+            65623333373831373233663364633431623136313839353565653830336236623636393533653866
+            3337306361396632643835393765626365616662323736310a323835303239356262643235653065
+            30323736616332623466636435346439663232376633363263653662646136663137393939623230
+            6635326566376436640a303431616430313234323936643033306364616233623934326463346535
+            63626561616532313333393061663930393866663137326266303862386364646333363438333933
+            6535363861313635353635336364393263353032313863613635
+
+        monitor_ip: 10.255.255.1
+
         used_by:
           - "{{ networks.iot.opnsense_identifier }}"
           - "{{ networks.pub.opnsense_identifier }}"
@@ -84,7 +98,7 @@
         tunnel_address: "{{ item.server.address }}/32"
         link_peers: false
         disable_routes: true
-        gateway: "{{ item.server.address }}"
+        gateway: "{{ item.server.gateway }}"
       loop: "{{ opnsense_wireguard_vpn }}"
       loop_control:
         extended: true
@@ -96,9 +110,10 @@
         endpoint: "{{ item.peer.endpoint }}"
         port: "{{ item.peer.port }}"
         allowed_ips: ["0.0.0.0/0"]
-        keepalive: "{{ item.peer.keepalive }}"
+        keepalive: "{{ item.peer.keepalive | default(omit) }}"
         link_servers: true
         servers: ["{{ item.provider }}-{{ item.location }}"]
+        psk: "{{ item.peer.psk | default(omit) }}"
       loop: "{{ opnsense_wireguard_vpn }}"
 
     # An interface needs to be assigned and enabled manually for this step (API doesn't exist for that yet)
@@ -106,14 +121,14 @@
 
     - name: WireGuard - Gateway
       oxlorg.opnsense.gateway:
-        name: "VPN_{{ item.provider | ansible.builtin.upper }}"
+        name: "VPN_{{ item.provider | ansible.builtin.upper }}_{{ item.location | ansible.builtin.upper }}"
         interface: "{{ item.interface }}"
         ip_protocol: inet
-        gateway: "{{ query('community.dns.lookup', item.peer.endpoint) | ansible.builtin.first }}"
+        gateway: "{{ item.monitor_ip }}"
         default_gw: false
         far_gw: true
         monitor_disable: false
-        monitor: "{{ query('community.dns.lookup', item.peer.endpoint) | ansible.builtin.first }}"
+        monitor: "{{ item.monitor_ip }}"
         match_fields:
           - name
         priority: 255
@@ -128,10 +143,10 @@
         action: pass
         source_net: "{{ item.interface }}"
         destination_net: "{{ item.interface }}ip"
-        gateway: "VPN_{{ item.provider | ansible.builtin.upper }}"
+        gateway: "VPN_{{ item.provider | ansible.builtin.upper }}_{{ item.location | ansible.builtin.upper }}"
         log: true
         allow_opts: true
-        description: "VPN_{{ item.provider | ansible.builtin.upper }}"
+        description: "VPN_{{ item.provider | ansible.builtin.upper }}_{{ item.location | ansible.builtin.upper }}"
       loop: "{{ opnsense_wireguard_vpn }}"
       notify: Reload firewall rules
 
