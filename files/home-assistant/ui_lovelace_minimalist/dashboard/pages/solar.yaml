@@ -312,6 +312,11 @@ cards:
             state_of_charge: sensor.solplanet_battery_al010k5sq2590170_battery_state_of_charge
             color_icon: true
             display_state: one_way
+          individual:
+            - name: Car
+              entity: sensor.garage_zeekr_7x_awd_charge_power
+              icon: mdi:car-electric
+              color_value: true
 
       -
         type: entities
