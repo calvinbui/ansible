@@ -39,12 +39,12 @@ groups:
           summary: ZFS Pool Unavailable
           description: "{{ $labels.zpool }} is unavailable"
       -
-        alert: ZFSARCMetadataLimitHigh
-        expr: node_zfs_arc_arc_meta_used / node_zfs_arc_arc_dnode_limit > 0.9
+        alert: ZFSARCDnodeLimitHigh
+        expr: node_zfs_arc_dnode_size / node_zfs_arc_arc_dnode_limit > 0.9
         for: 30m
         annotations:
-          summary: ZFS ARC Metadata Limit High
-          description: "ARC metadata usage is {{ $value | humanizePercentage }} of limit"
+          summary: ZFS ARC Dnode Limit High
+          description: "ARC dnode usage is {{ $value | humanizePercentage }} of limit"
       -
         alert: ZFSARCMemoryPressure
         expr: node_zfs_arc_memory_throttle_count > 0
