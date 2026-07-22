@@ -7,342 +7,342 @@ icon: mdi:solar-power-variant
 type: custom:grid-layout
 layout:
   grid-template-columns: 70% 30%
-  grid-template-rows: auto auto auto
+  align-items: start
   grid-template-areas: |
-    "graph flow"
-    "graph data"
-    "prevnext data"
+    "left right"
   mediaquery:
     "(max-width: 800px)":
       grid-template-columns: 100%
-      grid-template-rows: fit-content(100%)
       grid-template-areas: |
-        "flow"
-        "graph"
-        "prevnext"
-        "data"
+        "left"
+        "right"
 
 cards:
   -
     view_layout:
-      grid-area: flow
-    type: custom:power-flow-card-plus
-    clickable_entities: true
-    min_expected_power: 500
-    max_expected_power: 10000
-    min_flow_rate: 1
-    max_flow_rate: 4
-    use_new_flow_rate_model: true
-    kilo_decimals: 2
-    kilo_threshold: 0
-    entities:
-      home:
-        entity: sensor.home_power_consumption
-        color_icon: true
-        color_value: true
-      grid:
-        entity:
-          consumption: sensor.grid_power_consumption
-          production: sensor.grid_power_export
-        color_icon: true
-        display_state: one_way
-        display_zero_tolerance: 50
-        color_circle: true
-        color:
-          production: '#18cf87'
-          consumption: '#f76354'
-      solar:
-        entity: sensor.total_solar_generation
-        color_icon: true
-        color_value: true
-      battery:
-        entity: sensor.solplanet_al010k5sq2590170_power
-        state_of_charge: sensor.solplanet_battery_al010k5sq2590170_battery_state_of_charge
-        color_icon: true
-        display_state: one_way
-
-  -
-    view_layout:
-      grid-area: graph
-    type: 'custom:config-template-card'
-    entities:
-      - sensor.home_sun_rising
-      - sensor.home_sun_setting
-      - input_number.solar_graph_offset
-    variables:
-      getDate: |
-        sensor => {
-          var event_date = new Date();
-
-          event_date.setDate(event_date.getDate() - states['input_number.solar_graph_offset'].state);
-
-          return event_date.toLocaleDateString('en-AU', {dateStyle: 'full'});
-        }
-      getTime: |
-        sensor => {
-          const today = new Date();
-
-          var event_time = new Date(states[sensor].state);
-
-          if (event_time.getDate() == today.getDate()) {
-            return event_time.getTime();
-          }
-
-          return 0;
-        }
-      getTimeString: |
-        sensor => {
-          const today = new Date();
-
-          var event_time = new Date(states[sensor].state);
-
-          if (event_time.getDate() == today.getDate()) {
-            return event_time.toLocaleTimeString('en-AU', {hour: '2-digit', minute: '2-digit'});
-          }
-
-          return "";
-        }
-    card:
-      type: custom:apexcharts-card
-      update_interval: 30sec
-
-      graph_span: 24h
-      span:
-        start: day
-        offset: ${"-" + states['input_number.solar_graph_offset'].state + "d"}
-
-      show:
-        loading: true
-        last_updated: false
-
-      hours_12: true
-
-      cache: true
-
-      stacked: true
-
-      header:
-        show: true
-        title: ${getDate('') }
-        show_states: true
-        colorize_states: true
-        disable_actions: true
-
-      yaxis:
-        -
-          id: kWh
-          min: 0
-          max: 10
-          decimals: 0
-          apex_config:
-            tickAmount: 5
-        -
-          id: percent
-          min: 0
-          max: 100
-          decimals: 0
-          opposite: true
-          apex_config:
-            tickAmount: 5
-
-      apex_config:
-        chart:
-          type: area
-          zoom:
-            enabled: true
-            type: x
-          toolbar:
-            show: true
-            tools:
-              reset: true
-              pan: true
-              download: false
-              selection: false
-              zoom: false
-              zoomin: true
-              zoomout: true
-        stroke:
-          show: true
-        dataLabels:
-          enabled: true
-        legend:
-          show: false
-        fill:
-          type: gradient
-          gradient:
-            inverseColors: true
-            type: vertical
-            shadeIntensity: 0
-            opacityFrom: 0.7
-            opacityTo: 0.7
-        grid:
-          show: false
-        annotations:
-          xaxis:
-            -
-              x: "${getTime('sensor.home_sun_rising')}"
-              strokeDashArray: 2
-              label:
-                text: "${'☀️ Sunrise - ' + getTimeString('sensor.home_sun_rising')}"
-                borderWidth: 0
-                style:
-                  background: '#0000'
-            -
-              x: "${getTime('sensor.home_sun_setting')}"
-              strokeDashArray: 2
-              label:
-                text: "${'🌙 Sunset - ' + getTimeString('sensor.home_sun_setting')}"
-                borderWidth: 0
-                style:
-                  background: '#0000'
-
-      locale: en
-
-      all_series_config:
-        type: area
-        stroke_width: 2
-        curve: smooth
-        opacity: 2
-        unit: kWh
-        fill_raw: last
-        extend_to: now
-        show:
-          legend_value: true
-          in_header: false
-          in_chart: true
-      series:
-        -
-          name: Grid Consumption
-          entity: sensor.grid_power_consumption
-          yaxis_id: kWh
-          color: '#f76354' # red
-          transform: return x / 1000;
-          float_precision: 3
-          group_by:
-            func: avg
-            duration: 5m
-        -
-          name: Solar Usage
-          entity: sensor.solar_direct_home_consumption
-          yaxis_id: kWh
-          transform: return x / 1000;
-          color: '#ff9800'
-          group_by:
-            func: avg
-            duration: 5m
-        -
-          name: Solar Export
-          entity: sensor.grid_power_export
-          yaxis_id: kWh
-          transform: return x / 1000;
-          color: '#18cf87'
-          group_by:
-            func: avg
-            duration: 5m
-        -
-          name: Battery Usage
-          entity: sensor.battery_discharging_power
-          yaxis_id: kWh
-          transform: return x / 1000;
-          color: '#4db6ac'
-          group_by:
-            func: avg
-            duration: 5m
-        -
-          name: Solar Battery Charging
-          entity: sensor.solar_battery_charging
-          yaxis_id: kWh
-          transform: return x / 1000;
-          color: '#f06292'
-          group_by:
-            func: avg
-            duration: 5m
-        -
-          name: Battery Charge
-          entity: sensor.solplanet_battery_al010k5sq2590170_battery_state_of_charge
-          yaxis_id: percent
-          type: line
-          stroke_width: 5
-          color: '#ffa500'
-          unit: '%'
-          show:
-            extremas: true
-        -
-          name: Forecast
-          entity: sensor.solcast_pv_forecast_forecast_today
-          yaxis_id: kWh
-          type: line
-          color: '#3798fe'
-          curve: stepline
-          extend_to: end
-          data_generator: |
-            return entity.attributes.detailedForecast.map((entry) => {
-              var date_period = new Date(entry.period_start);
-              return [date_period, Math.min(entry.pv_estimate, 10)];
-            });
-
-  -
-    view_layout:
-      grid-area: prevnext
-    type: horizontal-stack
+      grid-area: left
+    type: vertical-stack
     cards:
       -
-        type: custom:button-card
-        icon: mdi:skip-previous
-        name: Previous Day
-        styles:
-          card:
-            - height: 5em
-        tap_action:
-          action: call-service
-          service: input_number.increment
-          data:
-            entity_id: input_number.solar_graph_offset
+        type: 'custom:config-template-card'
+        entities:
+          - sensor.home_sun_rising
+          - sensor.home_sun_setting
+          - input_number.solar_graph_offset
+        variables:
+          getDate: |
+            sensor => {
+              var event_date = new Date();
+
+              event_date.setDate(event_date.getDate() - states['input_number.solar_graph_offset'].state);
+
+              return event_date.toLocaleDateString('en-AU', {dateStyle: 'full'});
+            }
+          getTime: |
+            sensor => {
+              const today = new Date();
+
+              var event_time = new Date(states[sensor].state);
+
+              if (event_time.getDate() == today.getDate()) {
+                return event_time.getTime();
+              }
+
+              return 0;
+            }
+          getTimeString: |
+            sensor => {
+              const today = new Date();
+
+              var event_time = new Date(states[sensor].state);
+
+              if (event_time.getDate() == today.getDate()) {
+                return event_time.toLocaleTimeString('en-AU', {hour: '2-digit', minute: '2-digit'});
+              }
+
+              return "";
+            }
+        card:
+          type: custom:apexcharts-card
+          update_interval: 30sec
+
+          graph_span: 24h
+          span:
+            start: day
+            offset: ${"-" + states['input_number.solar_graph_offset'].state + "d"}
+
+          show:
+            loading: true
+            last_updated: false
+
+          hours_12: true
+
+          cache: true
+
+          stacked: false
+
+          header:
+            show: true
+            title: ${getDate('') }
+            show_states: true
+            colorize_states: true
+            disable_actions: true
+
+          yaxis:
+            -
+              id: kW
+              min: 0
+              decimals: 0
+              apex_config:
+                tickAmount: 5
+            -
+              id: percent
+              min: 0
+              max: 100
+              decimals: 0
+              opposite: true
+              apex_config:
+                tickAmount: 5
+
+          apex_config:
+            chart:
+              type: area
+              zoom:
+                enabled: true
+                type: x
+              toolbar:
+                show: true
+                tools:
+                  reset: true
+                  pan: true
+                  download: false
+                  selection: false
+                  zoom: false
+                  zoomin: true
+                  zoomout: true
+            stroke:
+              show: true
+            dataLabels:
+              enabled: true
+            legend:
+              show: false
+            fill:
+              type: gradient
+              gradient:
+                inverseColors: true
+                type: vertical
+                shadeIntensity: 0
+                opacityFrom: 0.7
+                opacityTo: 0.7
+            grid:
+              show: false
+            annotations:
+              xaxis:
+                -
+                  x: "${getTime('sensor.home_sun_rising')}"
+                  strokeDashArray: 2
+                  label:
+                    text: "${'☀️ Sunrise - ' + getTimeString('sensor.home_sun_rising')}"
+                    borderWidth: 0
+                    style:
+                      background: '#0000'
+                -
+                  x: "${getTime('sensor.home_sun_setting')}"
+                  strokeDashArray: 2
+                  label:
+                    text: "${'🌙 Sunset - ' + getTimeString('sensor.home_sun_setting')}"
+                    borderWidth: 0
+                    style:
+                      background: '#0000'
+
+          locale: en
+
+          all_series_config:
+            type: area
+            stroke_width: 2
+            curve: smooth
+            opacity: 0.7
+            unit: kW
+            fill_raw: last
+            extend_to: now
+            show:
+              legend_value: true
+              in_header: false
+              in_chart: true
+          series:
+            -
+              name: Grid Consumption
+              entity: sensor.grid_power_consumption
+              yaxis_id: kW
+              color: '#f76354' # red
+              transform: return x / 1000;
+              float_precision: 3
+              group_by:
+                func: avg
+                duration: 5m
+            -
+              name: Solar Usage
+              entity: sensor.solar_direct_home_consumption
+              yaxis_id: kW
+              transform: return x / 1000;
+              color: '#ff9800'
+              group_by:
+                func: avg
+                duration: 5m
+            -
+              name: Battery Usage
+              entity: sensor.battery_discharging_power
+              yaxis_id: kW
+              transform: return x / 1000;
+              color: '#4db6ac'
+              group_by:
+                func: avg
+                duration: 5m
+            -
+              name: Solar Battery Charging
+              entity: sensor.solar_battery_charging
+              yaxis_id: kW
+              transform: return x / 1000;
+              color: '#f06292'
+              group_by:
+                func: avg
+                duration: 5m
+            -
+              name: Solar Export
+              entity: sensor.grid_power_export
+              yaxis_id: kW
+              transform: return x / 1000;
+              color: '#18cf87'
+              group_by:
+                func: avg
+                duration: 5m
+            -
+              name: Battery Charge
+              entity: sensor.solplanet_battery_al010k5sq2590170_battery_state_of_charge
+              yaxis_id: percent
+              type: line
+              stroke_width: 5
+              color: '#ffa500'
+              unit: '%'
+              show:
+                extremas: true
+            -
+              name: Forecast
+              entity: sensor.solcast_pv_forecast_forecast_today
+              yaxis_id: kW
+              type: line
+              color: '#3798fe'
+              curve: stepline
+              extend_to: end
+              data_generator: |
+                return entity.attributes.detailedForecast
+                  .map((entry) => {
+                    const timestamp = new Date(entry.period_start).getTime();
+                    return [timestamp, Math.min(entry.pv_estimate, 10)];
+                  })
+                  .filter(([timestamp]) =>
+                    timestamp >= start.getTime() && timestamp <= end.getTime()
+                  );
+
       -
-        type: custom:button-card
-        icon: mdi:skip-next
-        name: Next Day
-        styles:
-          card:
-            - height: 5em
-        tap_action:
-          action: call-service
-          service: input_number.decrement
-          data:
-            entity_id: input_number.solar_graph_offset
+        type: horizontal-stack
+        cards:
+          -
+            type: custom:button-card
+            icon: mdi:skip-previous
+            name: Previous Day
+            styles:
+              card:
+                - height: 5em
+            tap_action:
+              action: call-service
+              service: input_number.increment
+              data:
+                entity_id: input_number.solar_graph_offset
+          -
+            type: custom:button-card
+            icon: mdi:skip-next
+            name: Next Day
+            styles:
+              card:
+                - height: 5em
+            tap_action:
+              action: call-service
+              service: input_number.decrement
+              data:
+                entity_id: input_number.solar_graph_offset
 
   -
     view_layout:
-      grid-area: data
-    type: entities
-    entities:
+      grid-area: right
+    type: vertical-stack
+    cards:
       -
-        type: custom:multiple-entity-row
-        name: Electricity Bill Today ($)
-        entity: sensor.electricity_costs_today_total
-        unit: false
-        format: precision2
+        type: custom:power-flow-card-plus
+        clickable_entities: true
+        min_expected_power: 500
+        max_expected_power: 10000
+        min_flow_rate: 1
+        max_flow_rate: 4
+        use_new_flow_rate_model: true
+        kilo_decimals: 2
+        kilo_threshold: 0
+        entities:
+          home:
+            entity: sensor.home_power_consumption
+            color_icon: true
+            color_value: true
+          grid:
+            entity:
+              consumption: sensor.grid_power_consumption
+              production: sensor.grid_power_export
+            color_icon: true
+            display_state: one_way
+            display_zero_tolerance: 50
+            color_circle: true
+            color:
+              production: '#18cf87'
+              consumption: '#f76354'
+          solar:
+            entity: sensor.total_solar_generation
+            color_icon: true
+            color_value: true
+          battery:
+            entity: sensor.solplanet_al010k5sq2590170_power
+            state_of_charge: sensor.solplanet_battery_al010k5sq2590170_battery_state_of_charge
+            color_icon: true
+            display_state: one_way
+
       -
-        type: section
-      -
-        type: custom:multiple-entity-row
-        name: Solar Net Cost ($)
-        entity: input_number.solar_net_cost
-        unit: false
-        format: precision2
-      -
-        type: custom:multiple-entity-row
-        name: Solar Breakeven Date
-        entity: sensor.solar_breakeven_date
-      -
-        type: section
-      -
-        type: custom:multiple-entity-row
-        name: Battery Net Cost ($)
-        entity: input_number.battery_net_cost
-        unit: false
-        format: precision2
-      -
-        type: custom:multiple-entity-row
-        name: Battery Breakeven Date
-        entity: sensor.battery_breakeven_date
+        type: entities
+        entities:
+          -
+            type: custom:multiple-entity-row
+            name: Electricity Bill Today ($)
+            entity: sensor.electricity_costs_today_total
+            unit: false
+            format: precision2
+          -
+            type: section
+          -
+            type: custom:multiple-entity-row
+            name: Solar Net Cost ($)
+            entity: input_number.solar_net_cost
+            unit: false
+            format: precision2
+          -
+            type: custom:multiple-entity-row
+            name: Solar Breakeven Date
+            entity: sensor.solar_breakeven_date
+          -
+            type: section
+          -
+            type: custom:multiple-entity-row
+            name: Battery Net Cost ($)
+            entity: input_number.battery_net_cost
+            unit: false
+            format: precision2
+          -
+            type: custom:multiple-entity-row
+            name: Battery Breakeven Date
+            entity: sensor.battery_breakeven_date
