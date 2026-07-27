@@ -317,6 +317,12 @@ cards:
               entity: sensor.garage_zeekr_7x_awd_charge_power
               icon: mdi:car-electric
               color_value: true
+              display_zero: true
+              secondary_info:
+                entity: sensor.garage_zeekr_7x_awd_battery_level
+                unit_of_measurement: "%"
+                unit_white_space: false
+                display_zero: true
 
       -
         type: entities
