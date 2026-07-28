@@ -235,53 +235,50 @@
       {% set val = bat_dis - bat_to_grid %}
       {{ (val if val > 0 else 0.0) | float(0) }}
 
-  # Create a sensor to know the current time of use pricing by Ausgrid NSW
-  #
-  # https://www.ausgrid.com.au/Your-energy-use/Meters/Time-of-use-pricing
-  #
-  # As of 1st of July 2024:
-  # - Peak: 3pm-9pm, November to March (summer) and June to August (winter)
-  # - Off-peak: All other times
+  # Current electricity plan time of use periods
+  # - Peak: 4pm-11pm every day
+  # - Off-peak: 12pm-3pm every day
+  # - Shoulder: All other times
   -
     name: TOU Period
     icon: mdi:clock-time-three-outline
     state: >
-      {% set tou_period = 'offpeak' %}
-
-      {% set n_month = now().month %}
+      {% set tou_period = 'shoulder' %}
       {% set n_hour = now().hour %}
 
-      {% set is_summer = (n_month >= 11 or n_month <= 3) %}
-      {% set is_winter = (6 <= n_month <= 8) %}
-
-      {% if (is_summer or is_winter) and (15 <= n_hour < 21) %}
+      {% if 12 <= n_hour < 15 %}
+        {% set tou_period = 'offpeak' %}
+      {% elif 16 <= n_hour < 23 %}
         {% set tou_period = 'peak' %}
       {% endif %}
 
       {{tou_period}}
 
-  # Current electricity plan: Engie - NSW - Simply NRMA Solar 7/10% off
+  # Current electricity plan: GloBird ZEROHERO VPP - Ausgrid
   -
     # Peak
     name: Electricity Peak Cost
     icon: mdi:currency-usd
     unit_of_measurement: AUD
-    state: >
-      {{ 0.6521900 * 0.93 }}
+    state: "0.594"
   -
     # Offpeak
     name: Electricity Offpeak Cost
     icon: mdi:currency-usd
     unit_of_measurement: AUD
-    state: >
-      {{ 0.3488100 * 0.93 }}
+    state: "0"
+  -
+    # Shoulder
+    name: Electricity Shoulder Cost
+    icon: mdi:currency-usd
+    unit_of_measurement: AUD
+    state: "0.517"
   -
     # Supply
     name: Electricity Supply Cost
     icon: mdi:currency-usd
     unit_of_measurement: AUD
-    state: >
-      {{ 1.8418400 * 0.93 }}
+    state: "1.815"
   -
     # A sensor to calculate the current cost of electricity based on the TOU and price
     name: Electricity Cost
@@ -292,6 +289,8 @@
         {{ states('sensor.electricity_peak_cost') }}
       {% elif is_state('sensor.tou_period', 'offpeak') %}
         {{ states('sensor.electricity_offpeak_cost') }}
+      {% elif is_state('sensor.tou_period', 'shoulder') %}
+        {{ states('sensor.electricity_shoulder_cost') }}
       {% endif %}
   -
     # Feed in
@@ -300,43 +299,71 @@
     unit_of_measurement: AUD/kWh
     state: "0.1200"
 
-  # Alternative electricity plan: Red QANTAS Red Saver
+  # Alternative electricity plan: 1st Energy - 1st Opal Time of Use
   #
   # The price of the plan if there was no solar
   # We want to compare how much we would've paid if we didn't have Solar
   # This way we can calculate the difference in price/savings to come to a breakeven date
+  # Peak: 3pm-9pm every day, November-March and June-August
+  # Off-peak: All other times
+  # A 4% pay-on-time discount applies to usage and supply charges.
+  -
+    name: Alternative TOU Period
+    icon: mdi:clock-time-three-outline
+    state: >
+      {% set n_month = now().month %}
+      {% set n_hour = now().hour %}
+      {% set is_summer = n_month >= 11 or n_month <= 3 %}
+      {% set is_winter = 6 <= n_month <= 8 %}
+
+      {% if (is_summer or is_winter) and 15 <= n_hour < 21 %}
+        peak
+      {% else %}
+        offpeak
+      {% endif %}
   -
     # Peak
     name: Alternative Electricity Peak Cost
     icon: mdi:currency-usd
     unit_of_measurement: AUD
-    state: "0.48235"
+    state: "0.4807"
   -
     # Offpeak
     name: Alternative Electricity Offpeak Cost
     icon: mdi:currency-usd
     unit_of_measurement: AUD
-    state: "0.20878"
+    state: "0.1914"
   -
     # Supply
     name: Alternative Electricity Supply Cost
     icon: mdi:currency-usd
     unit_of_measurement: AUD
-    state: "0.87450"
+    state: "1.4102"
   -
     # A sensor to calculate the alternative cost of electricity based on the TOU and price
     name: Alternative Electricity Cost
     icon: mdi:currency-usd
     unit_of_measurement: AUD/kWh
     state: >
-      {% if is_state('sensor.tou_period', 'peak') %}
+      {% if is_state('sensor.alternative_tou_period', 'peak') %}
         {{ states('sensor.alternative_electricity_peak_cost') }}
-      {% elif is_state('sensor.tou_period', 'offpeak') %}
+      {% else %}
         {{ states('sensor.alternative_electricity_offpeak_cost') }}
       {% endif %}
+  -
+    # The no-solar/no-battery household load priced at the alternative TOU rate.
+    # Integrating this AUD/h sensor produces the alternative plan's usage cost.
+    name: Alternative Electricity Usage Cost Rate
+    icon: mdi:currency-usd
+    unit_of_measurement: AUD/h
+    state_class: measurement
+    state: >
+      {% set home_power = states('sensor.home_power_consumption') | float(0) %}
+      {% set usage_rate = states('sensor.alternative_electricity_cost') | float(0) %}
+      {{ (([home_power, 0] | max) / 1000 * usage_rate) | round(6) }}
 
   # Electricity Usage TODAY
-  # Add off-peak and peak periods together.
+  # Add off-peak, shoulder and peak periods together.
   -
     name: Electricity Usage Today - Solar
     state_class: total_increasing
@@ -345,7 +372,8 @@
     state: >
       {{
         states('sensor.solar_self_consumption_daily_offpeak') | float(0) +
-        states('sensor.solar_self_consumption_daily_peak') | float(0)
+        states('sensor.solar_self_consumption_daily_peak') | float(0) +
+        states('sensor.solar_self_consumption_daily_shoulder') | float(0)
       }}
 
   -
@@ -356,7 +384,8 @@
     state: >
       {{
         states('sensor.grid_power_import_daily_peak') | float(0) +
-        states('sensor.grid_power_import_daily_offpeak') | float(0)
+        states('sensor.grid_power_import_daily_offpeak') | float(0) +
+        states('sensor.grid_power_import_daily_shoulder') | float(0)
       }}
 
   -
@@ -371,7 +400,7 @@
       }}
 
   # Electricity Usage YESTERDAY
-  # Add off-peak and peak periods together.
+  # Add off-peak, shoulder and peak periods together.
   -
     name: Electricity Usage Yesterday - Solar
     state_class: total_increasing
@@ -380,7 +409,8 @@
     state: >
       {{
         state_attr('sensor.solar_self_consumption_daily_offpeak', 'last_period') | float(0) +
-        state_attr('sensor.solar_self_consumption_daily_peak', 'last_period') | float(0)
+        state_attr('sensor.solar_self_consumption_daily_peak', 'last_period') | float(0) +
+        state_attr('sensor.solar_self_consumption_daily_shoulder', 'last_period') | float(0)
       }}
 
   -
@@ -391,7 +421,8 @@
     state: >
       {{
         state_attr('sensor.grid_power_import_daily_peak', 'last_period') | float(0) +
-        state_attr('sensor.grid_power_import_daily_offpeak', 'last_period') | float(0)
+        state_attr('sensor.grid_power_import_daily_offpeak', 'last_period') | float(0) +
+        state_attr('sensor.grid_power_import_daily_shoulder', 'last_period') | float(0)
       }}
 
   -
@@ -406,7 +437,7 @@
       }}
 
   # Electricity Usage MONTHLY
-  # Add off-peak and peak periods together.
+  # Add off-peak, shoulder and peak periods together.
   -
     name: Electricity Usage Month - Solar
     state_class: total_increasing
@@ -415,7 +446,8 @@
     state: >
       {{
         states('sensor.solar_self_consumption_monthly_offpeak') | float(0) +
-        states('sensor.solar_self_consumption_monthly_peak') | float(0)
+        states('sensor.solar_self_consumption_monthly_peak') | float(0) +
+        states('sensor.solar_self_consumption_monthly_shoulder') | float(0)
       }}
 
   -
@@ -426,7 +458,8 @@
     state: >
       {{
         states('sensor.grid_power_import_monthly_peak') | float(0) +
-        states('sensor.grid_power_import_monthly_offpeak') | float(0)
+        states('sensor.grid_power_import_monthly_offpeak') | float(0) +
+        states('sensor.grid_power_import_monthly_shoulder') | float(0)
       }}
 
   -
@@ -489,6 +522,12 @@
     unit_of_measurement: AUD
     state: "{{ states('sensor.grid_power_import_daily_offpeak') | float(0)* states('sensor.electricity_offpeak_cost') | float(0) }}"
   -
+    name: Electricity Costs Today - Shoulder
+    device_class: monetary
+    state_class: total
+    unit_of_measurement: AUD
+    state: "{{ states('sensor.grid_power_import_daily_shoulder') | float(0)* states('sensor.electricity_shoulder_cost') | float(0) }}"
+  -
     name: Electricity Costs Today - Export
     device_class: monetary
     state_class: total
@@ -503,7 +542,8 @@
       {{
         states('sensor.electricity_supply_cost') | float(0) +
         states('sensor.electricity_costs_today_peak') | float(0) +
-        states('sensor.electricity_costs_today_offpeak') | float(0)
+        states('sensor.electricity_costs_today_offpeak') | float(0) +
+        states('sensor.electricity_costs_today_shoulder') | float(0)
       }}
   -
     name: Electricity Costs Today - Total
@@ -531,6 +571,12 @@
     unit_of_measurement: AUD
     state: "{{ state_attr('sensor.grid_power_import_daily_offpeak', 'last_period') | float(0)* states('sensor.electricity_offpeak_cost') | float(0) }}"
   -
+    name: Electricity Costs Yesterday - Shoulder
+    device_class: monetary
+    state_class: total
+    unit_of_measurement: AUD
+    state: "{{ state_attr('sensor.grid_power_import_daily_shoulder', 'last_period') | float(0)* states('sensor.electricity_shoulder_cost') | float(0) }}"
+  -
     name: Electricity Costs Yesterday - Export
     device_class: monetary
     state_class: total
@@ -545,7 +591,8 @@
       {{
         states('sensor.electricity_supply_cost') | float(0) +
         states('sensor.electricity_costs_yesterday_peak') | float(0) +
-        states('sensor.electricity_costs_yesterday_offpeak') | float(0)
+        states('sensor.electricity_costs_yesterday_offpeak') | float(0) +
+        states('sensor.electricity_costs_yesterday_shoulder') | float(0)
       }}
   -
     name: Electricity Costs Yesterday - Total
@@ -573,6 +620,12 @@
     unit_of_measurement: AUD
     state: "{{ states('sensor.grid_power_import_monthly_offpeak') | float(0)* states('sensor.electricity_offpeak_cost') | float(0) }}"
   -
+    name: Electricity Costs Month - Shoulder
+    device_class: monetary
+    state_class: total
+    unit_of_measurement: AUD
+    state: "{{ states('sensor.grid_power_import_monthly_shoulder') | float(0)* states('sensor.electricity_shoulder_cost') | float(0) }}"
+  -
     name: Electricity Costs Month - Export
     device_class: monetary
     state_class: total
@@ -593,7 +646,8 @@
       {{
         states('sensor.electricity_costs_month_supply') | float(0) +
         states('sensor.electricity_costs_month_peak') | float(0) +
-        states('sensor.electricity_costs_month_offpeak') | float(0)
+        states('sensor.electricity_costs_month_offpeak') | float(0) +
+        states('sensor.electricity_costs_month_shoulder') | float(0)
       }}
   -
     name: Electricity Costs Month - Total
@@ -642,7 +696,7 @@
     state: >
       {{ (states('sensor.electricity_costs_average_per_day') | float(0)) * 28 }}
 
-  # How much we would be paying if we were on the non-solar (alternative) plan for yesterday
+  # How much we would be paying if we were on the non-solar/no-battery alternative plan for yesterday.
   -
     name: Electricity Costs Alternative Plan
     state_class: total
@@ -651,28 +705,10 @@
     state: >
       {{
         (
-          (
-            (states('sensor.alternative_electricity_offpeak_cost')|float(0)) * (
-              (state_attr('sensor.solar_self_consumption_daily_offpeak', 'last_period')|float(0))
-              +
-              (state_attr('sensor.grid_power_import_daily_offpeak', 'last_period')|float(0))
-            )
-          )
-
+          (state_attr('sensor.alternative_electricity_usage_cost_daily', 'last_period') | float(0))
           +
-
-          (
-            (states('sensor.alternative_electricity_peak_cost')|float(0)) * (
-              (state_attr('sensor.solar_self_consumption_daily_peak', 'last_period')|float(0))
-              +
-              (state_attr('sensor.grid_power_import_daily_peak', 'last_period')|float(0))
-            )
-          )
-
-          +
-
           (states('sensor.alternative_electricity_supply_cost')|float(0))
-        ) | round(2)
+        ) * 0.96 | round(2)
       }}
 
   # Solar Initial Cost
@@ -706,7 +742,7 @@
       {{ nice_remaining_days.strftime('%d %b %Y') }}
 
   # Battery Usage TODAY
-  # Add off-peak and peak periods together.
+  # Add off-peak, shoulder and peak periods together.
   -
     name: Battery Discharge Today
     state_class: total_increasing
@@ -715,7 +751,8 @@
     state: >
       {{
         states('sensor.battery_discharge_self_consumption_daily_offpeak') | float(0) +
-        states('sensor.battery_discharge_self_consumption_daily_peak') | float(0)
+        states('sensor.battery_discharge_self_consumption_daily_peak') | float(0) +
+        states('sensor.battery_discharge_self_consumption_daily_shoulder') | float(0)
       }}
 
   # Battery Usage YESTERDAY
@@ -727,7 +764,8 @@
     state: >
       {{
         state_attr('sensor.battery_discharge_self_consumption_daily_offpeak', 'last_period') | float(0) +
-        state_attr('sensor.battery_discharge_self_consumption_daily_peak', 'last_period') | float(0)
+        state_attr('sensor.battery_discharge_self_consumption_daily_peak', 'last_period') | float(0) +
+        state_attr('sensor.battery_discharge_self_consumption_daily_shoulder', 'last_period') | float(0)
       }}
 
   # Battery Usage MONTHLY
@@ -739,7 +777,8 @@
     state: >
       {{
         states('sensor.battery_discharge_self_consumption_monthly_offpeak') | float(0) +
-        states('sensor.battery_discharge_self_consumption_monthly_peak') | float(0)
+        states('sensor.battery_discharge_self_consumption_monthly_peak') | float(0) +
+        states('sensor.battery_discharge_self_consumption_monthly_shoulder') | float(0)
       }}
 
   # Battery savings TODAY
@@ -766,6 +805,16 @@
         (states('sensor.electricity_offpeak_cost') | float(0) - states('sensor.solar_feed_in') | float(0))
       }}
   -
+    name: Battery Savings Today - Shoulder
+    device_class: monetary
+    state_class: total
+    unit_of_measurement: AUD
+    state: >
+      {{
+        states('sensor.battery_discharge_self_consumption_daily_shoulder') | float(0) *
+        (states('sensor.electricity_shoulder_cost') | float(0) - states('sensor.solar_feed_in') | float(0))
+      }}
+  -
     name: Battery Savings Today - Total
     device_class: monetary
     state_class: total
@@ -773,7 +822,8 @@
     state: >
       {{
         states('sensor.battery_savings_today_peak') | float(0) +
-        states('sensor.battery_savings_today_offpeak') | float(0)
+        states('sensor.battery_savings_today_offpeak') | float(0) +
+        states('sensor.battery_savings_today_shoulder') | float(0)
       }}
 
   # Battery savings YESTERDAY
@@ -798,6 +848,16 @@
         (states('sensor.electricity_offpeak_cost') | float(0) - states('sensor.solar_feed_in') | float(0))
       }}
   -
+    name: Battery Savings Yesterday - Shoulder
+    device_class: monetary
+    state_class: total
+    unit_of_measurement: AUD
+    state: >
+      {{
+        state_attr('sensor.battery_discharge_self_consumption_daily_shoulder', 'last_period') | float(0) *
+        (states('sensor.electricity_shoulder_cost') | float(0) - states('sensor.solar_feed_in') | float(0))
+      }}
+  -
     name: Battery Savings Yesterday - Total
     device_class: monetary
     state_class: total
@@ -805,7 +865,8 @@
     state: >
       {{
         states('sensor.battery_savings_yesterday_peak') | float(0) +
-        states('sensor.battery_savings_yesterday_offpeak') | float(0)
+        states('sensor.battery_savings_yesterday_offpeak') | float(0) +
+        states('sensor.battery_savings_yesterday_shoulder') | float(0)
       }}
 
   # Battery savings MONTHLY
@@ -830,6 +891,16 @@
         (states('sensor.electricity_offpeak_cost') | float(0) - states('sensor.solar_feed_in') | float(0))
       }}
   -
+    name: Battery Savings Month - Shoulder
+    device_class: monetary
+    state_class: total
+    unit_of_measurement: AUD
+    state: >
+      {{
+        states('sensor.battery_discharge_self_consumption_monthly_shoulder') | float(0) *
+        (states('sensor.electricity_shoulder_cost') | float(0) - states('sensor.solar_feed_in') | float(0))
+      }}
+  -
     name: Battery Savings Month - Total
     device_class: monetary
     state_class: total
@@ -837,7 +908,8 @@
     state: >
       {{
         states('sensor.battery_savings_month_peak') | float(0) +
-        states('sensor.battery_savings_month_offpeak') | float(0)
+        states('sensor.battery_savings_month_offpeak') | float(0) +
+        states('sensor.battery_savings_month_shoulder') | float(0)
       }}
 
   # Battery Initial Cost
