@@ -30,7 +30,7 @@
           date_format: DDDD D MMMM YYYY
           clock_source: client
 
-          duration: 10
+          duration: 7
 
           albums:
             - 439e6de4-9ab5-4441-9ce1-ea994c6863ef@tammy # Digital Photo Frame
