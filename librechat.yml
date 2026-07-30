@@ -310,3 +310,12 @@
           group: Tools
           weight: 150
           description: "AI Chat"
+        healthcheck: >-
+          node -e "fetch('http://127.0.0.1:3080/oauth/openid', { redirect: 'manual' })
+          .then(({ status }) => process.exit(status === 302 ? 0 : 1))
+          .catch(() => process.exit(1))"
+        healthcheck_failure_action: restart
+        healthcheck_start_period: 60s
+        healthcheck_interval: 60s
+        healthcheck_timeout: 10s
+        healthcheck_retries: 3
