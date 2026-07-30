@@ -55,7 +55,7 @@
         name: podman_container
       no_log: true
       vars:
-        image: ghcr.io/renovatebot/renovate:43
+        image: ghcr.io/renovatebot/renovate:44
         stop_signal: "{{ signal_map['SIGKILL'] }}"
         entrypoint: /bin/bash
         command:
