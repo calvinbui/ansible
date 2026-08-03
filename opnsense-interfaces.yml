@@ -1,5 +1,10 @@
 ---
 
+# TODO: When available in the deployed oxlorg.opnsense collection:
+#   - port forwards (nat_destination)
+#   - interface assignments
+#   - gateway groups
+
 - hosts: localhost
 
   become: false
