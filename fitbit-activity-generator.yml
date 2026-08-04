@@ -5,40 +5,10 @@
   vars:
     application: fitbit-activity-generator
 
-    fitbit_apps:
-      -
-        name: calvin
-        client_id: "23RFN5"
-        client_secret: !vault |
-          $ANSIBLE_VAULT;1.1;AES256
-          39303233383734383039643464363633336332316133633363343337386366656632613863616432
-          6438376330633239353065323062303638616239653339350a663366323937303631646165636333
-          32623763326638643736353966373663636637643439626234353436653430336130663033656134
-          3366366437343432660a646330303062383831656139363363613965646433383831656166613332
-          61343465636465613864636630623338393337346231343963313136656462393238343332323631
-          3933376366373231303431363935656338313065363636623633
-      -
-        name: tammy
-        client_id: "23RG37"
-        client_secret: !vault |
-          $ANSIBLE_VAULT;1.1;AES256
-          61363333316335616533613766633265356435356164656561643765633638306563376462363161
-          3464333635646538323736363934656530393731656435360a343161353966623862323032343739
-          31666539393332303564336161623966343163653036393331653936623834346136623338653161
-          3231666535333938300a613261656239626263353036336631356433313563633464343035613131
-          61366537383865633630626463366261343361646665663262316266313232643032313538623738
-          6238383335396636323064353130346439616239353238346230
-      -
-        name: michaelf
-        client_id: 23QKR5
-        client_secret: !vault |
-          $ANSIBLE_VAULT;1.1;AES256
-          31326434613832313361383432363233323434623933366266323238363431353638346635323038
-          6366656531353339316238616531376663646264306636300a353830616538663730376632353635
-          37353464376430363238646533393330656635616532356232346365303432643138393633363363
-          3665353533613730380a666534646466353831646135633532303932343830336539326134346331
-          32376235343737383538623165656534333034356435373838363363323036333534653134316563
-          6165623361633935363233343037333936653065363734356337
+    fitbit_accounts:
+      - calvin
+      - tammy
+      - michaelf
 
     container_network: "{{ networks.guest }}"
 
@@ -53,9 +23,9 @@
 
     - name: Check if token exists
       ansible.builtin.stat:
-        path: "{{ config_directory }}/{{ item.name }}.json"
+        path: "{{ config_directory }}/{{ item }}.json"
       register: _fitbit_token_stat
-      loop: "{{ fitbit_apps }}"
+      loop: "{{ fitbit_accounts }}"
 
     - name: Ensure token exists
       ansible.builtin.fail:
@@ -67,14 +37,12 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        container_name: "{{ application }}-{{ item.name }}"
-        image: ghcr.io/calvinbui/fitbit-activity-generator:master
+        container_name: "{{ application }}-{{ item }}"
+        image: ghcr.io/calvinbui/fitbit-activity-generator:v2.0.0
         env:
-          CLIENT_ID: "{{ item.client_id }}"
-          CLIENT_SECRET: "{{ item.client_secret }}"
-
           INTERVAL: "120"
           TZ: "{{ common_timezone }}"
+          TOKEN_PATH: /usr/src/app/token.json
         volumes:
-          - "{{ config_directory }}/{{ item.name }}.json:/usr/src/app/token.json"
-      loop: "{{ fitbit_apps }}"
+          - "{{ config_directory }}/{{ item }}.json:/usr/src/app/token.json:rw"
+      loop: "{{ fitbit_accounts }}"
