@@ -54,7 +54,7 @@
         name: podman_container
       vars:
         container_name: "node-exporter-textfiles-zfs-scrub"
-        image: docker.io/ixsystems/zfs:latest@sha256:8a2b0b940ff7e721fe832d31030d7b2b4a28c12835c0effb5a36c98f8e82ade4
+        image: docker.io/ixsystems/zfs:latest@sha256:e41761a04e387f368ef8723ca82872f4f382cd7918ad68a8f9686f1876eaaa6b
         command: /zfs_scrub.sh
         stop_signal: "{{ signal_map['SIGKILL'] }}"
         volumes:
