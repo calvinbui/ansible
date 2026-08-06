@@ -261,7 +261,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-samba"
-        image: ghcr.io/dockur/samba:4.23.8
+        image: ghcr.io/dockur/samba:4.23.10
         env:
           NAME: "consume"
 
