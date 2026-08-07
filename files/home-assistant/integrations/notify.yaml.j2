@@ -2,13 +2,18 @@
 
 # https://www.home-assistant.io/integrations/notify
 
+- name: CALVIN_PHONE
+  platform: group
+  services:
+    - action: mobile_app_calvin_s_z_fold8_ultra
+
+- name: TAMMY_PHONE
+  platform: group
+  services:
+    - action: mobile_app_tammy_s26_ultra
+
 - name: MOBILE_PHONES
   platform: group
   services:
-    - action: mobile_app_calvin_s_galaxy_z_fold7
-    - action: mobile_app_tammy_s26_ultra
-
-- name: MOBILE_PHONES_TESTING
-  platform: group
-  services:
-    - action: mobile_app_calvin_s_galaxy_z_fold7
+    - action: calvin_phone
+    - action: tammy_phone
