@@ -153,11 +153,11 @@ cards:
             /* hvac mode columns */
             .controls .modes.hvac {
               grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-              grid-template-rows: repeat(2, 48px) !important;
+              grid-template-rows: repeat(2, 56px) !important;
             }
 
             .controls .modes.hvac .mode-item {
-              height: 48px !important;
+              height: 56px !important;
             }
 
             .modes.hvac > .mode-item.off {
