@@ -346,6 +346,7 @@ cards:
         <<: &temp_row
           type: custom:multiple-entity-row
           show_state: false
+          color: none
         name: Garage
         icon: mdi:garage
         entity: sensor.garage_temperature_humidity_sensor_battery
