@@ -228,14 +228,24 @@ cards:
                 extremas: true
             -
               name: Forecast
-              entity: sensor.solcast_pv_forecast_forecast_today
+              # Keep the chart renderable while Solcast is unavailable; the
+              # generated data is read from the Solcast entity below.
+              entity: sensor.total_solar_generation
               yaxis_id: kW
               type: line
               color: '#3798fe'
               curve: stepline
               extend_to: end
               data_generator: |
-                return entity.attributes.detailedForecast
+                const detailedForecast = hass.states[
+                  'sensor.solcast_pv_forecast_forecast_today'
+                ]?.attributes?.detailedForecast;
+
+                if (!Array.isArray(detailedForecast)) {
+                  return [];
+                }
+
+                return detailedForecast
                   .map((entry) => {
                     const timestamp = new Date(entry.period_start).getTime();
                     return [timestamp, Math.min(entry.pv_estimate, 10)];
