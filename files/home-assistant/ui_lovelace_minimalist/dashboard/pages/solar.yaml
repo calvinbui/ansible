@@ -259,6 +259,7 @@ cards:
         cards:
           -
             type: custom:button-card
+            entity: input_number.solar_graph_offset
             icon: mdi:skip-previous
             name: Previous Day
             styles:
@@ -266,11 +267,19 @@ cards:
                 - height: 5em
             tap_action:
               action: call-service
-              service: input_number.increment
-              data:
+              service: input_number.set_value
+              service_data:
                 entity_id: input_number.solar_graph_offset
+                value: |
+                  [[[
+                    return Math.min(
+                      Number(entity.attributes.max),
+                      Number(entity.state) + Number(entity.attributes.step)
+                    );
+                  ]]]
           -
             type: custom:button-card
+            entity: input_number.solar_graph_offset
             icon: mdi:skip-next
             name: Next Day
             styles:
@@ -278,9 +287,16 @@ cards:
                 - height: 5em
             tap_action:
               action: call-service
-              service: input_number.decrement
-              data:
+              service: input_number.set_value
+              service_data:
                 entity_id: input_number.solar_graph_offset
+                value: |
+                  [[[
+                    return Math.max(
+                      Number(entity.attributes.min),
+                      Number(entity.state) - Number(entity.attributes.step)
+                    );
+                  ]]]
 
   -
     view_layout:
