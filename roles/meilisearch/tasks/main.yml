@@ -16,7 +16,7 @@
     image: "docker.io/getmeili/meilisearch:v{{ meilisearch_version }}"
     command:
       - /bin/meilisearch
-      - --experimental-dumpless-upgrade
+      - "{{ '--upgrade-db' if meilisearch_version is version('1.51.0', '>=') else '--experimental-dumpless-upgrade' }}"
     env:
       MEILI_NO_ANALYTICS: "true"
       MEILI_MASTER_KEY: "{{ meilisearch_password }}"
