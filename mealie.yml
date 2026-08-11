@@ -45,6 +45,9 @@
           ALLOW_SIGNUP: "false"
           ALLOW_PASSWORD_LOGIN: "false"
 
+          ## Scraper
+          SCRAPER_FLARESOLVERR_URL: "http://flaresolverr:8191"
+
           ## Database
           DB_ENGINE: postgres
           POSTGRES_USER: "{{ _postgres_username }}"
