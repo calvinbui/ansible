@@ -30,7 +30,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-sidecar"
-        image: &thanos_image quay.io/thanos/thanos:v0.39.2
+        image: quay.io/thanos/thanos:v0.39.2
         user: root:root
         command:
           - sidecar
@@ -48,7 +48,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-store"
-        image: *thanos_image
+        image: quay.io/thanos/thanos:v0.39.2
         command:
           - store
           - --data-dir=/store
@@ -64,7 +64,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-compactor"
-        image: *thanos_image
+        image: quay.io/thanos/thanos:v0.39.2
         user: root:root
         command:
           - compact
@@ -86,7 +86,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-query"
-        image: *thanos_image
+        image: quay.io/thanos/thanos:v0.39.2
         command:
           - query
 
@@ -103,7 +103,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-query-frontend"
-        image: *thanos_image
+        image: quay.io/thanos/thanos:v0.39.2
         command:
           - query-frontend
           - --query-frontend.downstream-url=http://{{ application }}-query.{{ common_local_tld }}:10902
@@ -123,7 +123,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-bucket-web"
-        image: *thanos_image
+        image: quay.io/thanos/thanos:v0.39.2
         command:
           - tools
           - bucket
