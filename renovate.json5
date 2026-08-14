@@ -460,6 +460,17 @@
       versioningTemplate: "semver",
     },
 
+    /* meilisearch */
+    {
+      customType: "regex",
+      managerFilePatterns: ['/^.*\\.ya?ml$/'],
+      matchStrings: ['meilisearch_version: (?<currentValue>\\d+\\.\\d+\\.\\d+)(?:\\s|$)'],
+      depNameTemplate: "docker.io/getmeili/meilisearch",
+      datasourceTemplate: "docker",
+      versioningTemplate: "semver",
+      extractVersionTemplate: "^v?(?<version>.*)$",
+    },
+
     /* elasticsearch */
     {
       customType: "regex",
