@@ -501,6 +501,16 @@
       versioningTemplate: "semver",
     },
 
+    /* dawarich postgis */
+    {
+      customType: "regex",
+      managerFilePatterns: ['/^dawarich\\.ya?ml$/'],
+      matchStrings: ['postgres_version: (?<currentValue>\\d+-\\d+\\.\\d+)(?:\\s|$)'],
+      depNameTemplate: "docker.io/postgis/postgis",
+      datasourceTemplate: "docker",
+      versioningTemplate: "regex:^(?<major>\\d+)-(?<minor>\\d+)\\.(?<patch>\\d+)$",
+    },
+
     /* immich postgres */
     {
       customType: "regex",
