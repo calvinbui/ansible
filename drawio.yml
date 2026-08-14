@@ -12,7 +12,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: &drawio_image docker.io/jgraph/drawio:28.2.3
+        image: docker.io/jgraph/drawio:28.2.3
         env: &drawio_env_vars
           LETS_ENCRYPT_ENABLED: "false"
 
@@ -33,7 +33,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-viewer"
-        image: *drawio_image
+        image: docker.io/jgraph/drawio:28.2.3
         env:
           <<: *drawio_env_vars
         traefik:
