@@ -20,7 +20,7 @@
       ansible.builtin.include_role:
         name: meilisearch
       vars:
-        meilisearch_version: 1.53.0
+        meilisearch_version: 1.53.1
         meilisearch_password: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           63363430316438323439313962626639633137383738663566333031633334303263666664333931
