@@ -63,8 +63,7 @@
           weight: 250
           description: "Download torrents"
           widget:
-            username: ""
-            password: ""
+            key: "{{ qbittorrent_api_key }}"
 
     - name: Wait for config
       ansible.builtin.wait_for:
