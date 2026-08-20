@@ -17,10 +17,5 @@
         entity_id: valve.linktap_{{ g.linktap }}
       data:
         seconds: "{% raw %}{{ states(\"sensor.smart_irrigation_{% endraw %}{{ g.name | ansible.builtin.lower | ansible.builtin.replace(" ", "_") }}{% raw %}\") }}{% endraw %}"
-    - action: smart_irrigation.reset_bucket
-      metadata: {}
-      data: {}
-      target:
-        entity_id: sensor.smart_irrigation_{{ g.name | ansible.builtin.lower | ansible.builtin.replace(" ", "_") }}
   mode: single
 {% endfor %}
