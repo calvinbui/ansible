@@ -21,6 +21,18 @@ exclude_patterns:
 
 compression: {{ item.compression | ansible.builtin.default('zstd,1') }}
 
+user_state_directory: /root/.borgmatic/state
+
+checks:
+  - name: repository
+    frequency: 1 month
+    only_run_on:
+      - "{{ ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][ansible_loop.index0 % 7] }}"
+  - name: archives
+    frequency: 1 month
+    only_run_on:
+      - "{{ ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][ansible_loop.index0 % 7] }}"
+
 check_i_know_what_i_am_doing: true
 
 keep_daily: 60

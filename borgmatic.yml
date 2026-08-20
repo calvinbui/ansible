@@ -84,6 +84,8 @@
         group: root
         mode: "0744"
       loop: "{{ borgmatic_backups }}"
+      loop_control:
+        extended: true
 
     - name: "Template crontab"
       ansible.builtin.copy:
