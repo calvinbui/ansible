@@ -5,6 +5,15 @@
   vars:
     application: qbittorrent
 
+    qbittorrent_api_key: !vault |
+      $ANSIBLE_VAULT;1.1;AES256
+      35613034373733396366303962646464623032376132396138613230363265666237303963396166
+      6134346366623363393731326563626163356665656366660a363234613735393236616263383431
+      38643234663934613337383133353038653963663366363232333964633938613431613238323637
+      6662666634316161330a353831643031363934333931313234613838666634626433343739616462
+      64323161313661316530313237363133616235333863393434633736666237393531346632323735
+      3634383037626230383264343264653830313937323534303435
+
     container_network: "{{ networks.pub }}"
 
   handlers:
@@ -133,6 +142,7 @@
           ## Authentication
           Preferences.WebUI\AuthSubnetWhitelist: 0.0.0.0/0 # Bypass authentication for clients in whitelisted IP subnets
           Preferences.WebUI\AuthSubnetWhitelistEnabled: "true" # Bypass authentication for clients in whitelisted IP subnets
+          Preferences.WebUI\APIKey: "{{ qbittorrent_api_key }}"
 
           ## Security
           Preferences.WebUI\ClickjackingProtection: "false" # Enable clickjacking protection
