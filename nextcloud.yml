@@ -184,14 +184,11 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-notify-push"
-        image: public.ecr.aws/docker/library/nextcloud:34.0.3
-        entrypoint: /var/www/html/custom_apps/notify_push/bin/x86_64/notify_push
-        command: /var/www/html/config/config.php
-        stop_signal: "{{ signal_map['SIGTERM'] }}"
+        image: ghcr.io/nextcloud/notify_push:v1.4.0
         env:
-          NEXTCLOUD_URL: "http://{{ application }}" # don't go through the proxy to contact the nextcloud server
-        volumes:
-          - "{{ config_directory }}/app:/var/www/html:ro"
+          DATABASE_URL: "{{ _postgres_url }}"
+          REDIS_URL: "{{ _valkey_url }}"
+          NEXTCLOUD_URL: "http://{{ application }}"
         traefik:
           - port: 7867
             rule: Host(`{{ application }}.{{ common_tld }}`) && PathPrefix(`/push`)
