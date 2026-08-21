@@ -142,6 +142,8 @@
           FORGEJO__openid__ENABLE_OPENID_SIGNUP: "false"
           FORGEJO__openid__WHITELISTED_URIS: "{{ oidc_base_url }}"
 
+          FORGEJO__git.config__USER.SIGNINGKEY: "/ssh/id_ed25519.pub"
+
           FORGEJO__oauth2_client__OPENID_CONNECT_SCOPES: "email profile"
           FORGEJO__oauth2_client__ENABLE_AUTO_REGISTRATION: "true"
 
