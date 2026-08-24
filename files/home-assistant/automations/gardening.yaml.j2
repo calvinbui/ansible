@@ -11,6 +11,11 @@
     - condition: numeric_state
       entity_id: sensor.smart_irrigation_{{ g.name | ansible.builtin.lower | ansible.builtin.replace(" ", "_") }}
       above: 0
+    - condition: state
+      entity_id: binary_sensor.garage_window_rain_sensor_rain
+      state: "off"
+      for:
+        hours: 6
   actions:
     - action: linktap.start_watering
       target:
