@@ -70,7 +70,7 @@
           enable: false
         homepage:
           name: LubeLogger
-          group: Tools
+          group: Car
           weight: 300
           description: "Vehicle maintenance and mileage tracker"
           widget:
