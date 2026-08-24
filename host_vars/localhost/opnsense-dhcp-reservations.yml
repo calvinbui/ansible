@@ -233,9 +233,8 @@ opnsense_dhcp_reservations:
   -
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(27) }}"
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
-    mac: d0:73:d5:2d:05:fd
-    hostname: lifx-a19
-    comment: "living room lamp"
+    mac: 78:40:e4:13:2a:d3
+    hostname: wall-tablet-garage
   -
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(28) }}"
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
@@ -263,22 +262,21 @@ opnsense_dhcp_reservations:
     mac: 28:ee:52:74:47:e8
     hostname: kasa-kp303-01
     comment: "3D Printer"
-  # -
-  #   ip: "{{ networks.iot.subnet | ansible.utils.nthhost(33) }}"
-  #   subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
-  #   mac: 14:2b:2f:d5:c3:3b
-  #   hostname: slzb-06m
-  #   comment: zigbee coordinator
+  -
+    ip: "{{ networks.iot.subnet | ansible.utils.nthhost(33) }}"
+    subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
+    mac: 38:2a:8b:7a:a1:cf
+    hostname: zeekr-7x-car
   -
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(34) }}"
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
     mac: 02:4b:5c:2d:1c:33
     hostname: linktap-gateway
-  # -
-  #   ip: "{{ networks.iot.subnet | ansible.utils.nthhost(35) }}"
-  #   subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
-  #   mac: d8:8b:4c:04:f4:d3
-  #   hostname: yolink-speaker-hub
+  -
+    ip: "{{ networks.iot.subnet | ansible.utils.nthhost(35) }}"
+    subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
+    mac: 40:d9:5a:eb:0b:0c
+    hostname: dashcam
   -
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(36) }}"
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
@@ -374,6 +372,12 @@ opnsense_dhcp_reservations:
     mac: 64:e8:33:b9:b8:38
     hostname: presence-detector-07
     comment: "kai's bedroom"
+  -
+    ip: "{{ networks.iot.subnet | ansible.utils.nthhost(80) }}"
+    subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
+    mac: d0:73:d5:2d:05:fd
+    hostname: lifx-a19
+    comment: "living room lamp"
   -
     ip: "{{ networks.iot.subnet | ansible.utils.nthhost(81) }}"
     subnet: "{{ networks.iot.subnet | ansible.utils.ipaddr('subnet') }}"
