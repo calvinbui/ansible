@@ -35,6 +35,7 @@ borgmatic_backups:
     crontab: "30 1 * * *"
     exclude_patterns:
       - "/mnt/source/Time Machine"
+      - "/mnt/source/ViofoSync"
 
   - name: misc
     source: "{{ common_directory_misc }}"
