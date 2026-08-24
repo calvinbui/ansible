@@ -1,0 +1,40 @@
+---
+
+- hosts: homeserver
+
+  vars:
+    application: viofosync
+
+    container_network: "{{ networks.iot }}"
+
+  tasks:
+    - name: Create config folder
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ common_user }}"
+        group: "{{ common_group }}"
+        mode: "0771"
+      loop:
+        - "{{ config_directory }}"
+        - "{{ common_directory_backup }}/ViofoSync"
+
+    - name: Create container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        image: docker.io/robxyz/viofosync:2.6
+        env:
+          PUID: "{{ common_user_id | ansible.builtin.string }}"
+          PGID: "{{ common_group_id | ansible.builtin.string }}"
+          TZ: "{{ common_timezone }}"
+        volumes:
+          - "{{ config_directory }}:/config"
+          - "{{ common_directory_backup }}/ViofoSync:/recordings"
+        device:
+          - /dev/dri:/dev/dri
+        homepage:
+          name: ViofoSync
+          group: Car
+          weight: 500
+          description: "Dashcam recordings"
