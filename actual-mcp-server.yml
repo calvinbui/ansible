@@ -23,7 +23,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/agigante80/actual-mcp-server:0.14.1
+        image: ghcr.io/agigante80/actual-mcp-server:0.16.2
         stop_signal: "{{ signal_map['SIGKILL'] }}"
         env:
           ACTUAL_SERVER_URL: http://actualbudget:5006
