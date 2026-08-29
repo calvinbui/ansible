@@ -105,14 +105,14 @@
           ---
           # https://www.librechat.ai/docs/configuration/librechat_yaml
 
-          version: 1.3.12
+          version: 1.3.13
 
           interface:
             mcpServers:
               use: true
               create: true
 
-            parameters: true
+            parameters: false
             prompts: false
             agents: false
 
