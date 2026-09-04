@@ -42,7 +42,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/lemker/unifi-os-server:v1.5.1
+        image: ghcr.io/lemker/unifi-os-server:v1.6.0
         ip: "{{ container_network.subnet | ansible.utils.nthhost(31) }}"
         cgroupns: host
         cap_add:
