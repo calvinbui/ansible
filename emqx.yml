@@ -7,6 +7,12 @@
 
     container_network: "{{ networks.iot }}"
 
+  handlers:
+    - name: Restart
+      containers.podman.podman_container:
+        name: "{{ application }}"
+        force_restart: true
+
   tasks:
     - name: Create config folder
       ansible.builtin.file:
@@ -16,6 +22,26 @@
         group: "{{ common_group }}"
         mode: "0771"
 
+    - name: Create ACL file
+      ansible.builtin.copy:
+        content: |
+          {allow, {username, "zigbee2mqtt"}, all, ["zigbee2mqtt/#"]}.
+          {allow, {username, "zigbee2mqtt"}, publish, ["homeassistant/#"]}.
+          {allow, {username, "zigbee2mqtt"}, subscribe, ["homeassistant/status"]}.
+
+          {allow, {username, "govee2mqtt"}, all, ["gv2mqtt/#"]}.
+          {allow, {username, "govee2mqtt"}, publish, ["homeassistant/#"]}.
+          {allow, {username, "govee2mqtt"}, subscribe, ["homeassistant/status"]}.
+
+          {allow, {username, "home-assistant"}, all, ["#"]}.
+
+          {deny, all}.
+        dest: "{{ config_directory }}/acl.conf"
+        owner: "{{ common_user }}"
+        group: "{{ common_group }}"
+        mode: "0644"
+      notify: Restart
+
     - name: Create container
       ansible.builtin.include_role:
         name: podman_container
@@ -23,7 +49,10 @@
         image: docker.io/emqx/emqx:6.3.0
         ip: "{{ container_network.subnet | ansible.utils.nthhost(101) }}"
         env:
-          # https://docs.emqx.com/en/emqx/v5.8.3/hocon
+          # https://docs.emqx.com/en/emqx/v6.3/access-control/security-profile.html
+          EMQX_SECURITY_PROFILE: "hardened"
+
+          # https://docs.emqx.com/en/enterprise/v6.3.0/hocon/
           EMQX_NODE__NAME: "{{ application }}@{{ application }}.{{ common_local_tld }}"
           EMQX_NODE__COOKIE: !vault |
             $ANSIBLE_VAULT;1.1;AES256
