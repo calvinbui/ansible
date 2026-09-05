@@ -49,6 +49,9 @@
         image: docker.io/emqx/emqx:6.3.0
         ip: "{{ container_network.subnet | ansible.utils.nthhost(101) }}"
         env:
+          # https://docs.emqx.com/en/emqx/v6.3/deploy/feature-gates.html
+          EMQX_FEATURES: "ESSENTIAL"
+
           # https://docs.emqx.com/en/emqx/v6.3/access-control/security-profile.html
           EMQX_SECURITY_PROFILE: "hardened"
 
@@ -81,6 +84,7 @@
             30616635643437356566303535313663616466396437643838636437653964353233
         volumes:
           - "{{ config_directory }}:/opt/emqx/data"
+          - "{{ config_directory }}/acl.conf:/opt/emqx/etc/acl.conf:ro"
         homepage:
           name: EMQX
           group: Home Automation
