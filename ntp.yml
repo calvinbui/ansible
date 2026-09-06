@@ -18,7 +18,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/dockur/chrony:4.8
+        image: ghcr.io/dockur/chrony:4.9
         env:
           NTP_SERVERS: |-
             {{
