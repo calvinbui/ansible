@@ -19,7 +19,6 @@
         name: "{{ item }}"
         action: install
       loop:
-        - os-cpu-microcode-intel
         - os-ddclient
         - os-iperf
         - os-sftp-backup
