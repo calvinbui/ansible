@@ -1,0 +1,211 @@
+---
+
+- hosts: localhost
+
+  become: false
+
+  connection: local
+
+  force_handlers: true
+
+  gather_facts: false
+
+  vars:
+    opnsense_source_nat_rules:
+      - 
+        sequence: 1
+        interface: "{{ networks.wan.opnsense_identifier }}"
+        source_net: bypass_vpn
+        description: Bypass VPN via WAN
+      - 
+        sequence: 11
+        interface: "{{ networks.wan.opnsense_identifier }}"
+        source_net: "{{ networks.lan.opnsense_identifier }}"
+        description: LAN via WAN
+      - 
+        sequence: 21
+        interface: "{{ networks.wan.opnsense_identifier }}"
+        source_net: "{{ networks.mgmt.opnsense_identifier }}"
+        description: VLAN10_MGMT via WAN
+      - 
+        sequence: 31
+        interface: "{{ networks.wan.opnsense_identifier }}"
+        source_net: "{{ networks.user.opnsense_identifier }}"
+        description: VLAN20_USER via WAN
+      - 
+        sequence: 41
+        interface: "{{ networks.vpn_windscribe_sydney.opnsense_identifier }}"
+        source_net: "{{ networks.iot.opnsense_identifier }}"
+        description: VLAN30_IOT via Windscribe Sydney
+      - 
+        sequence: 51
+        interface: "{{ networks.vpn_windscribe_sydney.opnsense_identifier }}"
+        source_net: "{{ networks.pub.opnsense_identifier }}"
+        description: VLAN40_PUB via Windscribe Sydney
+      - 
+        sequence: 61
+        interface: "{{ networks.wan.opnsense_identifier }}"
+        source_net: "{{ networks.guest.opnsense_identifier }}"
+        description: VLAN50_GUEST via WAN
+      - 
+        sequence: 71
+        interface: "{{ networks.wan.opnsense_identifier }}"
+        source_net: "{{ networks.vpn_home.opnsense_identifier }}"
+        description: VPN_HOME via WAN
+
+  module_defaults:
+    group/oxlorg.opnsense.all: "{{ oxlorg_opnsense_module_defaults }}"
+
+  handlers:
+    - name: Reload Source NAT rules
+      oxlorg.opnsense.reload:
+        target: nat_source
+
+  tasks:
+    # oxlorg.opnsense.nat_source cannot use the empty target which OPNsense represents as
+    # "interface address", and its lookup endpoint is incompatible with OPNsense 26.7.
+    - name: Source NAT - Get settings
+      oxlorg.opnsense.raw:
+        module: firewall
+        controller: source_nat
+        command: get
+      register: _source_nat_settings
+      no_log: true
+
+    - name: Source NAT - Set manual mode
+      oxlorg.opnsense.raw:
+        module: firewall
+        controller: source_nat
+        command: set
+        action: post
+        data:
+          filter:
+            general:
+              snat_mode: advanced
+      when: _source_nat_settings.response.filter.general.snat_mode.advanced.selected | int != 1
+      notify: Reload Source NAT rules
+
+    - name: Source NAT - Get rules
+      oxlorg.opnsense.raw:
+        module: firewall
+        controller: source_nat
+        command: search_rule
+      register: _source_nat_rules
+      no_log: true
+
+    - name: Source NAT - Add rules
+      oxlorg.opnsense.raw:
+        module: firewall
+        controller: source_nat
+        command: add_rule
+        action: post
+        data:
+          rule:
+            enabled: "1"
+            nonat: "0"
+            nosync: "0"
+            sequence: "{{ item.sequence | ansible.builtin.string }}"
+            interface: "{{ item.interface }}"
+            ipprotocol: inet
+            protocol: any
+            source_net: "{{ item.source_net }}"
+            source_not: "0"
+            source_port: ""
+            destination_net: any
+            destination_not: "0"
+            destination_port: ""
+            target: ""
+            target_port: ""
+            staticnatport: "0"
+            log: "0"
+            categories: ""
+            tag: ""
+            tagged: ""
+            description: "{{ item.description }}"
+      vars:
+        _matching_source_nat_rules: >-
+          {{
+            _source_nat_rules.response.rows
+            | selectattr('sequence', 'equalto', item.sequence | string)
+            | selectattr('interface', 'equalto', item.interface)
+            | selectattr('source_net', 'equalto', item.source_net)
+            | list
+          }}
+      when: _matching_source_nat_rules | length == 0
+      loop: "{{ opnsense_source_nat_rules }}"
+      notify: Reload Source NAT rules
+
+    - name: Source NAT - Refresh rules
+      oxlorg.opnsense.raw:
+        module: firewall
+        controller: source_nat
+        command: search_rule
+      register: _source_nat_rules
+      no_log: true
+
+    - name: Source NAT - Update rules
+      oxlorg.opnsense.raw:
+        module: firewall
+        controller: source_nat
+        command: set_rule
+        parameters:
+          - "{{ _matching_source_nat_rule.uuid }}"
+        action: post
+        data:
+          rule:
+            enabled: "1"
+            nonat: "0"
+            nosync: "0"
+            sequence: "{{ item.sequence | ansible.builtin.string }}"
+            interface: "{{ item.interface }}"
+            ipprotocol: inet
+            protocol: any
+            source_net: "{{ item.source_net }}"
+            source_not: "0"
+            source_port: ""
+            destination_net: any
+            destination_not: "0"
+            destination_port: ""
+            target: ""
+            target_port: ""
+            staticnatport: "0"
+            log: "0"
+            categories: ""
+            tag: ""
+            tagged: ""
+            description: "{{ item.description }}"
+      vars:
+        _matching_source_nat_rule: >-
+          {{
+            _source_nat_rules.response.rows
+            | selectattr('sequence', 'equalto', item.sequence | string)
+            | selectattr('interface', 'equalto', item.interface)
+            | selectattr('source_net', 'equalto', item.source_net)
+            | first
+            | default({})
+          }}
+      when:
+        - _matching_source_nat_rule | length > 0
+        - >-
+          _matching_source_nat_rule.enabled != '1' or
+          _matching_source_nat_rule.nonat != '0' or
+          _matching_source_nat_rule.nosync != '0' or
+          _matching_source_nat_rule.sequence != item.sequence | string or
+          _matching_source_nat_rule.interface != item.interface or
+          _matching_source_nat_rule.ipprotocol != 'inet' or
+          _matching_source_nat_rule.protocol != 'any' or
+          _matching_source_nat_rule.source_net != item.source_net or
+          _matching_source_nat_rule.source_not != '0' or
+          _matching_source_nat_rule.source_port or
+          _matching_source_nat_rule.destination_net != 'any' or
+          _matching_source_nat_rule.destination_not != '0' or
+          _matching_source_nat_rule.destination_port or
+          _matching_source_nat_rule.target or
+          _matching_source_nat_rule.target_port or
+          _matching_source_nat_rule.staticnatport != '0' or
+          _matching_source_nat_rule.log != '0' or
+          _matching_source_nat_rule.tag or
+          _matching_source_nat_rule.tagged or
+          _matching_source_nat_rule.description != item.description
+      loop: "{{ opnsense_source_nat_rules }}"
+      notify: Reload Source NAT rules
