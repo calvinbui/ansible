@@ -97,7 +97,6 @@
             enableQueue: "true"
             fields: '["wanted", "movies"]'
         healthcheck: "curl -f http://localhost:7878/ping || exit 1"
-        healthcheck_failure_action: restart
         healthcheck_start_period: 60s
         healthcheck_interval: 5s
         healthcheck_retries: 3

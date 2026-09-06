@@ -95,7 +95,6 @@
           widget:
             key: "{{ prowlarr_api_key }}"
         healthcheck: "curl -f http://localhost:9696/ping || exit 1"
-        healthcheck_failure_action: restart
         healthcheck_start_period: 60s
         healthcheck_interval: 5s
         healthcheck_retries: 3
