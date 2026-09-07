@@ -27,7 +27,7 @@
         content: |
           {allow, {username, "zigbee2mqtt"}, all, ["zigbee2mqtt/#"]}.
           {allow, {username, "zigbee2mqtt"}, publish, ["homeassistant/#"]}.
-          {allow, {username, "zigbee2mqtt"}, subscribe, ["homeassistant/status"]}.
+          {allow, {username, "zigbee2mqtt"}, subscribe, ["homeassistant/#"]}.
 
           {allow, {username, "govee2mqtt"}, all, ["gv2mqtt/#"]}.
           {allow, {username, "govee2mqtt"}, publish, ["homeassistant/#"]}.
