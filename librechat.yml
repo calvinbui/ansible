@@ -163,6 +163,15 @@
             prioritize: true
             list:
               -
+                name: gpt-6-astra
+                label: GPT-6 Astra
+                preset:
+                  endpoint: openAI
+                  model: gpt-6-astra
+                  useResponsesApi: true
+                  web_search: true
+                  reasoning_summary: auto
+              -
                 name: gpt-5.6-sol
                 label: GPT-5.6 Sol
                 preset:
