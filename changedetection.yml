@@ -18,16 +18,16 @@
     container_network: "{{ networks.pub }}"
 
   tasks:
-    # - name: Create playwright container
-    #   ansible.builtin.include_role:
-    #     name: podman_container
-    #   vars:
-    #     container_name: "{{ application }}-chrome"
-    #     image: ghcr.io/browserless/chromium:v2.49.0
-    #     env:
-    #       TOKEN: "{{ changedetection_browserless_token }}"
-    #       CONCURRENT: "10"
-    #       TIMEOUT: "60000"
+    - name: Create playwright container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        container_name: "{{ application }}-chrome"
+        image: ghcr.io/browserless/chromium:v2.56.6
+        env:
+          TOKEN: "{{ changedetection_browserless_token }}"
+          CONCURRENT: "10"
+          TIMEOUT: "60000"
 
     - name: Create "{{ application }}" container
       ansible.builtin.include_role:
@@ -38,8 +38,8 @@
         env:
           BASE_URL: "https://{{ application }}.{{ common_tld }}"
 
-          # PLAYWRIGHT_DRIVER_URL: "ws://{{ application }}-chrome:3000?token={{ changedetection_browserless_token }}&stealth=true"
-          PLAYWRIGHT_DRIVER_URL: "wss://production-sfo.browserless.io/chromium/stealth?token={{ changedetection_browserless_token }}&proxy=residential&proxyCountry=au"
+          PLAYWRIGHT_DRIVER_URL: "ws://{{ application }}-chrome:3000?token={{ changedetection_browserless_token }}&stealth=true"
+          # PLAYWRIGHT_DRIVER_URL: "wss://production-sfo.browserless.io/chromium/stealth?token={{ changedetection_browserless_token }}&proxy=residential&proxyCountry=au"
 
           PUID: "{{ common_user_id | ansible.builtin.string }}"
           PGID: "{{ common_group_id | ansible.builtin.string }}"
