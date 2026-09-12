@@ -42,6 +42,8 @@
         image: ghcr.io/amir20/dozzle:v11.0.0
         env:
           DOZZLE_NO_ANALYTICS: "true"
+          DOZZLE_ENABLE_ACTIONS: "true"
+          DOZZLE_ENABLE_SHELL: "true"
 
           DOZZLE_AUTH_PROVIDER: simple
           DOZZLE_AUTH_OIDC_ISSUER: "{{ oidc_base_url }}"
