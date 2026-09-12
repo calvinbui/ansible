@@ -82,7 +82,7 @@
           TZ: "{{ common_timezone }}"
         volumes:
           - "{{ config_directory }}/immich-config.json:/immich-config.json"
-          - &immich_upload_volume "{{ common_directory_photos }}/Immich:/data"
+          - "{{ common_directory_photos }}/Immich:/data"
           - /etc/localtime:/etc/localtime:ro
         device:
           - /dev/dri:/dev/dri
@@ -114,7 +114,6 @@
         group_add:
           - 992 # 'render'
         volumes:
-          - *immich_upload_volume
           - "{{ config_directory }}/ml-cache:/cache"
         device:
           - /dev/dri:/dev/dri
