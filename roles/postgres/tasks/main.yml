@@ -21,6 +21,7 @@
       POSTGRES_DB: "{{ postgres_database }}"
       TZ: "{{ common_timezone }}"
     volumes: "{{ postgres_directories }}"
+    shm_size: "{{ postgres_shm_size | ansible.builtin.default(omit) }}"
     healthcheck: pg_isready -d ${POSTGRES_DB} -U ${POSTGRES_USER}
     healthcheck_interval: 30s
     healthcheck_timeout: 20s
