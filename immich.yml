@@ -79,14 +79,10 @@
           REDIS_PORT: "{{ _valkey_port | ansible.builtin.string }}"
           REDIS_PASSWORD: "{{ _valkey_password }}"
 
-          UPLOAD_LOCATION: "/usr/src/app/upload"
-
-          LOG_LEVEL: "log"
-
           TZ: "{{ common_timezone }}"
         volumes:
           - "{{ config_directory }}/immich-config.json:/immich-config.json"
-          - &immich_upload_volume "{{ common_directory_photos }}/Immich:/usr/src/app/upload"
+          - &immich_upload_volume "{{ common_directory_photos }}/Immich:/data"
           - /etc/localtime:/etc/localtime:ro
         device:
           - /dev/dri:/dev/dri
