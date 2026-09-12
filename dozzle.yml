@@ -7,7 +7,34 @@
 
     container_network: "{{ networks.pub }}"
 
+  handlers:
+    - name: Restart
+      containers.podman.podman_container:
+        name: "{{ application }}"
+        force_restart: true
+
   tasks:
+    - name: Create config folder
+      ansible.builtin.file:
+        path: "{{ config_directory }}"
+        state: directory
+        owner: "{{ common_user }}"
+        group: "{{ common_group }}"
+        mode: "0771"
+
+    - name: Create users config
+      ansible.builtin.copy:
+        content: |
+          users:
+            {{ common_user }}:
+              email: "{{ common_user }}{{ common_email_to }}"
+              name: "{{ common_user }}"
+        dest: "{{ config_directory }}/users.yml"
+        owner: "{{ common_user }}"
+        group: "{{ common_group }}"
+        mode: "0644"
+      notify: Restart
+
     - name: Create container
       ansible.builtin.include_role:
         name: podman_container
@@ -15,11 +42,17 @@
         image: ghcr.io/amir20/dozzle:v11.0.0
         env:
           DOZZLE_NO_ANALYTICS: "true"
+
+          DOZZLE_AUTH_PROVIDER: simple
+          DOZZLE_AUTH_OIDC_ISSUER: "{{ oidc_base_url }}"
+          DOZZLE_AUTH_OIDC_CLIENT_ID: "{{ application }}"
+          DOZZLE_AUTH_OIDC_CLIENT_SECRET: "{{ oidc_auth.dozzle.secret }}"
+          DOZZLE_AUTH_OIDC_NAME: "{{ oidc_provider | ansible.builtin.title }}"
         volumes:
+          - "{{ config_directory }}:/data"
           - /run/podman/podman.sock:/var/run/docker.sock:ro
         traefik:
           - port: 8080
-            auth: page
         homepage:
           group: Favourites
           weight: 950
