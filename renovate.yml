@@ -94,6 +94,12 @@
 
           RENOVATE_X_DOCKER_MAX_PAGES: "30"
 
+          RENOVATE_HOST_RULES: >-
+            [
+              {"matchHost": "ghcr.io", "concurrentRequestLimit": 1, "maxRequestsPerSecond": 1},
+              {"matchHost": "lscr.io", "concurrentRequestLimit": 1, "maxRequestsPerSecond": 1}
+            ]
+
           # create hostRules config using env vars
           # https://github.com/renovatebot/renovate/blob/08e6203217c69a468c17fd86b48291c3d58b1e62/lib/workers/global/config/parse/host-rules-from-env.ts#L11
           RENOVATE_DETECT_HOST_RULES_FROM_ENV: "true"
