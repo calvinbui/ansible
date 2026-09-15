@@ -17,6 +17,7 @@
           WHODB_OPENAI_API_KEY: "{{ openai_api_key }}"
         traefik:
           - port: 8080
+            auth: page
         homepage:
           name: WhoDB
           group: Remote Access
