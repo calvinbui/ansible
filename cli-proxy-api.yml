@@ -1,0 +1,110 @@
+---
+
+- hosts: homeserver
+
+  vars:
+    application: cli-proxy-api
+
+    container_network: "{{ networks.pub }}"
+
+  handlers:
+    - name: Restart
+      containers.podman.podman_container:
+        name: "{{ application }}"
+        force_restart: true
+
+  tasks:
+    - name: Create config folder
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ common_root_id }}"
+        group: "{{ common_root_group }}"
+        mode: "0700"
+      loop:
+        - "{{ config_directory }}"
+        - "{{ config_directory }}/config"
+        - "{{ config_directory }}/auths"
+
+    - name: Create configuration
+      ansible.builtin.copy:
+        content: |
+          port: 8317
+          auth-dir: /auths
+          api-keys:
+            - {{ cli_proxy_api_key | ansible.builtin.to_json }}
+
+          disable-claude-cloak-mode: true
+        dest: "{{ config_directory }}/config/config.yaml"
+        owner: "{{ common_root_id }}"
+        group: "{{ common_root_group }}"
+        mode: "0600"
+      no_log: true
+      diff: false
+      notify: Restart
+
+    - name: Create Claude auth file
+      ansible.builtin.copy:
+        content: |
+          {
+            "access_token": {{ claude_code_oauth_token | ansible.builtin.to_json }},
+            "account_uuid": {{ claude_account_uuid | ansible.builtin.to_json }},
+            "claude_account_profile_checked_at": "2026-09-14T07:37:23Z",
+            "claude_device_ids": [{{ claude_device_id | ansible.builtin.to_json }}],
+            "disabled": false,
+            "is_setup_token": true,
+            "type": "claude"
+          }
+        dest: "{{ config_directory }}/auths/claude.json"
+        owner: "{{ common_root_id }}"
+        group: "{{ common_root_group }}"
+        mode: "0600"
+      vars:
+        claude_account_uuid: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          36366132646235303463653335313539656334656630633537366233303934383061353430663265
+          3863656338313764653131653139396237303765646265360a353662356236616365656232623336
+          64306266393436656532366539396534663536303834346639363361353236623537663331366164
+          3235663435303930340a376432613534666563373635653031646564646265346533396566396466
+          39663566383434396461353461383336656231366563333833366232323862363766633538323336
+          3036626538393165633634626131376436356631616139616266
+        claude_device_id: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          37653030313065363961333439613030643864303436613632383237396639343437643938303661
+          3132393737313162386535653262353535363531373135340a366239343136343738343665303934
+          63373835363265356663613166393136636434323962306337303630636362666163326535333236
+          6333306664323139370a663030363566346331343239346464333836353633316361333265616238
+          39396431393138636132613737333865613238313465313064316165363466356135383764623733
+          62376336643961663063343034643831326637313230353337393230346539643033636438626563
+          36386338326532393966636532626565393265396166306531613565393533383237323837646539
+          35626161306639633161
+      no_log: true
+      diff: false
+
+    - name: Create container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        image: docker.io/eceasy/cli-proxy-api:v7.3.2
+        env:
+          TZ: "{{ common_timezone }}"
+
+          MANAGEMENT_PASSWORD: !vault |
+            $ANSIBLE_VAULT;1.1;AES256
+            66613561646232366334356233396333333336646664613162663161303466323165323237663133
+            3030363436613130643834613431326666326437663435660a323335623737633761333761643966
+            32393436613063633933303436626162373832303830353165363966313966323031623636376466
+            3262306539633534650a373966633837663366623863356439663562323135363936323434353533
+            31616231633132616437653465316333316161373834636439333237393937303230633934663935
+            6536373262623337363264303037383531616465336463386332
+        volumes:
+          - "{{ config_directory }}/config/config.yaml:/CLIProxyAPI/config.yaml"
+          - "{{ config_directory }}/auths:/auths"
+        traefik:
+          - port: 8317
+        homepage:
+          name: CLIProxyAPI
+          group: AI
+          weight: 200
+          description: "AI API proxy"
+          href: "https://{{ application }}.{{ common_tld }}/management.html"
