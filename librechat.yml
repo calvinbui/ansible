@@ -316,7 +316,7 @@
           - port: 3080
         homepage:
           name: LibreChat
-          group: Tools
+          group: AI
           weight: 150
           description: "AI Chat"
         healthcheck: >-
