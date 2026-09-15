@@ -22,7 +22,7 @@ Do not write a playbook until these checks establish the local convention.
 
 ## Repository Shape
 
-- One service = one standalone root playbook. There is no aggregator to register with: `setup-homeserver.yml` is a one-time host bootstrap and `import_playbook` is never used. A new service requires exactly one new file.
+- One service = one standalone root playbook. There is no aggregator to register with: `setup-homeserver.yml` is a one-time host bootstrap and `import_playbook` is never used. Add configuration assets under `files/<application>/` when needed.
 - Use `hosts: homeserver` for container services. The inventory's other groups (`octopi`, `nvr`, `nut`, `opnsense`), the implicit `localhost`, and the ad-hoc `borg` group (`setup-borg.yml`, `group_vars/borg/`) are used only for hardware/appliance/host-level playbooks.
 - Start every playbook with `---`, a blank line, then the unnamed play (`- hosts: homeserver`); an explanatory file-level comment block between the blank line and the play is established (`bitwarden.yml`, `networking.yml`). Never name plays; `name[play]` is deliberately in the `.ansible-lint` skip_list.
 - Separate tasks with exactly one blank line; a task's comment sits directly above its `- name:`. Two-space indent, no tabs. Long lines are fine — line-length is disabled; never wrap an inline quoted Jinja expression mid-string to satisfy line length. For a genuinely long expression, the established idiom is a `>-`/`|-` block scalar with the `{{ … }}` spread over multiple lines (`woodpecker.yml`, `ntp.yml`, `crowdsec.yml`, `garmin-mcp.yml`).
@@ -50,8 +50,8 @@ vars:
 ```
 
 - Put `application` first and `container_network` last, separated by a blank line, with justified extra vars between them. Two tracked files deviate (`home-assistant.yml`, `thanos.yml` define extras after `container_network`) — treat them as legacy, not precedent to copy.
-- Put one-use container configuration directly under the `include_role` task's `vars` or `env` mapping.
-- Promote a value to a play variable only when it is reused, transformed, consumed by multiple tasks, or referenced from a `files/<application>/` template or mid-string inside a larger Jinja expression — an inline `!vault` block cannot appear in either place (`authelia.yml`, `hauk.yml`, `tracearr.yml`). Never leave a play variable with no consumer.
+- Keep one-use configuration at the task that consumes it: container settings under the `include_role` task's `vars` or `env`, and loop items directly under `loop`. Passing those items onward through a registered result does not make the original list a shared play variable.
+- Promote a value to a play variable only when independent tasks or templates consume it, or a vaulted secret must be named for use inside a template or larger expression (`authelia.yml`, `hauk.yml`, `tracearr.yml`). Merely transforming or interpolating a non-secret value does not justify a play variable. Never leave a play variable with no consumer.
 - Play-level overrides of globals are precedented where genuinely needed (`borgmatic.yml` overrides `config_directory`; `setup-borg.yml` overrides `common_user`).
 - Prefix internal facts and registers with `_`; name one-off command registers `_command_result`. Facts deliberately shared across plays via `hostvars` are unprefixed (`woodpecker.yml`). Add `no_log: true` when a fact holds credentials.
 - Do not introduce environment lookups, `vars_prompt`, `assert` tasks, or `mandatory` filters unless the user explicitly requests them; the sole tracked use is `woodpecker.yml`'s vault-password fallback.
@@ -106,6 +106,7 @@ env:
 - Name the primary directory task `Create config folder` whether or not it loops over several paths (`librechat.yml`, `home-assistant-mcp.yml` loop under the singular name); the plural `Create config folders` is a tolerated minority variant. Give additional directories short descriptive names in the same style (`Create tokens folder`).
 - Do not create directories for stateless services — the smallest playbooks (`it-tools.yml`, `flaresolverr.yml`, `dozzle.yml`, `whodb.yml`) have no file tasks at all.
 - Store config and application state beneath `{{ config_directory }}`. Mount bulk or shared data — media, photos, downloads, backups — from the shared `common_directory_*` variables, as `plex.yml` and `immich.yml` do.
+- Manage repeated resources as data in the application's native catalog or an Ansible loop. Adding another model, backend, or similar item should not require another set of download and configuration tasks; prefer native download and checksum support when available.
 - Match directory owner/group to the image runtime UID/GID and the nearest comparable playbook. Do not guess between `common_user`/`common_group`, `common_user_id`/`common_group_id`, `common_root_id`/`common_root_group`, literal `root`, or image-specific UIDs such as `"65534"` — copy the exact pair from precedent.
 - Quote modes: `"0771"` for directories, `"0644"` for files, `"0600"` for secrets.
 - Create application containers through the `podman_container` role; name the task `Create container` and sidecar tasks `Create <component> container` (MCP playbooks use `Create MCP server` or `Create container`):
@@ -146,11 +147,14 @@ handlers:
 
 - Write every image as a plain single-token literal — `image: <registry-host>/<path>:<tag>` — unquoted, with no Jinja and no YAML anchor. Renovate scans every YAML file but only matches literal values: the anchored images in `thanos.yml` and `drawio.yml` have not received an update since they were anchored. When several containers share an image, repeat the literal line verbatim; Renovate bumps all occurrences in one commit (`dawarich.yml`).
 - Always include the registry host — the string as written becomes Renovate's depName and commit-message prefix. Preserve the upstream tag style exactly (keep the `v` prefix only where upstream uses it).
+- Prefer an official GHCR or Quay image over Docker Hub when upstream publishes the required version there. Verify the exact image and tag, including companion images, and update Renovate's package names when changing registries.
 - Locally built images are `localhost/{{ application }}:latest` (`garmin-mcp.yml`) — or `localhost/{{ application }}-<component>:latest` per built component in a multi-image stack (`obico.yml`) — or the `podman_image` build name (`woodpecker.yml`); never digest-pin them.
 - When upstream publishes only a floating tag, digest-pin it as `<tag>@sha256:<hex>` (`traefik.yml`, `node-exporter.yml`, `wakeupbr.yml`) so Renovate issues digest updates; some tracked images keep a bare floating tag — match the nearest precedent.
 - A suffixed or nonstandard tag scheme (`version-…`, `1.7.2-apache`, `ubuntu-…-full`) needs a matching versioning entry in `renovate.json5` `packageRules` — check for one and add it in the same change.
 - Pin `ansible.builtin.git` checkouts with `version:` set to a bare release tag when updates matter — a customManagers regex renovates exactly that shape (`acme.sh.yml`, `borgmatic.yml`); a branch name opts out.
 - Define `env` as a mapping and group related settings with blank lines.
+- Prefer supported environment variables for settings and API keys over creating separate configuration or secret files. Use files when required by the application or useful for structured configuration; keep credentials out of task output and diffs.
+- Omit settings that already match the image or application's defaults, including file paths and duplicate tuning options. Verify the pinned image's working directory, entrypoint, and per-model overrides before relying on those defaults.
 - Quote Jinja-only values. Stringify IDs with `"{{ common_user_id | ansible.builtin.string }}"`, quote plain numeric literals (`"4"`), and write booleans as strings matching the casing the app expects (`"true"`, or `"True"` for Django-style images).
 - The role already passes `timezone: common_timezone` to every container; add `TZ` only for images that read the env var (linuxserver.io and similar), always as `TZ: "{{ common_timezone }}"`, never a hardcoded zone.
 - Env-block anchors are fine for genuinely repeated blocks (`obico.yml` `&web_env`) — but never anchor an image line.
