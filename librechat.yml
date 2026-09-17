@@ -230,8 +230,6 @@
 
           DEBUG_PLUGINS: "false"
 
-          IMAGE_GEN_OAI_API_KEY: "{{ openai_api_key }}"
-
           SEARCH: "true"
           MEILI_NO_ANALYTICS: "true"
           MEILI_HOST: "{{ _meilisearch_url }}"
