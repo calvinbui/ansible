@@ -345,6 +345,12 @@
       matchPackageNames: ['/pgvector\\/pgvector$/'],
       changelogUrl: 'https://github.com/pgvector/pgvector/blob/master/CHANGELOG.md',
     },
+    /* llama.cpp */
+    {
+      matchPackageNames: ['ghcr.io/ggml-org/llama.cpp'],
+      versioning: 'regex:^server-v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$',
+      sourceUrl: 'https://github.com/ggml-org/llama.cpp',
+    },
     /* librechat */
     {
       matchPackageNames: ['/.*\\/librechat$/'],

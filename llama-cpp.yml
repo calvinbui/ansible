@@ -1,0 +1,76 @@
+---
+
+- hosts: homeserver
+
+  vars:
+    application: llama-cpp
+
+    container_network: "{{ networks.pub }}"
+
+  handlers:
+    - name: Restart
+      containers.podman.podman_container:
+        name: "{{ application }}"
+        force_restart: true
+
+  tasks:
+    - name: Create config folder
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ common_root_id }}"
+        group: "{{ common_root_group }}"
+        mode: "0771"
+      loop:
+        - "{{ config_directory }}"
+        - "{{ config_directory }}/models"
+
+    - name: Create model catalog
+      ansible.builtin.copy:
+        dest: "{{ config_directory }}/models.ini"
+        owner: "{{ common_root_id }}"
+        group: "{{ common_root_group }}"
+        mode: "0644"
+        content: |
+          version = 1
+
+          [*]
+          dedup-cache-models = true
+          {% for model in llama_cpp_models %}
+
+          [{{ model.name }}]
+          {% for key, value in model.options.items() %}
+          {{ key }} = {{ value }}
+          {% endfor %}
+          {% endfor %}
+      vars:
+        llama_cpp_models:
+          - name: "{{ ai_embedding_model.name }}"
+            options:
+              hf-repo: "{{ ai_embedding_model.hf_repo }}"
+              embedding: "true"
+              # Reserve 8K per slot; llama.cpp sizes the shared cache for all slots.
+              kv-unified-per-slot: 8192
+              batch-size: 8192
+              ubatch-size: 8192
+      notify: Restart
+
+    - name: Create container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        image: ghcr.io/ggml-org/llama.cpp:server-v0.4.1
+        env:
+          LLAMA_API_KEY: "{{ llama_cpp_api_key }}"
+          LLAMA_ARG_MODELS_PRESET: /models.ini
+          LLAMA_CACHE: /models
+        volumes:
+          - "{{ config_directory }}/models.ini:/models.ini:ro"
+          - "{{ config_directory }}/models:/models"
+        traefik:
+          - port: 8080
+        homepage:
+          name: llama.cpp
+          group: AI
+          weight: 275
+          description: "Local AI models and embeddings"
