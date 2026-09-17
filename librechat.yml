@@ -169,7 +169,8 @@
             prioritize: true
             list:
           {% for name, model in ai_models.items() %}
-              - name: {{ model | ansible.builtin.to_json }}
+              -
+                name: {{ model | ansible.builtin.to_json }}
                 label: "Claude {{ name | ansible.builtin.title }}"
                 default: {{ (model == ai_default_model) | ansible.builtin.to_json }}
                 preset:
@@ -218,8 +219,6 @@
 
           NO_INDEX: "true"
 
-          DEBUG_LOGGING: "false"
-
           UID: "{{ common_user_id | ansible.builtin.string }}"
           GID: "{{ common_group_id | ansible.builtin.string }}"
 
@@ -228,8 +227,6 @@
           ANTHROPIC_MODELS: "{{ ai_models.values() | ansible.builtin.join(',') }}"
 
           MCP_BEARER_TOKEN_ACTUAL_MCP_SERVER: "{{ mcp_tokens.actual_mcp_server }}"
-
-          DEBUG_PLUGINS: "false"
 
           SEARCH: "true"
           MEILI_NO_ANALYTICS: "true"
@@ -301,7 +298,6 @@
           .then(({ status }) => process.exit(status === 302 ? 0 : 1))
           .catch(() => process.exit(1))"
         healthcheck_failure_action: restart
-        healthcheck_start_period: 60s
-        healthcheck_interval: 60s
-        healthcheck_timeout: 10s
-        healthcheck_retries: 3
+        healthcheck_interval: 45s
+        healthcheck_timeout: 5s
+        healthcheck_retries: 2
