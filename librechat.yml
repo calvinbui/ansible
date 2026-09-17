@@ -88,8 +88,6 @@
         container_name: "{{ application }}-rag-api"
         image: ghcr.io/danny-avila/librechat-rag-api-dev@sha256:d64a4d17314472712e375456e12d6d6ca71fc729240aebbfb625f5249da58b1f
         env:
-          RAG_OPENAI_API_KEY: "{{ openai_api_key }}"
-
           POSTGRES_DB: "{{ _postgres_database }}"
           POSTGRES_USER: "{{ _postgres_username }}"
           POSTGRES_PASSWORD: "{{ _postgres_password }}"
@@ -97,7 +95,10 @@
           DB_PORT: "{{ _postgres_port | ansible.builtin.string }}"
 
           EMBEDDINGS_PROVIDER: openai
-          EMBEDDINGS_MODEL: text-embedding-3-small
+          EMBEDDINGS_MODEL: "{{ ai_embedding_model.name }}"
+          RAG_OPENAI_BASEURL: "{{ ai_openai_base_url }}"
+          RAG_OPENAI_API_KEY: "{{ ai_api_key }}"
+          RAG_CHECK_EMBEDDING_CTX_LENGTH: "false"
 
     - name: Create configuration
       ansible.builtin.copy:
@@ -155,50 +156,25 @@
 
           summarization:
             enabled: true
-            provider: openAI
-            model: gpt-5.4-nano
+            provider: anthropic
+            model: {{ ai_small_model | ansible.builtin.to_json }}
+
+          endpoints:
+            anthropic:
+              titleModel: {{ ai_small_model | ansible.builtin.to_json }}
 
           modelSpecs:
             enforce: true
             prioritize: true
             list:
-              -
-                name: gpt-6-astra
-                label: GPT-6 Astra
+          {% for name, model in ai_models.items() %}
+              - name: {{ model | ansible.builtin.to_json }}
+                label: "Claude {{ name | ansible.builtin.title }}"
+                default: {{ (model == ai_default_model) | ansible.builtin.to_json }}
                 preset:
-                  endpoint: openAI
-                  model: gpt-6-astra
-                  useResponsesApi: true
-                  web_search: true
-                  reasoning_summary: auto
-              -
-                name: gpt-5.6-sol
-                label: GPT-5.6 Sol
-                preset:
-                  endpoint: openAI
-                  model: gpt-5.6-sol
-                  useResponsesApi: true
-                  web_search: true
-                  reasoning_summary: auto
-              -
-                name: gpt-5.6-terra
-                label: GPT-5.6 Terra
-                preset:
-                  endpoint: openAI
-                  model: gpt-5.6-terra
-                  useResponsesApi: true
-                  web_search: true
-                  reasoning_summary: auto
-              -
-                name: gpt-5.6-luna
-                label: GPT-5.6 Luna
-                default: true
-                preset:
-                  endpoint: openAI
-                  model: gpt-5.6-luna
-                  useResponsesApi: true
-                  web_search: true
-                  reasoning_summary: auto
+                  endpoint: anthropic
+                  model: {{ model | ansible.builtin.to_json }}
+          {% endfor %}
 
         dest: "{{ config_directory }}/librechat.yaml"
         owner: "{{ common_user }}"
@@ -246,7 +222,9 @@
           UID: "{{ common_user_id | ansible.builtin.string }}"
           GID: "{{ common_group_id | ansible.builtin.string }}"
 
-          OPENAI_API_KEY: "{{ openai_api_key }}"
+          ANTHROPIC_API_KEY: "{{ ai_api_key }}"
+          ANTHROPIC_REVERSE_PROXY: "{{ ai_base_url }}"
+          ANTHROPIC_MODELS: "{{ ai_models.values() | ansible.builtin.join(',') }}"
 
           MCP_BEARER_TOKEN_ACTUAL_MCP_SERVER: "{{ mcp_tokens.actual_mcp_server }}"
 
