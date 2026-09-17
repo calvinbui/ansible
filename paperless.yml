@@ -204,9 +204,10 @@
           PAPERLESS_USERNAME: "{{ common_user }}"
 
           # AI Configuration
-          AI_PROVIDER: openai
-          OPENAI_API_KEY: "{{ openai_api_key }}"
-          OPENAI_MODEL: gpt-4o
+          AI_PROVIDER: custom
+          CUSTOM_BASE_URL: "{{ ai_openai_base_url }}"
+          CUSTOM_API_KEY: "{{ ai_api_key }}"
+          CUSTOM_MODEL: "{{ ai_default_model }}"
           TOKEN_LIMIT: 128000
           RESPONSE_TOKENS: 1000
 
