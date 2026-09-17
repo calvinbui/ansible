@@ -14,7 +14,11 @@
       vars:
         image: docker.io/clidey/whodb:0.127.0
         env:
-          WHODB_OPENAI_API_KEY: "{{ openai_api_key }}"
+          WHODB_ANTHROPIC_NAME: "{{ ai_provider }}"
+          WHODB_ANTHROPIC_ENDPOINT: "{{ ai_base_url }}"
+          WHODB_ANTHROPIC_API_KEY: "{{ ai_api_key }}"
+        tmpfs:
+          /data: rw,mode=0700
         traefik:
           - port: 8080
             auth: page
