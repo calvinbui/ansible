@@ -173,3 +173,19 @@
       max_size: "1m"
 
     labels: "{{ combined_labels }}"
+  register: _podman_container_result
+
+# Config written before this role is already loaded when the container starts.
+- name: Record whether the container started
+  vars:
+    _current_name: "{{ container_name | ansible.builtin.default(application) }}"
+  ansible.builtin.set_fact:
+    _podman_container_started: >-
+      {{ _podman_container_started | ansible.builtin.default({}) | ansible.builtin.combine({
+        _current_name: (
+          state | ansible.builtin.default('started') == 'started'
+          and _podman_container_result.actions | ansible.builtin.default([])
+            | ansible.builtin.intersect(['started ' ~ _current_name, 'recreated ' ~ _current_name, 'restarted ' ~ _current_name])
+            | ansible.builtin.length > 0
+        )
+      }) }}

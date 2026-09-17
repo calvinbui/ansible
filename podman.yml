@@ -93,7 +93,7 @@
       ansible.builtin.copy:
         content: |
           [engine]
-          healthcheck_events = false
+          healthcheck_events = true
 
           [containers]
           base_hosts_file = "image"

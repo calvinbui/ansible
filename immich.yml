@@ -12,6 +12,7 @@
       containers.podman.podman_container:
         name: "{{ application }}-server"
         force_restart: true
+      when: not (_podman_container_started | ansible.builtin.default({})).get(application ~ '-server', false)
 
   tasks:
     - name: Create config folder

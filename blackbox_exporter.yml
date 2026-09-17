@@ -15,6 +15,7 @@
       containers.podman.podman_container:
         name: "{{ application }}"
         force_restart: true
+      when: not (_podman_container_started | ansible.builtin.default({})).get(application, false)
       failed_when: false
 
     - name: Reload Prometheus
