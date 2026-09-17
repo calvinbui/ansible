@@ -75,8 +75,18 @@
           OAUTH_CLIENT_ID: "{{ application }}"
           OAUTH_PROVIDER_NAME: "{{ oidc_provider | ansible.builtin.title }}"
 
-          OPENAI_API_KEY: "{{ openai_api_key }}"
+          OPENAI_BASE_URL: "{{ ai_openai_base_url }}"
+          OPENAI_API_KEY: "{{ ai_api_key }}"
+          INFERENCE_TEXT_MODEL: "{{ ai_default_model }}"
+          INFERENCE_IMAGE_MODEL: "{{ ai_default_model }}"
           OCR_USE_LLM: "true"
+
+          # Regenerate all embeddings in Admin > Background Jobs after changing models.
+          EMBEDDING_OPENAI_BASE_URL: "{{ ai_openai_base_url }}"
+          EMBEDDING_OPENAI_API_KEY: "{{ ai_api_key }}"
+          EMBEDDING_TEXT_MODEL: "{{ ai_embedding_model.name }}"
+          EMBEDDING_DIMENSIONS: "{{ ai_embedding_model.dimensions | ansible.builtin.string }}"
+          EMBEDDING_ENABLE_AUTO_INDEXING: "true"
 
           BROWSER_WEB_URL: http://{{ application }}-chrome:9222
         volumes:
