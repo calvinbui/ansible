@@ -1,0 +1,136 @@
+---
+
+- hosts: homeserver
+
+  vars:
+    application: agentgateway
+
+    container_network: "{{ networks.pub }}"
+
+  tasks:
+    - name: Create config folder
+      ansible.builtin.file:
+        path: "{{ config_directory }}/config"
+        state: directory
+        owner: "{{ common_root_id }}"
+        group: "{{ common_root_group }}"
+        mode: "0771"
+
+    - name: Create data folder
+      ansible.builtin.file:
+        path: "{{ config_directory }}/data"
+        state: directory
+        owner: "65532"
+        group: "65532"
+        mode: "0771"
+
+    # Model and policy changes are hot reloaded from this directory.
+    - name: Create configuration
+      ansible.builtin.copy:
+        dest: "{{ config_directory }}/config/config.yaml"
+        owner: "{{ common_root_id }}"
+        group: "{{ common_root_group }}"
+        mode: "0644"
+        content: |
+          config:
+            logging:
+              database:
+                url: "$AGENTGATEWAY_LOG_DATABASE"
+
+          frontendPolicies:
+            accessLog:
+              database:
+                llm: full
+
+          gateways:
+            default:
+              port: 4000
+
+          llm:
+            policies:
+              apiKey:
+                mode: strict
+                location:
+                  expression: >-
+                    has(request.headers.authorization)
+                    ? (request.headers.authorization.startsWith("Bearer ")
+                      ? request.headers.authorization.substring(7) : "")
+                    : default(request.headers["x-api-key"], "")
+                keys:
+                  - keyHash: "$AGENTGATEWAY_API_KEY_HASH"
+              transformations:
+                request:
+                  remove: [authorization, x-api-key]
+            providers:
+              - name: cli-proxy-api
+                provider:
+                  custom:
+                    formats:
+                      - type: messages
+                params:
+                  baseUrl: http://cli-proxy-api:8317/v1
+                  apiKey: "$CLI_PROXY_API_KEY"
+              - name: llama-cpp
+                provider:
+                  custom:
+                    formats:
+                      - type: embeddings
+                params:
+                  baseUrl: http://llama-cpp:8080/v1
+                  apiKey: "$LLAMA_CPP_API_KEY"
+            models:
+          {% for model in ai_models.values() %}
+              - name: {{ model | ansible.builtin.to_json }}
+                provider:
+                  reference: cli-proxy-api
+          {% endfor %}
+              - name: {{ ai_embedding_model.name | ansible.builtin.to_json }}
+                provider:
+                  reference: llama-cpp
+
+          ui:
+            policies:
+              oidc:
+                issuer: "{{ oidc_base_url }}"
+                clientId: "{{ application }}"
+                clientSecret: "$OIDC_CLIENT_SECRET"
+                redirectURI: "https://{{ application }}.{{ common_tld }}/oauth/callback"
+                scopes: [profile, email]
+
+    - name: Create container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        image: cr.agentgateway.dev/agentgateway:v1.5.0
+        # The default command requires a writable /config directory.
+        command: ["-f", "/config/config.yaml"]
+        env:
+          UI_READ_ONLY: "true"
+          AGENTGATEWAY_LOG_DATABASE: sqlite:///data/request-logs.db
+
+          AGENTGATEWAY_API_KEY_HASH: "sha256:{{ agentgateway_api_key | ansible.builtin.hash('sha256') }}"
+          CLI_PROXY_API_KEY: "{{ cli_proxy_api_key }}"
+          LLAMA_CPP_API_KEY: "{{ llama_cpp_api_key }}"
+
+          OIDC_CLIENT_SECRET: "{{ oidc_auth.agentgateway.secret }}"
+          OIDC_COOKIE_SECRET: !vault |
+            $ANSIBLE_VAULT;1.1;AES256
+            37323961316331666134643432646237653066633864313237383965666666323361313836303038
+            6464363065326561363332663437646563643133313938310a633066626565343964343536323133
+            64646134336362386361373633636137366335323634633861643433323330373862356431326366
+            6164373461646532390a326461326336633566663165373061386164663961366238323934313764
+            64353138613065616136313439636136373537326366396666633433333937623336393038623638
+            31396365333361393462323464343136353930363465336339633561396235353131646238363335
+            65323831666663383461626532386533306361613738316463623436313731376661616432313934
+            36613061333061653265
+        volumes:
+          - "{{ config_directory }}/config:/config:ro"
+          - "{{ config_directory }}/data:/data"
+        traefik:
+          - port: 4000
+        homepage:
+          name: agentgateway
+          group: AI
+          weight: 225
+          description: "AI gateway"
+          href: "https://{{ application }}.{{ common_tld }}/ui"
