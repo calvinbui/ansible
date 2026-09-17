@@ -115,7 +115,7 @@
     - _container_info.containers | ansible.builtin.length > 0
     - >-
       _container_info.containers[0].State.Status != 'running'
-      or (image is defined and _container_info.containers[0].ImageName != image)
+      or (image is defined and _container_info.containers[0].ImageName not in [image, image | ansible.builtin.regex_replace(':[^/:@]+(?=@)', '')])
 
 - name: "Create podman container for {{ container_name | ansible.builtin.default(application) }}"
   containers.podman.podman_container:
