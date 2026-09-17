@@ -184,7 +184,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-notify-push"
-        image: ghcr.io/nextcloud/notify_push:v1.4.0
+        image: ghcr.io/nextcloud/notify_push:v1.4.1
         env:
           DATABASE_URL: "{{ _postgres_url }}"
           REDIS_URL: "{{ _valkey_url }}"
