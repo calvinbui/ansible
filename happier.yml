@@ -1,0 +1,114 @@
+---
+
+- hosts: homeserver
+
+  vars:
+    application: happier
+
+    container_network: "{{ networks.pub }}"
+
+  tasks:
+    - name: Create config folder
+      ansible.builtin.file:
+        path: "{{ config_directory }}/data"
+        state: directory
+        owner: "{{ common_user_id }}"
+        group: "{{ common_group_id }}"
+        mode: "0771"
+
+    - name: Create postgres container
+      ansible.builtin.include_role:
+        name: postgres
+      vars:
+        postgres_version: 18.6
+        postgres_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          31653833386135393230383434356464356364313262373761363738623733343935376231663332
+          6438363233326465656232333735303431616637343434310a306465613734646436353461326333
+          34353063376363336262366436623664393233306237346337396239323162666566313333626230
+          3932393365363065350a363236313831646634313863306233346564303838323532373731303835
+          34643837666163616131646361373036393437353931663737383036353661613866643062393431
+          33653037333563336633653036346435323834376436373563353464623164363665363561306239
+          64306439383564613666313437383838336539353966373232656233383433363166656136316262
+          32313465663536353831
+
+    - name: Create valkey container
+      ansible.builtin.include_role:
+        name: valkey
+      vars:
+        valkey_version: 9.1.2
+        valkey_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          61616531313536376232653566663364353161346230383531383837636137623064396239363132
+          3463363766626135353834316439666639363365356266320a633839373465616263623764393036
+          33656234386363306665336334616635343732373231316236323038323662646239636636666431
+          3733333139346363320a373538306435376662653034346434643730343233653965333766343039
+          66633364663438353233373265613433303166373033303033313734643238313833633364623739
+          39383364353835626563303038393131353831326130643339326339613262636432613334623438
+          31343136636636636462646436306335376665646363363164363832363162636161373238356336
+          33373764643131363466
+
+    - name: Create container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        image: ghcr.io/happier-dev/relay-server:stable@sha256:c183882f529b17a54445b439f62b1b4d0f78824fe9ee1faf15f02a79e6d5aa91
+        env:
+          HAPPIER_SERVER_FLAVOR: full
+          
+          HAPPIER_DB_PROVIDER: postgres
+          DATABASE_URL: "{{ _postgresql_url }}"
+          
+          HAPPIER_FILES_BACKEND: local
+
+          REDIS_URL: "{{ _valkey_url }}"
+          HAPPIER_SOCKET_ADAPTER: redis-streams
+
+          HANDY_MASTER_SECRET: !vault |
+            $ANSIBLE_VAULT;1.1;AES256
+            61336635653133333363336230366430366263633135306663343432373361323037383638313337
+            6635643736613030613533303061663736646337353563340a616534353536313136333335346365
+            35383461613863616165346464653863333932383736653339383439666565306434393666616139
+            3639323637383566300a633232353434613461396532326637393331656435356365323630656463
+            33326130336464343331373731613132353039643438373363643538366336353565383833646362
+            38346361383861646661623438663033363431393630633735663930363436393862623032613463
+            61336238373637383761343339636439623339323861636538326163653939333437373736323236
+            32636631326634616331
+
+          AUTH_ANONYMOUS_SIGNUP_ENABLED: "false"
+          AUTH_SIGNUP_PROVIDERS: "{{ oidc_provider }}"
+          AUTH_REQUIRED_LOGIN_PROVIDERS: "{{ oidc_provider }}"
+          AUTH_PROVIDERS_CONFIG_JSON: >-
+            {{
+              [{
+                'id': oidc_provider,
+                'type': 'oidc',
+                'displayName': oidc_provider | ansible.builtin.title,
+                'issuer': oidc_base_url,
+                'clientId': application,
+                'clientSecret': oidc_auth.happier.secret | ansible.builtin.string,
+                'redirectUrl': oidc_auth.happier.redirect_uris[0]
+              }] | ansible.builtin.to_json
+            }}
+
+          HAPPIER_PUBLIC_SERVER_URL: "https://{{ application }}.{{ common_tld }}"
+          HAPPIER_WEBAPP_URL: "https://{{ application }}.{{ common_tld }}"
+          PUBLIC_URL: "https://{{ application }}.{{ common_tld }}"
+          HAPPIER_SERVER_TRUST_PROXY: "1"
+
+          HAPPIER_FEATURE_BUG_REPORTS__ENABLED: "0"
+          HAPPIER_FEATURE_SOCIAL_FRIENDS__ENABLED: "0"
+          HAPPIER_SENTRY_USE_CENTRAL_DSN: "0"
+
+          # The stable image leaves its metrics listener open during shutdown.
+          METRICS_ENABLED: "false"
+        volumes:
+          - "{{ config_directory }}/data:/data"
+        traefik:
+          - port: 3005
+        homepage:
+          group: AI
+          weight: 300
+          description: "AI Devbox"
+        blackbox:
+          path: /health
