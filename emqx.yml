@@ -67,10 +67,16 @@
             65623635663034333861326665313238306162386137363461313761343936633231373661386436
             3433383935303362303537323834333534666134613330333131
 
+          EMQX_LISTENERS__SSL__DEFAULT__ENABLE: "false"
+          EMQX_LISTENERS__WS__DEFAULT__ENABLE: "false"
+          EMQX_LISTENERS__WSS__DEFAULT__ENABLE: "false"
+
           EMQX_AUTHENTICATION__1__MECHANISM: "password_based"
           EMQX_AUTHENTICATION__1__BACKEND: "built_in_database"
           EMQX_AUTHENTICATION__1__PASSWORD_HASH_ALGORITHM__NAME: "bcrypt"
           EMQX_AUTHENTICATION__1__PASSWORD_HASH_ALGORITHM__SALT_ROUNDS: "5"
+
+          EMQX_RETAINER__BACKEND__STORAGE_TYPE: "disc"
 
           EMQX_LOG__FILE__ENABLE: "false"
 
@@ -86,9 +92,3 @@
         volumes:
           - "{{ config_directory }}:/opt/emqx/data"
           - "{{ config_directory }}/acl.conf:/opt/emqx/etc/acl.conf:ro"
-        homepage:
-          name: EMQX
-          group: Home Automation
-          weight: 125
-          description: "MQTT Broker"
-          href: http://{{ application }}.{{ common_local_tld }}:18083
