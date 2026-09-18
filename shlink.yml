@@ -63,7 +63,9 @@
           SERVER_NAME: ":80"
           MERCURE_PUBLISHER_JWT_KEY: "{{ shlink_mercure_jwt }}"
           MERCURE_SUBSCRIBER_JWT_KEY: "{{ shlink_mercure_jwt }}"
-          MERCURE_EXTRA_DIRECTIVES: "cors_origins https://{{ application }}.{{ common_tld }}"
+          MERCURE_EXTRA_DIRECTIVES: |
+            cors_origins https://{{ application }}.{{ common_tld }}
+            protocol_version_compatibility 8
         traefik:
           - port: 80
             rule: "Host(`{{ application }}-mercure.{{ common_tld }}`)"
