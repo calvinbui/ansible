@@ -55,10 +55,10 @@
         image: ghcr.io/happier-dev/relay-server:stable@sha256:c183882f529b17a54445b439f62b1b4d0f78824fe9ee1faf15f02a79e6d5aa91
         env:
           HAPPIER_SERVER_FLAVOR: full
-          
+
           HAPPIER_DB_PROVIDER: postgres
           DATABASE_URL: "{{ _postgresql_url }}"
-          
+
           HAPPIER_FILES_BACKEND: local
 
           REDIS_URL: "{{ _valkey_url }}"
