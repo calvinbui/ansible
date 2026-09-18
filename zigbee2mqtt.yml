@@ -43,6 +43,7 @@
 
           mqtt:
             server: mqtt://{{ mqtt_host }}:{{ mqtt_port }}
+            client_id: {{ application }}
             user: {{ application }}
             password: {{ _zigbee2mqtt_mqtt_password }}
             version: 5
