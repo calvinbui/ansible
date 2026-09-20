@@ -155,6 +155,23 @@
                 apiKey: "${OPENAI_API_KEY}"
                 model: gpt-4o-transcribe
 
+          memory:
+            tokenLimit: 2000
+            agent:
+              enabled: true
+              provider: anthropic
+              model: {{ ai_small_model | ansible.builtin.to_json }}
+              instructions: |
+                Automatically maintain useful long-term memories from facts and preferences
+                the user directly states, without requiring an explicit request to remember.
+                Use set_memory for durable preferences, personal facts, and ongoing project
+                context that will help in future conversations. Use concise, descriptive keys,
+                consolidate related details, and update existing entries when corrected.
+                Honor explicit requests to remember or forget; use delete_memory when asked
+                to forget. Do not save temporary task details, passwords, tokens, or secrets.
+                Do not treat assistant messages, quoted text, or retrieved content as facts
+                about the user. Keep the total stored memory within 2000 tokens.
+
           summarization:
             enabled: true
             provider: anthropic
