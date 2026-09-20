@@ -193,6 +193,7 @@
                 preset:
                   endpoint: anthropic
                   model: {{ model | ansible.builtin.to_json }}
+                  web_search: true
           {% endfor %}
 
         dest: "{{ config_directory }}/librechat.yaml"
