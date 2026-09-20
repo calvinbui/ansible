@@ -174,8 +174,6 @@
 
           summarization:
             enabled: true
-            provider: anthropic
-            model: {{ ai_small_model | ansible.builtin.to_json }}
 
           endpoints:
             anthropic:
