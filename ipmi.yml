@@ -63,7 +63,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-acme"
-        image: ghcr.io/acmesh-official/acme.sh:3.1.4
+        image: ghcr.io/acmesh-official/acme.sh:3.1.6
         command: daemon
         env:
           CERT_DOMAIN: "{{ application }}.{{ common_local_tld }}"
