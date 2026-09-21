@@ -22,6 +22,8 @@
     owner: 999
     group: 999
     mode: "0644"
+  no_log: true
+  diff: false
 
 - name: Create valkey container
   ansible.builtin.include_role:

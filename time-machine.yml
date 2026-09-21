@@ -61,6 +61,8 @@
           share: "Tammy"
           limit: "1 T"
       notify: Restart
+      no_log: true
+      diff: false
 
     - name: Create container
       ansible.builtin.include_role:

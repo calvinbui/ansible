@@ -59,6 +59,8 @@
         group: "{{ common_group_id }}"
         mode: "0644"
       notify: Restart
+      no_log: true
+      diff: false
 
     - name: Create server container
       ansible.builtin.include_role:

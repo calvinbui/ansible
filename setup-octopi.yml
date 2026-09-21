@@ -192,6 +192,8 @@
             group: "{{ common_user }}"
             mode: "0644"
           notify: Restart OctoDash
+          no_log: true
+          diff: false
 
         - name: Rotate X11 for Octodash
           ansible.builtin.copy:
@@ -407,3 +409,5 @@
               name: PLA
 
           webcam.timelapseEnabled: false
+      no_log: true
+      diff: false

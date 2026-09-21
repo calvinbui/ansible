@@ -55,6 +55,8 @@
           Sync Pull
         dest: "{{ config_directory }}/mbsync.rc"
         mode: "0644"
+      no_log: true
+      diff: false
 
     - name: Create container
       ansible.builtin.include_role:
@@ -178,6 +180,8 @@
         dest: "{{ config_directory }}/conf/passwd"
         mode: "0644"
       notify: Restart
+      no_log: true
+      diff: false
 
     - name: Create container
       ansible.builtin.include_role:

@@ -112,3 +112,5 @@
           EmailSettings/EnableSMTPAuth: true
           EmailSettings/SMTPUsername: "{{ common_email_username }}"
           EmailSettings/SMTPPassword: "{{ common_email_password }}"
+      no_log: true
+      diff: false

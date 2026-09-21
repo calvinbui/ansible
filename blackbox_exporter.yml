@@ -39,6 +39,8 @@
         mode: "0440"
         validate: "podman run --rm --name {{ application }}_config_check -v %s:/tmp/config.yml quay.io/prometheus/blackbox-exporter:master --config.check --config.file=/tmp/config.yml"
       notify: Restart
+      no_log: true
+      diff: false
 
     - name: Create container
       ansible.builtin.include_role:

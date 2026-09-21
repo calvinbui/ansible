@@ -10,6 +10,8 @@
   delegate_to: localhost
   run_once: true
   become: false
+  no_log: true
+  diff: false
 
 - name: Set authorized keys from GitHub
   ansible.posix.authorized_key:

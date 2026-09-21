@@ -87,3 +87,5 @@
         -
           name: customizationTheme
           value: "theme-light"
+      no_log: true
+      diff: false

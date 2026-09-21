@@ -86,6 +86,8 @@
       loop: "{{ borgmatic_backups }}"
       loop_control:
         extended: true
+      no_log: true
+      diff: false
 
     - name: "Template crontab"
       ansible.builtin.copy:
@@ -110,6 +112,8 @@
         name: "[{{ item.hostname }}]:{{ item.port }}"
         key: "{{ lookup('pipe', 'ssh-keyscan -t ed25519 -p ' + (item.port | string) + ' ' + item.hostname + ' 2>/dev/null | grep ssh-ed25519') }}"
       loop: "{{ borg_repositories | ansible.builtin.selectattr('protocol', 'equalto', 'ssh') | ansible.builtin.list }}"
+      no_log: true
+      diff: false
 
     - name: Template notification script
       ansible.builtin.template:

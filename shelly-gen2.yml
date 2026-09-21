@@ -273,6 +273,8 @@
             realm: "{{ item.device_id }}"
             ha1: "{{ [shelly_common_config.auth.user, item.device_id, shelly_common_config.auth.pass] | ansible.builtin.join(':') | ansible.builtin.hash('sha256') }}"
       loop: "{{ shelly_devices }}"
+      no_log: true
+      diff: false
 
     - name: Configure settings
       ansible.builtin.uri:
@@ -304,6 +306,8 @@
           -
             method: Modbus.SetConfig
             config_key: modbus
+      no_log: true
+      diff: false
 
     - name: Set profile
       ansible.builtin.uri:

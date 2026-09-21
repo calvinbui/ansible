@@ -90,6 +90,8 @@
       changed_when: _result.rc == 0
       tags:
         - acme
+      no_log: true
+      diff: false
 
     - name: Create container
       ansible.builtin.include_role:
@@ -220,3 +222,5 @@
         -
           attribute: DlnaEnabled
           value: "0"
+      no_log: true
+      diff: false

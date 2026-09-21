@@ -106,6 +106,8 @@
         -
           xpath: "/configuration/gui/apikey"
           value: "{{ syncthing_api_key }}"
+      no_log: true
+      diff: false
 
     - name: Set password
       community.general.xml:

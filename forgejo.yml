@@ -239,6 +239,8 @@
         - ('Command error' in _command_result.stderr)
         - ('login source already exists' not in _command_result.stderr)
       changed_when: ('login source already exists' not in _command_result.stderr)
+      no_log: true
+      diff: false
 
     - name: Get OIDC source ID
       containers.podman.podman_container_exec:
@@ -268,3 +270,5 @@
       register: _command_result
       failed_when: ('Command error' in _command_result.stderr)
       changed_when: true # nothing is returned so we'll always assume changed
+      no_log: true
+      diff: false

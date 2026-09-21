@@ -173,6 +173,8 @@
       register: _command_result
       changed_when: "'Superuser created successfully' in _command_result.stdout"
       failed_when: ('Superuser created successfully' not in _command_result.stdout) and ('That username is already taken' not in _command_result.stderr)
+      no_log: true
+      diff: false
 
     - name: Create AI directory
       ansible.builtin.file:
@@ -233,6 +235,8 @@
           ACTIVATE_DOCUMENT_TYPE: true
           ACTIVATE_TITLE: true
           ACTIVATE_CUSTOM_FIELDS: false
+      no_log: true
+      diff: false
 
     - name: Create AI container
       ansible.builtin.include_role:

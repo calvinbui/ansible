@@ -108,3 +108,5 @@
       changed_when: _result.rc == 0
       tags:
         - acme
+      no_log: true
+      diff: false

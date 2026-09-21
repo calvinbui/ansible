@@ -261,6 +261,8 @@
         -
           app: files_fulltextsearch
           value: '{\"files_pdf\":\"1\",\"files_office\":\"1\"}'
+      no_log: true
+      diff: false
 
     - name: Install oidc app
       containers.podman.podman_container_exec:
@@ -317,6 +319,8 @@
           oidc_login_well_known_caching_time: 86400
           oidc_login_update_avatar: false
           oidc_login_code_challenge_method: "S256"
+      no_log: true
+      diff: false
 
     - name: Install other apps
       containers.podman.podman_container_exec:

@@ -70,6 +70,8 @@
       with_fileglob:
         - "{{ files_directory }}/*.j2"
         - "{{ files_directory }}/.*.j2" # dotfiles are hidden from the dashboard
+      no_log: true
+      diff: false
 
     - name: Create container
       ansible.builtin.include_role:

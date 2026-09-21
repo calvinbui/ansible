@@ -129,3 +129,5 @@
             3536306464613064360a663537303961323862366339663864326139626165653432313762373562
             6533
           opensubtitlescom.use_hash: false
+      no_log: true
+      diff: false

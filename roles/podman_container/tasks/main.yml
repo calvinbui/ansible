@@ -103,6 +103,8 @@
     name: "{{ container_name | ansible.builtin.default(application) }}"
   register: _container_info
   failed_when: false
+  no_log: true
+  diff: false
 
 - name: Remove container if non-running or image will change
   vars:
@@ -174,6 +176,8 @@
 
     labels: "{{ combined_labels }}"
   register: _podman_container_result
+  no_log: true
+  diff: false
 
 # Config written before this role is already loaded when the container starts.
 - name: Record whether the container started

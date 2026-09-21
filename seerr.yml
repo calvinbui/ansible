@@ -197,6 +197,8 @@
               }
             ]
           }
+      no_log: true
+      diff: false
 
     - name: Waiting for user to finish setup
       ansible.builtin.wait_for:

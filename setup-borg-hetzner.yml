@@ -16,3 +16,5 @@
       delegate_to: localhost
       vars:
         _borg_repository_hetzner: "{{ (borg_repositories | ansible.builtin.selectattr('name', 'equalto', 'hetzner') | ansible.builtin.selectattr('protocol', 'equalto', 'ssh') | ansible.builtin.list | ansible.builtin.first) }}"
+      no_log: true
+      diff: false

@@ -41,3 +41,5 @@
             - file: upsmon
               name: monitors
               block: "{{ nut_ups_monitors | ansible.builtin.string }}"
+          no_log: true
+          diff: false

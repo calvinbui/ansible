@@ -72,6 +72,8 @@
         dest: "{{ config_directory }}/config/scrutiny.yaml"
         mode: "0440"
       notify: Restart
+      no_log: true
+      diff: false
 
     - name: Create web container
       ansible.builtin.include_role:

@@ -130,6 +130,8 @@
         mode: "0444"
         validate: "podman run --rm --name {{ application }}_config_check -v %s:/tmp/config.yml --entrypoint authelia ghcr.io/authelia/authelia:latest validate-config --config /tmp/config.yml"
       notify: Restart
+      no_log: true
+      diff: false
 
     - name: Template users
       ansible.builtin.template:
@@ -139,6 +141,8 @@
         group: "{{ common_root_group }}"
         mode: "0444"
       notify: Restart
+      no_log: true
+      diff: false
 
     - name: Create container
       ansible.builtin.include_role:

@@ -96,6 +96,8 @@
                 clientSecret: "$OIDC_CLIENT_SECRET"
                 redirectURI: "https://{{ application }}.{{ common_tld }}/oauth/callback"
                 scopes: [profile, email]
+      no_log: true
+      diff: false
 
     - name: Create container
       ansible.builtin.include_role:

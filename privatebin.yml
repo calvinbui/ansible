@@ -26,6 +26,8 @@
         mode: "0644"
         owner: nobody
         group: "82"  # nobody in alpine
+      no_log: true
+      diff: false
 
     - name: Create container
       ansible.builtin.include_role:

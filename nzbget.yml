@@ -344,3 +344,5 @@
           ExtendedUnpacker:SevenZipArgs: 'e -aos'
           ExtendedUnpacker:WaitTime: '0'
           ExtendedUnpacker:DeleteLeftover: 'yes'
+      no_log: true
+      diff: false

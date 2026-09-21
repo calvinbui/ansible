@@ -64,6 +64,8 @@
           WEB_HOST: 0.0.0.0
           WEB_PORT: 8080
       notify: Restart
+      no_log: true
+      diff: false
 
     - name: Create container
       ansible.builtin.include_role:

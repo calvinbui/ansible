@@ -104,6 +104,8 @@
         group: "{{ common_root_group }}"
         mode: "0644"
       notify: Restart
+      no_log: true
+      diff: false
 
     - name: Create slack.yaml
       ansible.builtin.copy:

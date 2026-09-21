@@ -44,6 +44,8 @@
         - "{{ files_directory }}/config/*"
       tags:
         - config
+      no_log: true
+      diff: false
 
     - name: Copy icons
       ansible.builtin.copy:

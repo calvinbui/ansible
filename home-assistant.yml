@@ -94,6 +94,8 @@
           notify: Restart
           with_fileglob:
             - "{{ files_directory }}/integrations/*"
+          no_log: true
+          diff: false
 
         - name: Include integration config within main configuration file
           ansible.builtin.lineinfile:

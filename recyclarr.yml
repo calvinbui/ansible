@@ -41,3 +41,5 @@
         - "{{ files_directory }}/*"
       tags:
         - config
+      no_log: true
+      diff: false

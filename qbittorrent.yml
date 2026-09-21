@@ -150,6 +150,8 @@
           # Advanced
           ## qBittorrent Section
           Preferences.Connection\ResolvePeerCountries: "false" # Resolve peer countries
+      no_log: true
+      diff: false
 
     - name: Stop to make changes
       containers.podman.podman_container:
@@ -168,6 +170,8 @@
       loop: "{{ _qbittorrent_config.results | ansible.builtin.selectattr('changed', 'equalto', true) | ansible.builtin.map(attribute='item') }}"
       when: _qbittorrent_config.changed
       notify: Restart
+      no_log: true
+      diff: false
 
     - name: Create categories
       ansible.builtin.copy:
@@ -248,3 +252,5 @@
             owner: "{{ common_user }}"
             group: "{{ common_root_group }}"
             mode: "0600"
+          no_log: true
+          diff: false

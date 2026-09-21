@@ -80,6 +80,8 @@
         group: "{{ common_group }}"
         mode: "0644"
       notify: Restart
+      no_log: true
+      diff: false
 
     - name: Create container
       ansible.builtin.include_role:

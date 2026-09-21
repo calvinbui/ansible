@@ -41,6 +41,8 @@
       with_fileglob:
         - "{{ files_directory }}/*"
       notify: Restart nut
+      no_log: true
+      diff: false
 
     - name: Install msmtp
       ansible.builtin.apt:
@@ -71,6 +73,8 @@
           from            {{ common_email_username }}
           user            {{ common_email_username }}
           password        {{ common_email_password }}
+      no_log: true
+      diff: false
 
     - name: Create msmtp log file
       ansible.builtin.file:
