@@ -75,9 +75,11 @@
           show_image_date: true
           image_date_format: MMMM YYYY
           show_image_location: true
-          show_more_info: false
-          show_more_info_image_link: false
-          show_more_info_qr_code: false
+          more_info:
+            display: false
+            show:
+              asset_link: false
+              qr_code: false
 
           weather:
             locations:
