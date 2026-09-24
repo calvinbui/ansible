@@ -80,7 +80,7 @@
                   apiKey: "$LLAMA_CPP_API_KEY"
             models:
           {% for model in ai_models.values() %}
-              - name: {{ model | ansible.builtin.to_json }}
+              - name: {{ model.name | ansible.builtin.to_json }}
                 provider:
                   reference: cli-proxy-api
           {% endfor %}

@@ -183,14 +183,14 @@
             enforce: true
             prioritize: true
             list:
-          {% for name, model in ai_models.items() %}
+          {% for model in ai_models.values() %}
               -
-                name: {{ model | ansible.builtin.to_json }}
-                label: "Claude {{ name | ansible.builtin.title }}"
-                default: {{ (model == ai_default_model) | ansible.builtin.to_json }}
+                name: {{ model.name | ansible.builtin.to_json }}
+                label: {{ model.label | ansible.builtin.to_json }}
+                default: {{ (model.name == ai_default_model) | ansible.builtin.to_json }}
                 preset:
                   endpoint: anthropic
-                  model: {{ model | ansible.builtin.to_json }}
+                  model: {{ model.name | ansible.builtin.to_json }}
                   web_search: true
           {% endfor %}
 
@@ -242,7 +242,7 @@
 
           ANTHROPIC_API_KEY: "{{ ai_api_key }}"
           ANTHROPIC_REVERSE_PROXY: "{{ ai_base_url }}"
-          ANTHROPIC_MODELS: "{{ ai_models.values() | ansible.builtin.join(',') }}"
+          ANTHROPIC_MODELS: "{{ ai_models.values() | ansible.builtin.map(attribute='name') | ansible.builtin.join(',') }}"
 
           MCP_BEARER_TOKEN_ACTUAL_MCP_SERVER: "{{ mcp_tokens.actual_mcp_server }}"
 

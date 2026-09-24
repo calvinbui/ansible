@@ -6,13 +6,21 @@ ai_openai_base_url: "{{ ai_base_url }}/v1"
 ai_api_key: "{{ agentgateway_api_key }}"
 
 ai_models:
-  haiku: claude-haiku-4-5-20251001
-  sonnet: claude-sonnet-5
-  opus: claude-opus-5-5
-  fable: claude-fable-5-1
+  haiku:
+    name: claude-haiku-4-5-20251001
+    label: Claude Haiku 4.5
+  sonnet:
+    name: claude-sonnet-5
+    label: Claude Sonnet 5
+  opus:
+    name: claude-opus-5-5
+    label: Claude Opus 5.5
+  fable:
+    name: claude-fable-5-1
+    label: Claude Fable 5.1
 
-ai_default_model: "{{ ai_models.sonnet }}"
-ai_small_model: "{{ ai_models.haiku }}"
+ai_default_model: "{{ ai_models.sonnet.name }}"
+ai_small_model: "{{ ai_models.haiku.name }}"
 
 ai_embedding_model:
   name: qwen3-embedding-0.6b
