@@ -60,7 +60,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/ggml-org/llama.cpp:server-v0.4.1
+        image: ghcr.io/ggml-org/llama.cpp:server-v0.5.0
         env:
           LLAMA_API_KEY: "{{ llama_cpp_api_key }}"
           LLAMA_ARG_MODELS_PRESET: /models.ini
