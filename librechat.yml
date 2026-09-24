@@ -87,7 +87,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-rag-api"
-        image: ghcr.io/danny-avila/librechat-rag-api-dev@sha256:8dbe8d0f0424d5596a481a51af4d2f7ab1d88adfa655b790e8097f1d2ccd10af
+        image: ghcr.io/danny-avila/librechat-rag-api-dev@sha256:13898be3c4ce9ce60d40606c426929d504fef4d89dfddeac966e12fb740cae5c
         env:
           POSTGRES_DB: "{{ _postgres_database }}"
           POSTGRES_USER: "{{ _postgres_username }}"
