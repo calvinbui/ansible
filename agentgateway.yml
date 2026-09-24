@@ -38,6 +38,8 @@
                 url: "$AGENTGATEWAY_LOG_DATABASE"
 
           frontendPolicies:
+            http:
+              maxBufferSize: 33554432  # 32 MiB
             accessLog:
               database:
                 llm: full
