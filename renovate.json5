@@ -348,7 +348,8 @@
     /* llama.cpp */
     {
       matchPackageNames: ['ghcr.io/ggml-org/llama.cpp'],
-      versioning: 'regex:^server-v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$',
+      versionCompatibility: '^server-v(?<version>\\d+\\.\\d+\\.\\d+)$',
+      versioning: 'semver',
       sourceUrl: 'https://github.com/ggml-org/llama.cpp',
     },
     /* librechat */
