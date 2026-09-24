@@ -355,6 +355,8 @@
     /* librechat */
     {
       matchPackageNames: ['/.*\\/librechat$/'],
+      versioning: 'pep440',
+      ignoreUnstable: false,
       sourceUrl: 'https://github.com/danny-avila/LibreChat',
     },
     /* cli-proxy-api */
