@@ -69,7 +69,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: quay.io/prometheus/prometheus:v3.14.0
+        image: quay.io/prometheus/prometheus:v3.15.0
         command:
           - --config.file=/etc/prometheus/prometheus.yml
 
