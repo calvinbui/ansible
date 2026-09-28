@@ -175,6 +175,11 @@
           summarization:
             enabled: true
 
+          fileConfig:
+            endpoints:
+              anthropic:
+                fileLimit: 0
+
           endpoints:
             anthropic:
               titleModel: {{ ai_small_model | ansible.builtin.to_json }}
