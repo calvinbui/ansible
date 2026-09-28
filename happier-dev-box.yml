@@ -1,0 +1,242 @@
+---
+
+- hosts: homeserver
+
+  vars:
+    application: happier-dev-box
+
+    python_version: "3.13"
+
+    container_network: "{{ networks.pub }}"
+
+  tasks:
+    - name: Create config folder
+      ansible.builtin.file:
+        path: "{{ config_directory }}/{{ item }}"
+        state: directory
+        owner: "{{ common_user_id }}"
+        group: "{{ common_group_id }}"
+        mode: "0700"
+      loop:
+        - home
+        - home/.local/bin
+        - home/.local/lib
+        - home/.local/share/packages
+
+    - name: Configure Git
+      community.general.ini_file:
+        path: "{{ config_directory }}/home/.gitconfig"
+        section: "{{ item.section }}"
+        option: "{{ item.option }}"
+        value: "{{ item.value }}"
+        owner: "{{ common_user_id }}"
+        group: "{{ common_group_id }}"
+        mode: "0600"
+      loop:
+        - section: user
+          option: name
+          value: Calvin Bui
+        - section: user
+          option: email
+          value: 3604363+calvinbui@users.noreply.github.com
+        - section: 'credential "https://forgejo.{{ common_tld }}"'
+          option: helper
+          value: store
+
+    - name: Create Git credentials
+      vars:
+        forgejo_username: "{{ common_user }}"
+        forgejo_token: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          39646537623434303866396363643561323263613433376239346532383836366165333065303735
+          6166656536336433633935336431366566313036386136340a303432636331663135373764396565
+          63386566653735316462353965663030376537656661353662353964306438636532643361666231
+          3262316137636364620a336165663164373137633130336537316334326637663337333437663831
+          66626634333039323739363539353564346666346237343135383461653534353333666631616231
+          3766643865353130333462393165303931646631633563376338
+      ansible.builtin.copy:
+        dest: "{{ config_directory }}/home/.git-credentials"
+        content: |
+          https://{{ forgejo_username | ansible.builtin.urlencode | ansible.builtin.replace('/', '%2F') }}:{{ forgejo_token | ansible.builtin.urlencode | ansible.builtin.replace('/', '%2F') }}@forgejo.{{ common_tld }}
+        owner: "{{ common_user_id }}"
+        group: "{{ common_group_id }}"
+        mode: "0600"
+      no_log: true
+      diff: false
+
+    - name: Download uv
+      ansible.builtin.get_url:
+        url: https://github.com/astral-sh/uv/releases/download/0.12.15/uv-x86_64-unknown-linux-gnu.tar.gz
+        checksum: sha256:f97935763c04be3e692460a7aaeaaab8fc3b78fcf8b389da820b38ae7423a638
+        dest: "{{ config_directory }}/uv.tar.gz"
+        mode: "0644"
+
+    - name: Install uv
+      ansible.builtin.unarchive:
+        src: "{{ config_directory }}/uv.tar.gz"
+        dest: "{{ config_directory }}/home/.local/bin"
+        remote_src: true
+        extra_opts: [--strip-components=1]
+        owner: "{{ common_user_id }}"
+        group: "{{ common_group_id }}"
+
+    - name: Install command-line tools
+      ansible.builtin.get_url:
+        url: "{{ item.url }}"
+        checksum: "{{ item.checksum }}"
+        dest: "{{ config_directory }}/home/.local/bin/{{ item.name }}"
+        owner: "{{ common_user_id }}"
+        group: "{{ common_group_id }}"
+        mode: "0755"
+      loop:
+        - name: jq
+          url: https://github.com/jqlang/jq/releases/download/jq-1.8.2/jq-linux-amd64
+          checksum: sha256:b1c22172dd303f3be49e935aa56aa48a8b7a46e0bc838b4997d3bb451495870f
+        - name: yq
+          url: https://github.com/mikefarah/yq/releases/download/v4.53.6/yq_linux_amd64
+          checksum: sha256:c5f056448f973ae7d39b5401949648a78f2dc1947d6a8eb65be60d5c504b9385
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Download tool archives
+      ansible.builtin.get_url:
+        url: "{{ item.url }}"
+        checksum: "{{ item.checksum }}"
+        dest: "{{ config_directory }}/{{ item.url | ansible.builtin.basename }}"
+        mode: "0644"
+      loop:
+        - name: rg
+          url: https://github.com/BurntSushi/ripgrep/releases/download/15.2.0/ripgrep-15.2.0-x86_64-unknown-linux-musl.tar.gz
+          checksum: sha256:33e15bcf1624b25cdd2a55813a47a2f95dbe126268203e76aa6a585d1e7b149c
+          executable: ripgrep-15.2.0-x86_64-unknown-linux-musl/rg
+        - name: shellcheck
+          url: https://github.com/koalaman/shellcheck/releases/download/v0.11.0/shellcheck-v0.11.0.linux.x86_64.tar.xz
+          checksum: sha256:8c3be12b05d5c177a04c29e3c78ce89ac86f1595681cab149b65b97c4e227198
+          executable: shellcheck-v0.11.0/shellcheck
+      loop_control:
+        label: "{{ item.name }}"
+      register: _tool_archives
+
+    - name: Install archived tools
+      ansible.builtin.unarchive:
+        src: "{{ item.dest }}"
+        dest: "{{ config_directory }}/home/.local/bin"
+        remote_src: true
+        include: ["{{ item.item.executable }}"]
+        extra_opts: [--strip-components=1]
+        owner: "{{ common_user_id }}"
+        group: "{{ common_group_id }}"
+        mode: "0755"
+      loop: "{{ _tool_archives.results }}"
+      loop_control:
+        label: "{{ item.item.name }}"
+
+    # Match the Debian 12 base image; libpopt is rsync's only missing library.
+    - name: Download Debian tool packages
+      ansible.builtin.get_url:
+        url: "{{ item.url }}/{{ item.package }}.deb"
+        checksum: "{{ item.checksum }}"
+        dest: "{{ config_directory }}/{{ item.package }}.deb"
+        mode: "0644"
+      loop:
+        - package: rsync_3.2.7-1+deb12u6_amd64
+          url: https://deb.debian.org/debian/pool/main/r/rsync
+          checksum: sha256:ce99de6b36cbb62dc614a73463e467f2c1ef509545a9a2b33cab19b50530b672
+          source: usr/bin/rsync
+          link: bin/rsync
+        - package: libpopt0_1.19+dfsg-1_amd64
+          url: https://deb.debian.org/debian/pool/main/p/popt
+          checksum: sha256:6f94b488255acd996254f775c77ff3956557c61f860a3c9caeaf65457554194f
+          source: usr/lib/x86_64-linux-gnu/libpopt.so.0.0.2
+          link: lib/libpopt.so.0
+      loop_control:
+        label: "{{ item.package }}"
+      register: _tool_packages
+
+    - name: Extract Debian tool packages
+      become: true
+      become_user: "{{ common_user }}"
+      ansible.builtin.command:
+        argv:
+          - dpkg-deb
+          - --extract
+          - "{{ item.dest }}"
+          - "{{ config_directory }}/home/.local/share/packages/{{ item.item.package }}"
+        creates: "{{ config_directory }}/home/.local/share/packages/{{ item.item.package }}/{{ item.item.source }}"
+      loop: "{{ _tool_packages.results }}"
+      loop_control:
+        label: "{{ item.item.package }}"
+
+    - name: Link Debian tools and libraries
+      ansible.builtin.file:
+        src: "../share/packages/{{ item.item.package }}/{{ item.item.source }}"
+        dest: "{{ config_directory }}/home/.local/{{ item.item.link }}"
+        state: link
+        follow: false
+        owner: "{{ common_user_id }}"
+        group: "{{ common_group_id }}"
+      loop: "{{ _tool_packages.results }}"
+      loop_control:
+        label: "{{ item.item.link }}"
+
+    - name: Copy Ansible requirements
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: "{{ config_directory }}/home/{{ item }}"
+        owner: "{{ common_user_id }}"
+        group: "{{ common_group_id }}"
+        mode: "0644"
+      loop:
+        - requirements.txt
+        - requirements.yml
+
+    - name: Create container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        image: ghcr.io/happier-dev/dev-box:stable@sha256:a69382a6af4f374e707a9613b303498c54ffefc2a1c66e256f2ea6b40cd09bc6
+        init: true
+        command: ["happier", "daemon", "start-sync"]
+        env:
+          PATH: "/home/happier/.local/share/uv/python/cpython-{{ python_version }}-linux-x86_64-gnu/bin:/opt/happier/cli:/home/happier/.local/bin:/home/happier/.npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+          LD_LIBRARY_PATH: /home/happier/.local/lib
+
+          HAPPIER_SERVER_URL: "https://happier.{{ common_tld }}"
+          HAPPIER_DAEMON_WAIT_FOR_AUTH: "true"
+          HAPPIER_PROVIDER_CLIS: claude
+
+          ANTHROPIC_BASE_URL: "{{ ai_base_url }}"
+          ANTHROPIC_AUTH_TOKEN: "{{ ai_api_key }}"
+          ANTHROPIC_MODEL: "{{ ai_default_model }}"
+          ANTHROPIC_DEFAULT_SONNET_MODEL: "{{ ai_models.sonnet.name }}"
+          ANTHROPIC_DEFAULT_FABLE_MODEL: "{{ ai_models.fable.name }}"
+          ANTHROPIC_DEFAULT_HAIKU_MODEL: "{{ ai_small_model }}"
+          CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1"
+        volumes:
+          - "{{ config_directory }}/home:/home/happier"
+
+    - name: Install Python
+      containers.podman.podman_container_exec:
+        name: "{{ application }}"
+        command: "uv python install {{ python_version }}"
+      register: _command_result
+      changed_when: "'Installed Python' in _command_result.stderr"
+
+    - name: Install Python requirements
+      containers.podman.podman_container_exec:
+        name: "{{ application }}"
+        # Target the persistent user-owned Python, which uv marks externally managed.
+        command: >-
+          uv pip install
+          --python /home/happier/.local/bin/python{{ python_version }}
+          --break-system-packages
+          --requirements /home/happier/requirements.txt
+      register: _command_result
+      changed_when: "'Installed ' in _command_result.stderr or 'Uninstalled ' in _command_result.stderr"
+
+    - name: Install Ansible collections
+      containers.podman.podman_container_exec:
+        name: "{{ application }}"
+        command: ansible-galaxy collection install --requirements-file /home/happier/requirements.yml
+      register: _command_result
+      changed_when: "'was installed successfully' in _command_result.stdout"
