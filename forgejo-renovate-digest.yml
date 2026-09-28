@@ -59,7 +59,7 @@
         labels:
           - "ofelia.enabled=true"
           - "ofelia.job-exec.{{ application }}-cron.user=0"
-          - "ofelia.job-exec.{{ application }}-cron.schedule=15 17 * * *"
+          - "ofelia.job-exec.{{ application }}-cron.schedule=30 17 * * *"
           - "ofelia.job-exec.{{ application }}-cron.command=/usr/local/bin/python3 /app/main.py"
           - "ofelia.job-exec.{{ application }}-cron.tty=true"
           - "ofelia.job-exec.{{ application }}-cron.no-overlap=true"
