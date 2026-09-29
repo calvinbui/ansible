@@ -127,7 +127,7 @@
         name: podman_container
       vars:
         container_name: "borgmatic-{{ item.name }}"
-        image: ghcr.io/borgmatic-collective/borgmatic:2.1.8
+        image: ghcr.io/borgmatic-collective/borgmatic:2.1.9
         env:
           TZ: "{{ common_timezone }}"
           BORG_PASSPHRASE: "{{ borgmatic_pass }}"
