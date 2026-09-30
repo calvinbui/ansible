@@ -65,6 +65,7 @@
         container_name: "{{ application }}-apprise"
         image: docker.io/caronc/apprise:v2.0.0
         env:
+          APPRISE_API_ONLY: "yes"
           APPRISE_AUTH_REQUIRED: "yes"
           APPRISE_USER: "{{ application }}"
           APPRISE_PASSWORD: !vault |
@@ -80,10 +81,6 @@
           APPRISE_STATEFUL_MODE: disabled
           APPRISE_CONFIG_LOCK: "yes"
           APPRISE_WORKER_COUNT: "1"
-        blackbox:
-          protocol: http
-          host: "{{ application }}-apprise:8000"
-          path: /login
 
     - name: Create container
       ansible.builtin.include_role:
