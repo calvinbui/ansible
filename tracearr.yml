@@ -80,6 +80,10 @@
           APPRISE_STATEFUL_MODE: disabled
           APPRISE_CONFIG_LOCK: "yes"
           APPRISE_WORKER_COUNT: "1"
+        blackbox:
+          protocol: http
+          host: "{{ application }}-apprise:8000"
+          path: /login
 
     - name: Create container
       ansible.builtin.include_role:
