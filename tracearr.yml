@@ -66,19 +66,20 @@
         image: docker.io/caronc/apprise:v2.0.0
         env:
           APPRISE_AUTH_REQUIRED: "yes"
-          APPRISE_USER: "{{ tracearr_apprise_auth.username }}"
-          APPRISE_PASSWORD: "{{ tracearr_apprise_auth.password }}"
+          APPRISE_USER: "{{ application }}"
+          APPRISE_PASSWORD: !vault |
+            $ANSIBLE_VAULT;1.1;AES256
+            37626663373632366261656261646434326161346336653561613735636534346639396161653635
+            3165643138376134393363363931396164663430646234360a633937646335343038373031336634
+            38366563366532633466396562626131643639313061306666373633333964323238656630326362
+            3336376535323330330a343733633336653735636139656336643062373738363532346134653463
+            34636338656632663531646637663263656631353335366462393664613130613839
 
           APPRISE_ALLOW_SERVICES: mmosts
           APPRISE_STATELESS_URLS: "mmosts://mattermost.{{ common_tld }}/{{ tracearr_mattermost_webhook_id }}"
           APPRISE_STATEFUL_MODE: disabled
           APPRISE_CONFIG_LOCK: "yes"
           APPRISE_WORKER_COUNT: "1"
-        blackbox:
-          auth: apprise
-          protocol: http
-          host: "{{ application }}-apprise:8000"
-          path: /status
 
     - name: Create container
       ansible.builtin.include_role:
