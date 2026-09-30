@@ -30,12 +30,20 @@
     - name: Create configuration
       ansible.builtin.copy:
         content: |
-          port: 8317
-          auth-dir: /auths
-          api-keys:
-            - {{ cli_proxy_api_key | ansible.builtin.to_json }}
+          config-version: 8
 
-          disable-claude-cloak-mode: true
+          server:
+            port: 8317
+
+          access:
+            api-keys:
+              - {{ cli_proxy_api_key | ansible.builtin.to_json }}
+
+          oauth:
+            auth-dir: /auths
+            providers:
+              claude:
+                disable-claude-cloak-mode: true
         dest: "{{ config_directory }}/config/config.yaml"
         owner: "{{ common_root_id }}"
         group: "{{ common_root_group }}"
