@@ -26,6 +26,14 @@ modules:
         username: {{ blackbox_auth_username }}
         password: {{ blackbox_auth_password }}
 
+  http_apprise_auth:
+    <<: *module
+    http:
+      <<: *probe
+      basic_auth:
+        username: {{ blackbox_apprise_auth_username | ansible.builtin.to_json }}
+        password: {{ blackbox_apprise_auth_password | ansible.builtin.to_json }}
+
   http_page_auth:
     <<: *module
     http:

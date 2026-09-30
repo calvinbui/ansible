@@ -8,6 +8,9 @@
     blackbox_auth_username: "{{ blackbox_htpasswd.username }}"
     blackbox_auth_password: "{{ blackbox_htpasswd.password }}"
 
+    blackbox_apprise_auth_username: "{{ tracearr_apprise_auth.username }}"
+    blackbox_apprise_auth_password: "{{ tracearr_apprise_auth.password }}"
+
     container_network: "{{ networks.user }}"
 
   handlers:

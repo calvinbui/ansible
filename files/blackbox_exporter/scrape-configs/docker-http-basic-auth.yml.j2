@@ -14,10 +14,15 @@ scrape_configs:
         action: keep
         source_labels: [__meta_docker_container_label_blackbox_enable]
         regex: true
-      - # Only keep containers that have a `blackbox.auth = none` label.
+      - # Only keep containers that use Basic Auth.
         action: keep
         source_labels: [__meta_docker_container_label_blackbox_auth]
-        regex: 'basic'
+        regex: '(basic|apprise)'
+      - # Use the Apprise credentials for its health probe.
+        source_labels: [__meta_docker_container_label_blackbox_auth]
+        regex: apprise
+        target_label: __param_module
+        replacement: http_apprise_auth
       - # Only keep containers that have a https `blackbox.target` label.
         action: keep
         source_labels: [__meta_docker_container_label_blackbox_target]
