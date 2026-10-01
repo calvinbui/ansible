@@ -364,6 +364,20 @@
       matchPackageNames: ['/.*\\/cli-proxy-api$/'],
       sourceUrl: 'https://github.com/router-for-me/CLIProxyAPI',
     },
+    /* happier relay */
+    {
+      matchDatasources: ['docker'],
+      matchPackageNames: ['ghcr.io/happier-dev/relay-server'],
+      sourceUrl: 'https://github.com/happier-dev/happier',
+      changelogUrl: 'https://github.com/happier-dev/happier/releases/tag/server-stable',
+    },
+    /* happier dev-box */
+    {
+      matchDatasources: ['docker'],
+      matchPackageNames: ['ghcr.io/happier-dev/dev-box'],
+      sourceUrl: 'https://github.com/happier-dev/happier',
+      changelogUrl: 'https://github.com/happier-dev/happier/releases/tag/cli-stable',
+    },
     /* euro-office */
     {
       matchPackageNames: ['/euro-office\\/documentserver$/'],
