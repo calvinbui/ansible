@@ -52,7 +52,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/happier-dev/relay-server:stable@sha256:c183882f529b17a54445b439f62b1b4d0f78824fe9ee1faf15f02a79e6d5aa91
+        image: ghcr.io/happier-dev/relay-server:stable@sha256:61d88f9b75961098b0d03a151a545f4436360a12cc3ba7c7a33f58b267ebda90
         env:
           HAPPIER_SERVER_FLAVOR: full
 
