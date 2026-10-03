@@ -4,7 +4,15 @@ set -euo pipefail
 
 NOTIFYTYPE=${NOTIFYTYPE:-TEST}
 UPSNAME=${UPSNAME:-ups@localhost}
-UPS_STATUS=$(upsc "$UPSNAME" 2>/dev/null || echo "Unable to get UPS status")
+UPS_STATUS=$(upsc "$UPSNAME" 2>/dev/null) || UPS_STATUS="Unable to get UPS status"
+
+if [[ "$NOTIFYTYPE" == "LOWBATT" ]]; then
+  UPS_FLAGS=$(awk '$1 == "ups.status:" {$1=""; print; exit}' <<< "$UPS_STATUS")
+  # Suppress only confirmed mains-power warnings; keep alerts if status is unknown.
+  if [[ " $UPS_FLAGS " == *" OL "* && " $UPS_FLAGS " != *" OB "* ]]; then
+    exit 0
+  fi
+fi
 
 EMAIL_BODY="Subject: UPS Alert: $NOTIFYTYPE on $UPSNAME"
 EMAIL_BODY+="\n\n"
