@@ -50,6 +50,15 @@
         image: public.ecr.aws/docker/library/traefik:v3.7.13
         ip: "{{ traefik_ip }}"
         restart_policy: always
+        # Check provider routing without depending on Authelia's backend.
+        healthcheck: >-
+          printf 'HEAD / HTTP/1.1\r\nHost: authelia.{{ common_tld }}\r\nConnection: close\r\n\r\n'
+          | nc -w 3 127.0.0.1 80 | grep -q '^HTTP/1.1 307 '
+        healthcheck_failure_action: restart
+        healthcheck_start_period: 10m
+        healthcheck_interval: 60s
+        healthcheck_timeout: 5s
+        healthcheck_retries: 5
         env:
           CF_DNS_API_TOKEN: !vault |
             $ANSIBLE_VAULT;1.1;AES256
