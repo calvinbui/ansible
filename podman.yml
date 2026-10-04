@@ -83,6 +83,49 @@
         mode: "0644"
       notify: Restart podman
 
+    - name: Create override directory for podman-restart.service
+      ansible.builtin.file:
+        path: /etc/systemd/system/podman-restart.service.d
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Keep Podman shutdown dependencies available during container cleanup
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/podman-restart.service.d/shutdown-ordering.conf
+        content: |
+          [Unit]
+          Wants=dbus.service netavark-dhcp-proxy.service
+          After=dbus.service netavark-dhcp-proxy.service
+          # Keep the API available until its container event-stream clients exit.
+          After=podman.service podman.socket
+          # Keep the optional backup disk mounted through container cleanup.
+          After=mnt-borg\x2dusb.mount
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Create override directory for machine.slice
+      ansible.builtin.file:
+        path: /etc/systemd/system/machine.slice.d
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Let Podman manage container shutdown without competing scope stops
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/machine.slice.d/podman-shutdown.conf
+        content: |
+          [Unit]
+          # Podman's scopes already disable default shutdown dependencies.
+          # Do not stop their parent slice concurrently with podman-restart.service.
+          DefaultDependencies=no
+        owner: root
+        group: root
+        mode: "0644"
+
     - name: Enable podman-restart service
       ansible.builtin.systemd_service:
         name: podman-restart.service
