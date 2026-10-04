@@ -63,7 +63,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-apprise"
-        image: docker.io/caronc/apprise:v2.0.0
+        image: docker.io/caronc/apprise:2.0.1
         env:
           APPRISE_API_ONLY: "yes"
           APPRISE_AUTH_REQUIRED: "yes"
