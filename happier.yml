@@ -53,6 +53,7 @@
         name: podman_container
       vars:
         image: ghcr.io/happier-dev/relay-server:stable@sha256:61d88f9b75961098b0d03a151a545f4436360a12cc3ba7c7a33f58b267ebda90
+        stop_signal: "{{ signal_map['SIGKILL'] }}"
         env:
           HAPPIER_SERVER_FLAVOR: full
 
