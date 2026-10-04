@@ -380,7 +380,10 @@
     },
     /* euro-office */
     {
-      matchPackageNames: ['/euro-office\\/documentserver$/'],
+      matchDatasources: ['docker'],
+      matchPackageNames: ['ghcr.io/euro-office/documentserver'],
+      // Hotfixes are stable revisions, not Docker compatibility suffixes.
+      versioning: 'regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?:-hotfix\\.(?<build>\\d+))?$',
       sourceUrl: 'https://github.com/Euro-Office/DocumentServer',
     },
     /* emqx */
