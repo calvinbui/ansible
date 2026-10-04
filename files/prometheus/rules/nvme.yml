@@ -26,11 +26,11 @@ groups:
           description: "{{ $labels.device }} has {{ $value }} media errors reading/writing NAND flash"
       -
         alert: NVMeErrorLogEntries
-        expr: nvme_num_err_log_entries_total > 0
+        expr: increase(nvme_num_err_log_entries_total[1h]) > 0
         for: 5m
         annotations:
-          summary: NVMe Error Log Entries
-          description: "{{ $labels.device }} has {{ $value }} error log entries"
+          summary: New NVMe Error Log Entries
+          description: "{{ $labels.device }} has recorded new NVMe error log entries in the last hour"
       -
         alert: NVMeAvailableSpareLow
         expr: nvme_available_spare_ratio < nvme_available_spare_threshold_ratio
