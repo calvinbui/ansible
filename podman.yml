@@ -106,6 +106,18 @@
         group: root
         mode: "0644"
 
+    - name: Keep Podman shutdown hook armed after container startup errors
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/podman-restart.service.d/startup-tolerance.conf
+        content: |
+          [Service]
+          # Preserve the shutdown hook when the bulk container start fails.
+          ExecStart=
+          ExecStart=-/usr/bin/podman $LOGGING start --all --filter should-start-on-boot=true
+        owner: root
+        group: root
+        mode: "0644"
+
     - name: Create override directory for machine.slice
       ansible.builtin.file:
         path: /etc/systemd/system/machine.slice.d
