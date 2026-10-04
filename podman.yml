@@ -5,6 +5,15 @@
   vars:
     application: podman
 
+    # Stop these together before the remaining containers, keeping dependencies available.
+    podman_shutdown_first_containers:
+      - home-assistant
+      - plex-auto-languages
+      - tracearr
+      - traefik
+      - otf
+      - watchyourlan
+
   handlers:
     - name: Restart podman
       ansible.builtin.systemd:
@@ -102,6 +111,22 @@
           After=podman.service podman.socket
           # Keep the optional backup disk mounted through container cleanup.
           After=mnt-borg\x2dusb.mount
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Stop application clients before their shutdown dependencies
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/podman-restart.service.d/application-shutdown.conf
+        content: |
+          [Service]
+          # Close proxy connections and applications while databases and Plex remain up.
+          ExecStop=
+          {% if podman_shutdown_first_containers %}
+          ExecStop=-/usr/bin/podman $LOGGING stop --service --ignore {{ podman_shutdown_first_containers | ansible.builtin.join(' ') }}
+          {% endif %}
+          # Always finish with the vendor's bulk stop, even if the first pass fails.
+          ExecStop=/usr/bin/podman $LOGGING stop --service --all
         owner: root
         group: root
         mode: "0644"
