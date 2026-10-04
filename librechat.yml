@@ -323,4 +323,4 @@
         healthcheck_failure_action: restart
         healthcheck_interval: 45s
         healthcheck_timeout: 5s
-        healthcheck_retries: 2
+        healthcheck_retries: 8
