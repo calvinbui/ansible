@@ -47,7 +47,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: public.ecr.aws/docker/library/traefik:v3.7.13
+        image: public.ecr.aws/docker/library/traefik:3.7.14
         ip: "{{ traefik_ip }}"
         restart_policy: always
         # Check provider routing without depending on Authelia's backend.
