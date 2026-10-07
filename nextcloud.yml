@@ -138,7 +138,7 @@
         user: www-data
         command: "php occ config:system:set preview_imaginary_url --value=http://{{ application }}-imaginary:9000"
       register: _command_result
-      failed_when: "'set to string' not in _command_result.stdout"
+      failed_when: "'set to' not in _command_result.stdout"
       changed_when: false
       until: _command_result is success
       retries: 3
