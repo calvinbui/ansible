@@ -27,15 +27,26 @@
       ansible.builtin.copy:
         content: |
           server:
-            port: 8080
             sources:
               - path: "/data"
                 config:
                   rules:
                     - folderPath: "/"
                       viewable: true
+                  defaultPermissions:
+                    view: true
+                    modify: false
+                    create: false
+                    delete: false
+                    download: false
+            database:
+              path: "/home/filebrowser/data/filebrowser.sqlite"
+
+          http:
+            port: 8080
             externalUrl: "https://{{ application }}.{{ common_tld }}"
             internalUrl: "http://{{ application }}.{{ common_local_tld }}:8080"
+            trustProxyHeaders: true
 
           auth:
             methods:
@@ -58,16 +69,18 @@
                 createUser: true
 
           userDefaults:
-            locale: "{{ common_locale }}"
-            showHidden: true
-            permissions:
-              api: true
-              admin: true
-              modify: true
-              share: true
-              realtime: true
-            loginMethod: "oidc"
-            disableUpdateNotifications: true
+            listing:
+              showHidden: true
+            ui:
+              locale: "{{ common_locale }}"
+            account:
+              disableUpdateNotifications: true
+              loginMethod: "oidc"
+              permissions:
+                admin: true
+                api: true
+                share: true
+                realtime: true
 
           integrations:
             office:
@@ -87,7 +100,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/gtsteffaniak/filebrowser:1.5.8-stable
+        image: ghcr.io/gtsteffaniak/filebrowser:2.0.0-stable
         user: "{{ common_user_id }}:{{ common_group_id }}"
         volumes:
           - "{{ common_directory_storage }}:/data"
