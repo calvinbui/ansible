@@ -10,8 +10,8 @@ ai_models:
     name: claude-haiku-4-5-20251001
     label: Claude Haiku 4.5
   sonnet:
-    name: claude-sonnet-5
-    label: Claude Sonnet 5
+    name: claude-sonnet-5-5
+    label: Claude Sonnet 5.5
   opus:
     name: claude-opus-5-5
     label: Claude Opus 5.5
@@ -19,7 +19,7 @@ ai_models:
     name: claude-fable-5-1
     label: Claude Fable 5.1
 
-ai_default_model: "{{ ai_models.sonnet.name }}"
+ai_default_model: "{{ ai_models.opus.name }}"
 ai_small_model: "{{ ai_models.haiku.name }}"
 
 ai_embedding_model:
