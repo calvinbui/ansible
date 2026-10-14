@@ -100,7 +100,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/gtsteffaniak/filebrowser:2.0.0-stable
+        image: ghcr.io/gtsteffaniak/filebrowser:2.0.1-stable
         user: "{{ common_user_id }}:{{ common_group_id }}"
         volumes:
           - "{{ common_directory_storage }}:/data"
