@@ -7,6 +7,7 @@
 
     # Stop these together before the remaining containers, keeping dependencies available.
     podman_shutdown_first_containers:
+      - grafana
       - home-assistant
       - plex-auto-languages
       - tracearr
