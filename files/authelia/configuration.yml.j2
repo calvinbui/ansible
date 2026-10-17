@@ -70,6 +70,11 @@ notifier:
     sender: "{{ application }}{{ common_email_to }}"
     disable_require_tls: "{{ 'false' if common_email_protocol=='tls' else 'true' }}"
 
+definitions:
+  user_attributes:
+    rustfs_policy:
+      expression: 'username == "{{ common_user }}" ? ["consoleAdmin"] : []'
+
 identity_providers:
   oidc:
     jwks:
@@ -96,6 +101,14 @@ identity_providers:
         id_token: ['groups', 'email', 'email_verified', 'alt_emails', 'preferred_username', 'name']
       otf_claims_policy:
         id_token: ['name']
+      rustfs_claims_policy:
+        id_token: ['email', 'preferred_username', 'rustfs_policy']
+        custom_claims:
+          rustfs_policy: {}
+
+    scopes:
+      rustfs:
+        claims: ['rustfs_policy']
 
     clients:
       {%- for k, v in oidc_auth.items() %}
@@ -122,30 +135,32 @@ identity_providers:
           - groups
         {%- elif k in ["outline"] %}
           - offline_access
+        {%- elif k == "rustfs" %}
+          - rustfs
         {%- endif %}
 
-        {%- if k in ["agentgateway", "happier", "lubelogger", "mealie", "nextcloud"] %}
+        {%- if k in ["agentgateway", "happier", "lubelogger", "mealie", "nextcloud", "rustfs"] %}
         require_pkce: true
         pkce_challenge_method: 'S256'
         {%- endif %}
 
         userinfo_signed_response_alg: none
 
-        {%- if k in ["agentgateway", "happier", "mealie"] %}
+        {%- if k in ["agentgateway", "happier", "mealie", "rustfs"] %}
         grant_types:
           - authorization_code
         {%- endif %}
 
-        {%- if k in ["happier", "immich", "librechat", "lubelogger", "outline", "paperless", "tracearr"] %}
+        {%- if k in ["happier", "immich", "librechat", "lubelogger", "outline", "paperless", "rustfs", "tracearr"] %}
         token_endpoint_auth_method: client_secret_post
         {%- endif %}
 
-        {%- if k in ["agentgateway", "happier", "immich", "lubelogger", "outline"] %}
+        {%- if k in ["agentgateway", "happier", "immich", "lubelogger", "outline", "rustfs"] %}
         response_types:
           - code
         {%- endif %}
 
-        {%- if k in ["karakeep", "lubelogger", "nextcloud", "otf"] %}
+        {%- if k in ["karakeep", "lubelogger", "nextcloud", "otf", "rustfs"] %}
         claims_policy: {{ k }}_claims_policy
         {%- endif %}
       {%- endfor %}

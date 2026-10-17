@@ -18,16 +18,19 @@
       ansible.builtin.file:
         path: "{{ config_directory }}"
         state: directory
-        owner: "{{ common_user }}"
-        group: "{{ common_group }}"
-        mode: "0771"
+        recurse: true
+        follow: false
+        owner: "10001"
+        group: "10001"
 
     - name: Create container
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: docker.io/rustfs/rustfs:1.0.0-alpha.68
+        image: ghcr.io/rustfs/rustfs:1.0.2
         env:
+          RUSTFS_OBS_LOG_DIRECTORY: "" # stdout
+
           RUSTFS_ACCESS_KEY: "{{ common_user }}"
           RUSTFS_SECRET_KEY: !vault |
             $ANSIBLE_VAULT;1.1;AES256
@@ -37,6 +40,17 @@
             6464333863626263310a366565313338666132616666633932353063323235653831343637643662
             31313332326434363239316634663639373666636437316137653566336332383662633337656563
             3366666466366163336163323431663439323832643235363934
+
+          RUSTFS_BROWSER_REDIRECT_URL: "https://{{ application }}.{{ common_tld }}"
+          RUSTFS_OUTBOUND_ALLOW_ORIGINS: "{{ oidc_base_url }}"
+          RUSTFS_IDENTITY_OPENID_CONFIG_URL: "{{ oidc_discovery_url }}"
+          RUSTFS_IDENTITY_OPENID_CLIENT_ID: "{{ application }}"
+          RUSTFS_IDENTITY_OPENID_CLIENT_SECRET: "{{ oidc_auth.rustfs.secret }}"
+          RUSTFS_IDENTITY_OPENID_SCOPES: openid,profile,email,rustfs
+          RUSTFS_IDENTITY_OPENID_REDIRECT_URI: "{{ oidc_auth.rustfs.redirect_uris[0] }}"
+          RUSTFS_IDENTITY_OPENID_REDIRECT_URI_DYNAMIC: "off"
+          RUSTFS_IDENTITY_OPENID_CLAIM_NAME: rustfs_policy
+          RUSTFS_IDENTITY_OPENID_DISPLAY_NAME: "{{ oidc_provider | ansible.builtin.title }}"
         volumes:
           - "{{ config_directory }}:/data"
         traefik:
@@ -46,6 +60,8 @@
           - name: console
             port: 9001
             rule: Host(`{{ application }}.{{ common_tld }}`)
+        blackbox:
+          path: /health/ready
         homepage:
           name: RustFS
           group: Storage
