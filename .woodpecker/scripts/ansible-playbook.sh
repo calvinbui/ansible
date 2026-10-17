@@ -9,7 +9,7 @@ mapfile -t allplaybooks < <(
   echo "$CI_PIPELINE_FILES" \
   | jq -r '.[]' \
   | grep -E '^[^/]+\.yml$' \
-  | grep -v '^requirements\.yml$'
+  | grep -vE '^(requirements|woodpecker)\.yml$'
 )
 allplaybooks=($(for f in "${allplaybooks[@]}"; do [[ -f "$f" ]] && echo "$f"; done))
 echo "Playbooks changed: ${allplaybooks[*]}"
@@ -23,7 +23,7 @@ if (( ${#roles[@]} != 0 )); then
     mapfile -t playbooks < <(grep "role: ${role}" ./*.yml -l)
     if (( ${#playbooks[@]} != 0 )); then
       for pb in "${playbooks[@]}"; do
-        if [[ ! " ${allplaybooks[*]} " =~ $pb ]]; then
+        if [[ "${pb#./}" != "woodpecker.yml" && ! " ${allplaybooks[*]} " =~ $pb ]]; then
           allplaybooks+=( "$pb" )
         fi
       done
