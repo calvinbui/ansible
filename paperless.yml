@@ -63,6 +63,10 @@
       vars:
         container_name: "{{ application }}-tika"
         image: docker.io/apache/tika:3.3.1.0
+        blackbox:
+          protocol: http
+          host: "{{ application }}-tika.{{ common_local_tld }}:9998"
+          path: /version
 
     - name: Create gotenberg container
       ansible.builtin.include_role:

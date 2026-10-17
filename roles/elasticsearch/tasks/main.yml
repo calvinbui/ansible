@@ -27,6 +27,9 @@
       - "{{ elasticsearch_directory }}:/usr/share/elasticsearch/data"
     cap_add:
       - IPC_LOCK
+    blackbox:
+      probe: tcp
+      host: "{{ elasticsearch_name }}.{{ common_local_tld }}:9200"
 
 - name: Set variables
   ansible.builtin.set_fact:

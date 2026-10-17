@@ -42,6 +42,9 @@
           - --hide-scrollbars
           - --disable-blink-features=AutomationControlled
           - --window-size=1440,900
+        blackbox:
+          probe: tcp
+          host: "{{ application }}-chrome.{{ common_local_tld }}:9222"
 
     - name: Create app container
       ansible.builtin.include_role:

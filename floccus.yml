@@ -117,4 +117,5 @@
         traefik:
           - port: 80
         blackbox:
-          enable: false
+          probe: tcp
+          host: "{{ application }}.{{ common_local_tld }}:80"

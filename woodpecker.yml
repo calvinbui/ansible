@@ -196,6 +196,10 @@
         volumes:
           - "{{ config_directory }}/agent:/etc/woodpecker"
           - "{{ config_directory }}/ssh:/home/woodpecker/.ssh"
+        blackbox:
+          protocol: http
+          host: "{{ application }}-agent.{{ common_local_tld }}:3000"
+          path: /healthz
 
 - hosts: nvr
   gather_facts: false

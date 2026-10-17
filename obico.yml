@@ -71,6 +71,10 @@
           DEBUG: "False"
           FLASK_APP: "server.py"
           HAS_GPU: "True"
+        blackbox:
+          protocol: http
+          host: "{{ application }}-ml_api.{{ common_local_tld }}:3333"
+          path: /hc/
         labels:
           - com.centurylinklabs.watchtower.enable=false
 

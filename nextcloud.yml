@@ -131,6 +131,10 @@
         container_name: "{{ application }}-imaginary"
         image: docker.io/h2non/imaginary:1.2.4
         command: -enable-url-source
+        blackbox:
+          protocol: http
+          host: "{{ application }}-imaginary.{{ common_local_tld }}:9000"
+          path: /health
 
     - name: Add imaginary url to config
       containers.podman.podman_container_exec:
@@ -195,7 +199,8 @@
             middlewares:
               - "{{ application }}-notify-push-stripprefix"
         blackbox:
-          enable: false
+          probe: tcp
+          host: "{{ application }}-notify-push.{{ common_local_tld }}:7867"
         labels:
           - "traefik.http.middlewares.{{ application }}-notify-push-stripprefix.stripprefix.prefixes=/push"
 

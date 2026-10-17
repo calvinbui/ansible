@@ -210,6 +210,10 @@
                 39633232363530663238613331316432346634653661373063396135333937386532
 
               TZ: "{{ common_timezone }}"
+            blackbox:
+              protocol: http
+              host: "{{ container_name }}.{{ common_local_tld }}:8056"
+              path: /api/devices
 
         - name: Create wyoming-piper container
           ansible.builtin.include_role:

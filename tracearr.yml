@@ -81,6 +81,9 @@
           APPRISE_STATEFUL_MODE: disabled
           APPRISE_CONFIG_LOCK: "yes"
           APPRISE_WORKER_COUNT: "1"
+        blackbox:
+          probe: tcp
+          host: "{{ application }}-apprise.{{ common_local_tld }}:8000"
 
     - name: Create container
       ansible.builtin.include_role:

@@ -43,3 +43,7 @@
         volumes:
           - "{{ config_directory }}/data:/app/data"
           - "{{ config_directory }}/logs:/app/logs"
+        blackbox:
+          protocol: http
+          host: "{{ application }}.{{ common_local_tld }}:3600"
+          path: /health

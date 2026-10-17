@@ -70,6 +70,10 @@
           REGION: planet
         volumes:
           - "{{ config_directory }}/photon:/photon/data"
+        blackbox:
+          protocol: http
+          host: "{{ application }}-photon.{{ common_local_tld }}:2322"
+          path: /status
 
     - name: Create app container
       ansible.builtin.include_role:

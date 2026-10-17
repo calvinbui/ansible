@@ -27,6 +27,9 @@
       - "{{ mongo_directory }}/db:/data/db"
       - "{{ mongo_directory }}/dump:/dump"
       - /etc/localtime:/etc/localtime:ro
+    blackbox:
+      probe: tcp
+      host: "{{ mongo_name }}.{{ common_local_tld }}:27017"
 
 - name: Set variables
   ansible.builtin.set_fact:

@@ -68,3 +68,7 @@
           TZ: "{{ common_timezone }}"
         volumes:
           - "{{ config_directory }}:/config"
+        blackbox:
+          protocol: http
+          host: "{{ application }}.{{ common_local_tld }}:9880"
+          path: /health

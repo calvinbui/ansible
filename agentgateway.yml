@@ -132,6 +132,10 @@
           - "{{ config_directory }}/data:/data"
         traefik:
           - port: 4000
+        blackbox:
+          protocol: http
+          host: "{{ application }}.{{ common_local_tld }}:15021"
+          path: /healthz/ready
         homepage:
           name: agentgateway
           group: AI

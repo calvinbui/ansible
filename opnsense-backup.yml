@@ -62,3 +62,6 @@
           - "{{ _opnsense_backup_rsa_key.filename }}.pub:/home/opnsense/.ssh/keys/{{ _opnsense_backup_rsa_key.filename | ansible.builtin.basename }}.pub"
 
           - "{{ common_directory_backup }}/opnsense:/home/opnsense/share"
+        blackbox:
+          probe: tcp
+          host: "{{ application }}.{{ common_local_tld }}:22"

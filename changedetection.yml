@@ -28,6 +28,9 @@
           TOKEN: "{{ changedetection_browserless_token }}"
           CONCURRENT: "10"
           TIMEOUT: "60000"
+        blackbox:
+          probe: tcp
+          host: "{{ application }}-chrome.{{ common_local_tld }}:3000"
 
     - name: Create "{{ application }}" container
       ansible.builtin.include_role:

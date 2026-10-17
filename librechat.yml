@@ -88,6 +88,10 @@
       vars:
         container_name: "{{ application }}-rag-api"
         image: ghcr.io/danny-avila/librechat-rag-api-dev@sha256:13898be3c4ce9ce60d40606c426929d504fef4d89dfddeac966e12fb740cae5c
+        blackbox:
+          protocol: http
+          host: "{{ application }}-rag-api.{{ common_local_tld }}:8000"
+          path: /health
         env:
           POSTGRES_DB: "{{ _postgres_database }}"
           POSTGRES_USER: "{{ _postgres_username }}"

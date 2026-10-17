@@ -33,6 +33,10 @@
           - "{{ common_directory_backup }}/ViofoSync:/recordings"
         device:
           - /dev/dri:/dev/dri
+        blackbox:
+          protocol: http
+          host: "{{ application }}.{{ common_local_tld }}:8080"
+          path: /
         homepage:
           name: ViofoSync
           group: Car
