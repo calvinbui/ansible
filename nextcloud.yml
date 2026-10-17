@@ -124,6 +124,22 @@
           - "ofelia.job-exec.{{ application }}-cron.tty=false"
           - "ofelia.job-exec.{{ application }}-cron.no-overlap=true"
 
+    # Apache starts after the image entrypoint finishes upgrading Nextcloud.
+    - name: Wait for Nextcloud to finish initialization
+      containers.podman.podman_container_exec:
+        name: "{{ application }}"
+        user: www-data
+        command: curl --fail --silent --show-error --max-time 10 http://localhost/status.php
+      register: _command_result
+      changed_when: false
+      until:
+        - _command_result is success
+        - (_command_result.stdout | ansible.builtin.from_json).installed
+        - not (_command_result.stdout | ansible.builtin.from_json).maintenance
+        - not (_command_result.stdout | ansible.builtin.from_json).needsDbUpgrade
+      retries: 60
+      delay: 5
+
     - name: Create imaginary container
       ansible.builtin.include_role:
         name: podman_container
