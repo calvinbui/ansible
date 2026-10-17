@@ -23,7 +23,7 @@
             middlewares:
               - "{{ application }}-sslheaders"
         blackbox:
-          - path: /healthcheck
+          path: /healthcheck
         labels:
           - "traefik.http.middlewares.{{ application }}-sslheaders.headers.customrequestheaders.X-Forwarded-Proto=https"
 

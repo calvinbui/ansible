@@ -63,7 +63,7 @@
         traefik:
           - port: 8080
         blackbox:
-          path: /login
+          path: /api/v1/info/status
         homepage:
           name: Stirling PDF
           group: Documents

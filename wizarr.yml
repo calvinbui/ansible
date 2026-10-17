@@ -35,6 +35,8 @@
         stop_signal: "{{ signal_map['SIGKILL'] }}"
         traefik:
           - port: 5690
+        blackbox:
+          path: /health
         homepage:
           group: Plex
           weight: 700

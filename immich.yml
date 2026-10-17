@@ -93,6 +93,8 @@
         traefik:
           - port: 2283
             rule: Host(`{{ application }}.{{ common_tld }}`)
+        blackbox:
+          path: /api/server/ping
         homepage:
           group: Favourites
           weight: 150
@@ -115,6 +117,10 @@
       vars:
         container_name: "{{ application }}-machine-learning"
         image: ghcr.io/immich-app/immich-machine-learning:v3.3.3-openvino
+        blackbox:
+          protocol: http
+          host: "{{ application }}-machine-learning.{{ common_local_tld }}:3003"
+          path: /ping
         group_add:
           - 992 # 'render'
         volumes:

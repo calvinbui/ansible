@@ -114,4 +114,4 @@
         metrics:
           - port: 9090
         blackbox:
-          path: /-/healthy
+          path: /-/ready

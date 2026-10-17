@@ -69,3 +69,7 @@
           - "{{ config_directory }}:/config"
         device:
           - /dev/dri:/dev/dri
+        blackbox:
+          protocol: http
+          host: "{{ application }}.{{ common_local_tld }}:1984"
+          path: /api/schemes

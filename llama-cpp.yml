@@ -75,3 +75,5 @@
           group: AI
           weight: 275
           description: "Local AI models and embeddings"
+        blackbox:
+          path: /health

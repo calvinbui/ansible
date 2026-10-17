@@ -112,3 +112,5 @@
           group: Sharing
           weight: 880
           description: "Web file browser"
+        blackbox:
+          path: /health

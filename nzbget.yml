@@ -68,6 +68,8 @@
             name: "{{ application }}-bypass-auth"
             port: 6789
             rule: Host(`{{ application }}.{{ common_tld }}`) && Header(`{{ traefik_bypass_auth_header.key }}`, `{{ traefik_bypass_auth_header.value }}`)
+        blackbox:
+          path: /jsonrpc/version
         homepage:
           name: NZBGet
           group: Favourites

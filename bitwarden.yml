@@ -104,3 +104,5 @@
           group: Tools
           weight: 200
           description: "Password manager (Vaultwarden)"
+        blackbox:
+          path: /alive

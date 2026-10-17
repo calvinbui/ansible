@@ -75,6 +75,8 @@
           - "{{ config_directory }}/data:/app/data"
         traefik:
           - port: 9000
+        blackbox:
+          path: /api/app/about
         homepage:
           group: Home
           weight: 200

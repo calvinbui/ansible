@@ -132,7 +132,7 @@
           description: "CI"
           href: "https://{{ application }}.{{ common_tld }}"
         blackbox:
-          path: /health
+          path: /api/healthz
 
     - name: Create SSH folder
       ansible.builtin.file:

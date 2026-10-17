@@ -33,6 +33,8 @@
         traefik:
           - port: 8945
             auth: page
+        blackbox:
+          path: /healthcheck
         homepage:
           group: Tools
           weight: 250

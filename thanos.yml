@@ -117,6 +117,8 @@
           description: "Prometheus long-term storage"
         metrics:
           - port: 10902
+        blackbox:
+          path: /-/ready
 
     - name: Create bucket container
       ansible.builtin.include_role:
@@ -143,3 +145,5 @@
           href: "https://{{ application }}-bucket.{{ common_tld }}"
         metrics:
           - port: 10902
+        blackbox:
+          path: /-/ready

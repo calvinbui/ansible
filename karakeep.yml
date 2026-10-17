@@ -93,6 +93,8 @@
           - "{{ config_directory }}/data:/data"
         traefik:
           - port: 3000
+        blackbox:
+          path: /api/health
         homepage:
           group: Tools
           weight: 400

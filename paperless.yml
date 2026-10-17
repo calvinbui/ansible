@@ -70,6 +70,10 @@
       vars:
         container_name: "{{ application }}-gotenberg"
         image: docker.io/gotenberg/gotenberg:8.38.1
+        blackbox:
+          protocol: http
+          host: "{{ application }}-gotenberg.{{ common_local_tld }}:3000"
+          path: /health
 
     - name: Create app container
       ansible.builtin.include_role:
@@ -253,6 +257,8 @@
         traefik:
           - port: 3000
             rule: Host(`{{ application }}-ai.{{ common_tld }}`)
+        blackbox:
+          path: /health
 
     - name: Create consume folder
       ansible.builtin.file:

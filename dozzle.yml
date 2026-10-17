@@ -60,3 +60,5 @@
           group: Favourites
           weight: 950
           description: "Logs for docker containers"
+        blackbox:
+          path: /healthcheck

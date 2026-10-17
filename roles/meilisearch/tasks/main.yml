@@ -21,6 +21,10 @@
       MEILI_NO_ANALYTICS: "true"
       MEILI_MASTER_KEY: "{{ meilisearch_password }}"
     volumes: "{{ meilisearch_directory }}:/meili_data"
+    blackbox:
+      protocol: http
+      host: "{{ meilisearch_name }}.{{ common_local_tld }}:7700"
+      path: /health
 
 - name: Set variables
   ansible.builtin.set_fact:

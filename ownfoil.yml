@@ -55,6 +55,10 @@
         volumes:
           - "{{ config_directory }}:/app/config"
           - "{{ common_directory_games }}/Switch/Games:/games:ro"
+        blackbox:
+          protocol: http
+          host: "{{ application }}.{{ common_local_tld }}:8465"
+          path: /
         homepage:
           name: Ownfoil
           group: Gaming

@@ -14,6 +14,10 @@
       vars:
         image: docker.io/openspeedtest/latest:v2.0.6
         stop_signal: "{{ signal_map['SIGKILL'] }}"
+        blackbox:
+          protocol: http
+          host: "{{ application }}.{{ common_local_tld }}:3000"
+          path: /
         homepage:
           name: OpenSpeedTest
           group: Networking

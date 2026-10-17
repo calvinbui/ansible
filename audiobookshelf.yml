@@ -28,6 +28,8 @@
           - "{{ config_directory }}/metadata:/metadata"
         traefik:
           - port: 80
+        blackbox:
+          path: /healthcheck
         homepage:
           group: Favourites
           weight: 600

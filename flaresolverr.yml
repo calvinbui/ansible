@@ -16,3 +16,7 @@
         env:
           TEST_URL: "https://{{ common_tld }}"
           TZ: "{{ common_timezone }}"
+        blackbox:
+          protocol: http
+          host: "{{ application }}.{{ common_local_tld }}:8191"
+          path: /health

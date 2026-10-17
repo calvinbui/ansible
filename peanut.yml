@@ -79,6 +79,8 @@
         traefik:
           - port: 8080
             auth: page
+        blackbox:
+          path: /api/ping
         homepage:
           name: PeaNUT
           group: Management

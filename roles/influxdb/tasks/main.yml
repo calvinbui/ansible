@@ -32,6 +32,10 @@
     volumes:
       - "{{ influxdb_directory }}/data:/var/lib/influxdb2"
       - "{{ influxdb_directory }}/config:/etc/influxdb2"
+    blackbox:
+      protocol: http
+      host: "{{ influxdb_name }}.{{ common_local_tld }}:8086"
+      path: /health
     labels:
       - "homepage.name={{ influxdb_homepage.name | ansible.builtin.default(omit) }}"
       - "homepage.group={{ influxdb_homepage.group | ansible.builtin.default(omit) }}"

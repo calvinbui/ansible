@@ -117,3 +117,5 @@
           weight: 200
           description: "AI API proxy"
           href: "https://{{ application }}.{{ common_tld }}/management.html"
+        blackbox:
+          path: /healthz

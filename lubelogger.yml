@@ -67,7 +67,7 @@
         traefik:
           - port: 8080
         blackbox:
-          enable: false
+          path: /health
         homepage:
           name: LubeLogger
           group: Car

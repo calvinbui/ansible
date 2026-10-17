@@ -65,6 +65,9 @@
           /tmp: rw,exec
           /var/lib/journal: rw
           /var/opt/unifi/tmp: rw,size=64m
+        blackbox:
+          host: "{{ application }}.{{ common_local_tld }}"
+          path: /
         homepage:
           name: UniFi OS
           group: Networking

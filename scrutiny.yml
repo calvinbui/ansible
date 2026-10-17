@@ -93,7 +93,7 @@
           description: "S.M.A.R.T. monitoring"
           widget: {}
         blackbox:
-          path: /api/status
+          path: /api/health
 
     - name: Create collector container
       ansible.builtin.include_role:

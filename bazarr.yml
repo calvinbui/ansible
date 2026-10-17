@@ -63,6 +63,8 @@
             name: "{{ application }}-bypass-auth"
             port: 6767
             rule: Host(`{{ application }}.{{ common_tld }}`) && PathPrefix(`/api/`) && Header(`{{ traefik_bypass_auth_header.key }}`, `{{ traefik_bypass_auth_header.value }}`)
+        blackbox:
+          path: /api/system/ping
         homepage:
           group: Media
           weight: 800

@@ -27,3 +27,5 @@
           group: Remote Access
           weight: 600
           description: Database Management
+        blackbox:
+          path: /health
