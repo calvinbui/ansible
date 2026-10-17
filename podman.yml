@@ -14,6 +14,7 @@
       - traefik
       - otf
       - watchyourlan
+      - woodpecker-server
 
   handlers:
     - name: Restart podman
@@ -132,14 +133,22 @@
         group: root
         mode: "0644"
 
-    - name: Keep Podman shutdown hook armed after container startup errors
+    - name: Copy staged container startup script
+      ansible.builtin.copy:
+        src: "{{ files_directory }}/start-containers.sh"
+        dest: /usr/local/sbin/podman-start-containers
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Stage Podman startup while preserving the shutdown hook after errors
       ansible.builtin.copy:
         dest: /etc/systemd/system/podman-restart.service.d/startup-tolerance.conf
         content: |
           [Service]
-          # Preserve the shutdown hook when the bulk container start fails.
+          # Preserve the shutdown hook if any containers fail to start.
           ExecStart=
-          ExecStart=-/usr/bin/podman $LOGGING start --all --filter should-start-on-boot=true
+          ExecStart=-/usr/local/sbin/podman-start-containers
         owner: root
         group: root
         mode: "0644"
