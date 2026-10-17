@@ -74,7 +74,7 @@
               33626639666439366664
             fields: '["pending", "processing"]'
         blackbox:
-          path: /api/v1/status
+          path: /api/v1/status?checkUpdateAvailable=false
 
     - name: Wait for config
       ansible.builtin.wait_for:
