@@ -193,6 +193,9 @@
           - "{{ config_directory }}/conf:/etc/dovecot"
           - "{{ config_directory }}/users:/home/vmail"
           - "{{ common_directory_backup }}/emails:/srv/mail"
+        blackbox:
+          probe: tcp
+          host: "{{ application }}.{{ common_local_tld }}:143"
 
 - hosts: homeserver
 

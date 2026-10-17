@@ -92,3 +92,6 @@
         volumes:
           - "{{ config_directory }}:/opt/emqx/data"
           - "{{ config_directory }}/acl.conf:/opt/emqx/etc/acl.conf:ro"
+        blackbox:
+          probe: tcp
+          host: "{{ application }}.{{ common_local_tld }}:1883"

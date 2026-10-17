@@ -1,7 +1,7 @@
 ---
 
 - name: "Generating HTTP blackbox service discovery labels"
-  when: route.type is undefined or (route.type is defined and route.type == "http")
+  when: (blackbox.probe | ansible.builtin.default(route.type) | ansible.builtin.default('http')) == 'http'
   ansible.builtin.set_fact:
     blackbox_labels: "{{ blackbox_labels | ansible.builtin.default({}) | ansible.builtin.combine({item.key: item.value}) }}"
   loop:
@@ -16,7 +16,7 @@
       value: "{{ blackbox.protocol|default('https') }}://{{ (route.rule | ansible.builtin.regex_replace('^Host\\(`(.*?)`\\).*$', '\\1')) if route.rule is defined else (blackbox.host | ansible.builtin.default(route_name + '.' + common_tld)) }}{{ blackbox.path | ansible.builtin.default('') }}"
 
 - name: "Generating TCP blackbox service discovery labels"
-  when: route.type is defined and route.type == "tcp"
+  when: (blackbox.probe | ansible.builtin.default(route.type) | ansible.builtin.default('http')) == 'tcp'
   ansible.builtin.set_fact:
     blackbox_labels: "{{ blackbox_labels | ansible.builtin.default({}) | ansible.builtin.combine({item.key: item.value}) }}"
   loop:
@@ -28,4 +28,4 @@
       value: "tcp"
     -
       key: "blackbox.target"
-      value: "{{ common_tld }}:{{ route.port }}"
+      value: "{{ blackbox.host if blackbox.host is defined else common_tld ~ ':' ~ route.port }}"

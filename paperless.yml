@@ -290,3 +290,6 @@
           GID: "{{ common_group_id }}"
         volumes:
           - "{{ config_directory }}/consume:/storage"
+        blackbox:
+          probe: tcp
+          host: "{{ application }}-samba.{{ common_local_tld }}:445"

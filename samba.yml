@@ -111,3 +111,6 @@
           - NET_ADMIN
           - NET_RAW
         stop_signal: "{{ signal_map['SIGKILL'] }}"
+        blackbox:
+          probe: tcp
+          host: "{{ application }}.{{ common_local_tld }}:445"

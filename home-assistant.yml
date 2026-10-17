@@ -169,6 +169,9 @@
               ACCEPT_INVITATIONS: "true"
             volumes:
               - "{{ home_assistant_addons_dir }}/eufy-security-ws:/data"
+            blackbox:
+              probe: tcp
+              host: "{{ container_name }}.{{ common_local_tld }}:3000"
 
         - name: Create govee2mqtt container
           ansible.builtin.include_role:
@@ -217,6 +220,9 @@
             command: --voice=en_US-ryan-high
             volumes:
               - "{{ home_assistant_addons_dir }}/wyoming-piper:/data"
+            blackbox:
+              probe: tcp
+              host: "{{ container_name }}.{{ common_local_tld }}:10200"
 
     - name: Configure Automations
       tags:

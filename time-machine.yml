@@ -99,3 +99,6 @@
           /var/lib/samba: rw,mode=01777
           /var/cache/samba: rw,mode=01777
           /run/samba: rw,mode=01777
+        blackbox:
+          probe: tcp
+          host: "{{ application }}.{{ common_local_tld }}:445"
