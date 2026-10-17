@@ -1,0 +1,81 @@
+---
+
+- hosts: homeserver
+
+  vars:
+    application: borg-usb-recovery
+
+    borg_usb_recovery_venv: "{{ config_directory }}/venv"
+
+  handlers:
+    - name: Reload systemd
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+
+  tasks:
+    - name: Set USB repository
+      ansible.builtin.set_fact:
+        _borg_repository_usb: >-
+          {{
+            borg_repositories
+            | ansible.builtin.selectattr('name', 'equalto', 'usb')
+            | ansible.builtin.selectattr('protocol', 'equalto', 'local')
+            | ansible.builtin.list
+            | ansible.builtin.first
+          }}
+
+    - name: Install Python virtual environment support
+      ansible.builtin.apt:
+        name:
+          - python3-venv
+          - python3-packaging
+        state: present
+        update_cache: true
+        cache_valid_time: 86400
+
+    - name: Create config folder
+      ansible.builtin.file:
+        path: "{{ config_directory }}"
+        state: directory
+        owner: "{{ common_root_id }}"
+        group: "{{ common_root_group }}"
+        mode: "0700"
+
+    - name: Install recovery Python packages
+      ansible.builtin.pip:
+        name:
+          - python-kasa==0.10.2
+          - tzdata==2026.5
+        virtualenv: "{{ borg_usb_recovery_venv }}"
+        virtualenv_command: python3 -m venv
+        state: present
+
+    - name: Template recovery script
+      ansible.builtin.template:
+        src: "{{ files_directory }}/recover.py.j2"
+        dest: "{{ config_directory }}/recover.py"
+        owner: "{{ common_root_id }}"
+        group: "{{ common_root_group }}"
+        mode: "0700"
+
+    - name: Template systemd units
+      ansible.builtin.template:
+        src: "{{ files_directory }}/{{ application }}.{{ item }}.j2"
+        dest: "/etc/systemd/system/{{ application }}.{{ item }}"
+        owner: "{{ common_root_id }}"
+        group: "{{ common_root_group }}"
+        mode: "0644"
+      loop:
+        - service
+        - timer
+      notify: Reload systemd
+
+    # Starting the timer schedules recovery; do not run the service from a handler.
+    - name: Configure recovery timer
+      vars:
+        borg_usb_recovery_timer_enabled: true
+      ansible.builtin.systemd_service:
+        name: "{{ application }}.timer"
+        enabled: "{{ borg_usb_recovery_timer_enabled }}"
+        state: "{{ 'started' if borg_usb_recovery_timer_enabled else 'stopped' }}"
+        daemon_reload: true

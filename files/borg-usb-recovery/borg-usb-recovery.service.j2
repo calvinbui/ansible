@@ -1,0 +1,21 @@
+[Unit]
+Description=Recover the missing Borg USB backup disk
+Wants=network-online.target
+After=network.target network-online.target podman-restart.service
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart={{ borg_usb_recovery_venv }}/bin/python {{ config_directory }}/recover.py
+ExecStopPost={{ borg_usb_recovery_venv }}/bin/python {{ config_directory }}/recover.py --restore-power
+TimeoutStartSec=5min
+TimeoutStopSec=90s
+# Podman's conmon processes must survive the completed recovery service.
+KillMode=process
+UMask=0077
+StateDirectory={{ application }}
+StateDirectoryMode=0700
+RuntimeDirectory={{ application }}
+RuntimeDirectoryMode=0700
+RuntimeDirectoryPreserve=yes

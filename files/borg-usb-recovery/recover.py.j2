@@ -1,0 +1,491 @@
+#!/usr/bin/env python3
+"""Recover one missing USB backup disk; run as root from the host's systemd."""
+
+import argparse
+import asyncio
+import fcntl
+import json
+import logging
+import os
+from pathlib import Path
+import re
+import signal
+import stat
+import subprocess
+import tempfile
+import time
+
+
+LOG = logging.getLogger("borg-usb-recovery")
+UUID = {{ _borg_repository_usb.uuid | ansible.builtin.to_json }}
+MOUNT_POINT = {{ _borg_repository_usb.mount_point | ansible.builtin.to_json }}
+FSTYPE = {{ _borg_repository_usb.fstype | ansible.builtin.to_json }}
+CONTAINER_REPOSITORY_PATH = {{ _borg_repository_usb.path | ansible.builtin.to_json }}
+REPOSITORIES = {{ borgmatic_backups | ansible.builtin.map(attribute='name') | ansible.builtin.list | ansible.builtin.to_json }}
+CONTAINERS = [f"borgmatic-{name}" for name in REPOSITORIES]
+DEVICE = Path("/dev/disk/by-uuid") / UUID
+PLUG = {"host": "10.127.31.92", "mac": "28:EE:52:74:52:3C", "model": "KP105"}
+
+
+class Unsafe(RuntimeError):
+    """An observation is incomplete or disagrees with the configured identity."""
+
+
+def present(path):
+    """Unlike exists(), a permission or I/O error must not mean 'absent'."""
+    try:
+        Path(path).lstat()
+        return True
+    except FileNotFoundError:
+        return False
+
+
+def unescape(value):
+    return re.sub(r"\\([0-7]{3})", lambda m: chr(int(m[1], 8)), value)
+
+
+def mounts(path="/proc/self/mountinfo"):
+    result = []
+    for line in Path(path).read_text().splitlines():
+        before, after = line.split(" - ", 1)
+        left, right = before.split(), after.split()
+        result.append({"device": left[2], "root": unescape(left[3]),
+                       "target": unescape(left[4]), "options": left[5].split(","),
+                       "fstype": right[0], "source": unescape(right[1]),
+                       "super_options": right[2].split(",")})
+    return result
+
+
+def normalized_mac(value):
+    return re.sub("[:-]", "", value).lower()
+
+
+class State:
+    def __init__(self):
+        self.path = Path("/var/lib/{{ application }}/state.json")
+        if present(self.path):
+            self.data = json.loads(self.path.read_text())
+            if (not isinstance(self.data, dict)
+                    or not isinstance(self.data.get("boot_id"), str)
+                    or type(self.data.get("attempted")) is not bool
+                    or type(self.data.get("recovery_pending")) is not bool
+                    or "power_on_required" not in self.data
+                    or "missing_since" not in self.data):
+                raise Unsafe("Invalid recovery state; refusing to reset it")
+            pending = self.data["power_on_required"]
+            if pending is not None and (not isinstance(pending, dict) or
+                    any(not isinstance(pending.get(k), str) or not pending[k]
+                        for k in ("host", "mac", "model"))):
+                raise Unsafe("Invalid pending power-on identity")
+        else:
+            self.data = {"boot_id": "", "attempted": False, "missing_since": None,
+                         "power_on_required": None, "recovery_pending": False}
+
+    def save(self):
+        self.path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        fd, name = tempfile.mkstemp(prefix=".state-", dir=self.path.parent)
+        try:
+            with os.fdopen(fd, "w") as stream:
+                json.dump(self.data, stream)
+                stream.write("\n")
+                stream.flush()
+                os.fsync(stream.fileno())
+            os.replace(name, self.path)
+            fd = os.open(self.path.parent, os.O_RDONLY | os.O_DIRECTORY)
+            try:
+                os.fsync(fd)
+            finally:
+                os.close(fd)
+        finally:
+            if present(name):
+                os.unlink(name)
+
+
+class Host:
+    def command(self, *args, check=True, starting=False):
+        env = os.environ.copy()
+        if starting:
+            # Otherwise Podman can keep conmon in this short-lived service's cgroup.
+            env.pop("INVOCATION_ID", None)
+        result = subprocess.run(args, text=True, capture_output=True, env=env,
+                                timeout=20, check=False)
+        if check and result.returncode:
+            raise Unsafe(f"{args[0]} {args[1]} failed: {result.stderr.strip()}")
+        return result
+
+    def boot_id(self):
+        return Path("/proc/sys/kernel/random/boot_id").read_text().strip()
+
+    def uptime(self):
+        return float(Path("/proc/uptime").read_text().split()[0])
+
+    def ready(self):
+        if present("/run/systemd/shutdown/scheduled"):
+            return False
+        status = self.command("systemctl", "is-system-running", check=False)
+        if status.stdout.strip() not in {"running", "degraded"}:
+            return False
+        jobs = self.command("systemctl", "list-jobs", "--no-legend", "--no-pager").stdout
+        for row in jobs.splitlines():
+            parts = row.split()
+            if len(parts) < 4:
+                raise Unsafe("Cannot interpret systemd's queued jobs")
+            if (parts[1] in {"shutdown.target", "reboot.target", "poweroff.target",
+                             "halt.target", "kexec.target", "soft-reboot.target"}
+                    or (parts[1] == "podman-restart.service" and parts[2] == "stop")):
+                return False
+        return True
+
+    def disk_present(self):
+        return present(DEVICE)
+
+    def bridge_present(self):
+        # Listing/reading failures are errors, never evidence that USB is absent.
+        for device in Path("/sys/bus/usb/devices").iterdir():
+            if not present(device / "idVendor"):
+                continue
+            vendor = (device / "idVendor").read_text().strip().lower()
+            product = (device / "idProduct").read_text().strip().lower()
+            if vendor == "0080" and product == "a001":
+                return True
+        return False
+
+    def target_mounts(self):
+        return [m for m in mounts() if m["fstype"] != "autofs" and
+                (m["target"] == MOUNT_POINT or m["target"].startswith(MOUNT_POINT + "/"))]
+
+    def inspect(self):
+        raw = json.loads(self.command("podman", "inspect", "--type", "container",
+                                     *CONTAINERS).stdout)
+        by_name = {item["Name"].lstrip("/"): item for item in raw}
+        if set(by_name) != set(CONTAINERS):
+            raise Unsafe("Expected backup containers are missing or ambiguous")
+        for name, repository in zip(CONTAINERS, REPOSITORIES, strict=True):
+            item = by_name[name]
+            if not re.fullmatch(r"[0-9a-f]{64}", item["Id"]):
+                raise Unsafe(f"Invalid container ID for {name}")
+            if item["OCIRuntime"] != "crun":
+                raise Unsafe(f"Unrecognised OCI runtime for {name}")
+            bindings = [m for m in item["Mounts"]
+                        if m["Destination"] == CONTAINER_REPOSITORY_PATH]
+            if (len(bindings) != 1 or bindings[0]["Type"] != "bind"
+                    or bindings[0]["Source"] != f"{MOUNT_POINT}/{repository}"
+                    or bindings[0].get("RW") is not True):
+                raise Unsafe(f"Unexpected USB bind mount for {name}")
+        return by_name
+
+    def oci(self, item):
+        result = self.command("crun", "state", item["Id"], check=False)
+        if result.returncode:
+            missing = f"/run/crun/{item['Id']}/status"
+            if (result.returncode == 1 and missing in result.stderr
+                    and "No such file or directory" in result.stderr):
+                return None
+            raise Unsafe(f"Cannot establish OCI state for {item['Name']}: {result.stderr.strip()}")
+        value = json.loads(result.stdout)
+        if value["id"] != item["Id"]:
+            raise Unsafe("OCI container identity mismatch")
+        return value
+
+    def conmon_pid(self, item):
+        pid_file = item.get("ConmonPidFile")
+        if not pid_file:
+            raise Unsafe(f"Missing conmon PID file path for {item['Name']}")
+        if present(pid_file):
+            return int(Path(pid_file).read_text().strip())
+        return 0
+
+    def pids(self, item):
+        state = item["State"]
+        values = {int(state["Pid"]), int(state.get("ConmonPid", 0)), self.conmon_pid(item)}
+        if any(pid < 0 for pid in values):
+            raise Unsafe("Invalid process ID")
+        return values - {0}
+
+    def stopped(self, item):
+        state = item["State"]
+        if state["Running"] or state["Status"] not in {"exited", "stopped", "created", "configured", "initialized"}:
+            return False
+        if any(present(f"/proc/{pid}") for pid in self.pids(item)):
+            return False
+        runtime = self.oci(item)
+        return runtime is None or (runtime["status"] == "stopped"
+                                    and int(runtime["pid"]) == 0)
+
+    def absent(self):
+        if self.disk_present() or self.bridge_present() or self.target_mounts():
+            return False
+        return all(self.stopped(item) for item in self.inspect().values())
+
+    def verified_device(self):
+        device_stat = DEVICE.stat()
+        if not stat.S_ISBLK(device_stat.st_mode):
+            raise Unsafe("Expected UUID does not resolve to a block device")
+        metadata = dict(line.split("=", 1) for line in self.command(
+            "blkid", "-p", "-o", "export", str(DEVICE)).stdout.splitlines() if "=" in line)
+        if metadata.get("UUID") != UUID or metadata.get("TYPE") != FSTYPE:
+            raise Unsafe("Returned disk UUID or filesystem does not match")
+        return device_stat
+
+    def verified_mount(self):
+        device_stat = self.verified_device()
+        expected_device = f"{os.major(device_stat.st_rdev)}:{os.minor(device_stat.st_rdev)}"
+        actual = self.target_mounts()
+        if (len(actual) != 1 or actual[0]["target"] != MOUNT_POINT
+                or actual[0]["root"] != "/"
+                or actual[0]["device"] != expected_device
+                or actual[0]["fstype"] != FSTYPE
+                or "rw" not in actual[0]["options"] or "rw" not in actual[0]["super_options"]):
+            raise Unsafe("USB mount is missing, unexpected, nested or read-only")
+        for name in REPOSITORIES:
+            root = Path(MOUNT_POINT) / name
+            # Never create an empty destination on the server's root filesystem.
+            for path, directory in ((root, True), (root / "config", False), (root / "data", True)):
+                details = path.lstat()
+                if (details.st_dev != device_stat.st_rdev or stat.S_ISLNK(details.st_mode)
+                        or (directory and not stat.S_ISDIR(details.st_mode))
+                        or (not directory and not stat.S_ISREG(details.st_mode))):
+                    raise Unsafe(f"Repository path is missing or on the wrong filesystem: {path}")
+        return actual[0]
+
+    def mount_disk(self):
+        entries = json.loads(self.command("findmnt", "--fstab", "--json", "--mountpoint",
+                                         MOUNT_POINT, "--output", "SOURCE,FSTYPE,TARGET").stdout)
+        expected = {"source": f"UUID={UUID}", "fstype": FSTYPE, "target": MOUNT_POINT}
+        if entries.get("filesystems") != [expected]:
+            raise Unsafe("Existing fstab entry does not match the USB repository")
+        self.verified_device()
+        if not self.target_mounts():
+            # Use existing fstab, on the host (no private systemd mount namespace).
+            self.command("mount", "--target", MOUNT_POINT)
+        return self.verified_mount()
+
+    def running(self, item, disk_mount, repository):
+        state = item["State"]
+        pid, conmon = int(state["Pid"]), self.conmon_pid(item)
+        runtime = self.oci(item)
+        if (state["Running"] is not True or state["Status"] != "running" or min(pid, conmon) <= 0
+                or not present(f"/proc/{pid}") or not present(f"/proc/{conmon}")
+                or runtime is None or runtime["status"] != "running" or int(runtime["pid"]) != pid):
+            raise Unsafe(f"Container runtime is not running: {item['Name']}")
+        if Path(f"/proc/{conmon}/comm").read_text().strip() != "conmon":
+            raise Unsafe("Reported monitor PID is not conmon")
+        if "borg-usb-recovery.service" in Path(f"/proc/{conmon}/cgroup").read_text():
+            raise Unsafe("Container monitor remained in the recovery service's cgroup")
+        bindings = [m for m in mounts(f"/proc/{pid}/mountinfo")
+                    if m["target"] == CONTAINER_REPOSITORY_PATH]
+        if (len(bindings) != 1 or bindings[0]["device"] != disk_mount["device"]
+                or bindings[0]["root"] != "/" + repository
+                or bindings[0]["fstype"] != FSTYPE or "rw" not in bindings[0]["options"]
+                or "rw" not in bindings[0]["super_options"]):
+            raise Unsafe(f"Runtime USB bind mount is wrong for {item['Name']}")
+
+    def finish(self):
+        if not self.ready():
+            raise Unsafe("Host is shutting down or not ready; deferring container recovery")
+        disk_mount = self.mount_disk()
+        containers = self.inspect()
+        for name, repository in zip(CONTAINERS, REPOSITORIES, strict=True):
+            item = containers[name]
+            if not item["State"]["Running"]:
+                if not self.stopped(item):
+                    raise Unsafe(f"Container is not safely stopped: {name}")
+                if not self.ready():
+                    raise Unsafe("Host is stopping; deferring container start")
+                self.verified_mount()
+                self.command("podman", "start", name, starting=True)
+            self.running(self.inspect()[name], disk_mount, repository)
+        LOG.info("USB filesystem and all %s backup containers verified", len(containers))
+
+
+class Plug:
+    async def connect(self, identity):
+        from kasa import Device, DeviceConfig
+        device = await Device.connect(config=DeviceConfig(
+            host=identity["host"], timeout=5))
+        try:
+            if (normalized_mac(device.mac) != normalized_mac(identity["mac"])
+                    or device.model.split("(", 1)[0] != identity["model"]):
+                raise Unsafe("TP-Link plug MAC/model mismatch; refusing relay control")
+            return device
+        except BaseException:
+            await device.disconnect()
+            raise
+
+    async def operate(self, identity, desired=None, *, before_off=None):
+        async with asyncio.timeout(20):
+            device = await self.connect(identity)
+            try:
+                if desired is False:
+                    if device.is_on is not True:
+                        LOG.warning("Plug is already OFF; leaving its state alone")
+                        return False
+                    if before_off is None or not before_off():
+                        LOG.info("Final absence guards did not allow a power cycle")
+                        return False
+                if desired is not None:
+                    await (device.turn_on() if desired else device.turn_off())
+                    await device.update()
+                    if device.is_on is not desired:
+                        raise Unsafe("Plug did not confirm the requested relay state")
+                return device.is_on
+            finally:
+                await device.disconnect()
+
+
+class Recovery:
+    def __init__(self):
+        self.host = Host()
+        self.plug = Plug()
+        self.state = State()
+
+    async def restore(self):
+        identity = self.state.data["power_on_required"]
+        if identity is None:
+            return
+        for attempt in range(3):
+            try:
+                await self.plug.operate(identity, True)
+                self.state.data["power_on_required"] = None
+                self.state.save()
+                LOG.info("Plug confirmed ON; pending power-on marker cleared")
+                return
+            except Exception as error:
+                LOG.error("Power-on attempt %s failed: %s", attempt + 1, error)
+                if attempt + 1 < 3:
+                    await asyncio.sleep(2)
+        raise Unsafe("Could not confirm power ON; saved marker retained for the next cleanup attempt")
+
+    async def cleanup(self):
+        # Cancellation must not strand a relay off. ExecStopPost is the process-death fallback.
+        task = asyncio.create_task(self.restore())
+        cancelled = False
+        while True:
+            try:
+                await asyncio.shield(task)
+                break
+            except asyncio.CancelledError:
+                if task.done():
+                    raise
+                cancelled = True
+        if cancelled:
+            raise asyncio.CancelledError
+
+    def reset_grace(self):
+        if self.state.data["missing_since"] is not None:
+            self.state.data["missing_since"] = None
+            self.state.save()
+
+    def eligible(self):
+        try:
+            eligible = self.host.ready() and self.host.absent()
+        except Exception:
+            self.reset_grace()
+            raise
+        if not eligible:
+            self.reset_grace()
+        return eligible
+
+    async def tick(self, check=False):
+        state, host = self.state.data, self.host
+        if check:
+            LOG.info("Read-only: ready=%s, disk_present=%s, bridge_present=%s, real_mounts=%s, state=%s",
+                     host.ready(), host.disk_present(), host.bridge_present(), host.target_mounts(), state)
+            if not state["power_on_required"]:
+                LOG.info("All power-off absence guards satisfied=%s", host.absent())
+            return
+        # Run even during shutdown or in a new boot, using the recorded plug identity.
+        await self.cleanup()
+        if state["boot_id"] != host.boot_id():
+            state.update(boot_id=host.boot_id(), attempted=False, missing_since=None)
+            self.state.save()
+        if not host.ready() or host.uptime() < 300:
+            self.reset_grace()
+            return
+        if state["recovery_pending"] and host.disk_present():
+            host.finish()
+            state["recovery_pending"] = False
+            self.state.save()
+            return
+        if state["attempted"]:
+            return
+        if not self.eligible():
+            return
+        now = host.uptime()
+        if state["missing_since"] is None:
+            state["missing_since"] = now
+            self.state.save()
+            LOG.warning("USB disk and bridge absent with backups stopped; beginning absence grace period")
+            return
+        if now - state["missing_since"] < 60:
+            return
+
+        def arm():
+            # Called after connecting to the plug, immediately before the OFF request.
+            if not self.eligible():
+                return False
+            state.update(attempted=True, power_on_required=PLUG, recovery_pending=True)
+            self.state.save()  # Durable before OFF, including ambiguous OFF timeouts.
+            LOG.warning("Power-cycling the missing USB enclosure once for this boot")
+            return True
+
+        try:
+            await self.plug.operate(PLUG, False, before_off=arm)
+            if state["power_on_required"] is not None:
+                await asyncio.sleep(10)
+        finally:
+            await self.cleanup()
+        if not state["attempted"]:
+            return
+        deadline = time.monotonic() + 120
+        while not host.disk_present():
+            if not host.ready() or time.monotonic() >= deadline:
+                raise Unsafe("Expected UUID has not returned; no further power cycle this boot")
+            await asyncio.sleep(2)
+        host.finish()
+        state["recovery_pending"] = False
+        self.state.save()
+
+
+async def run(check, restore_power):
+    operation = Recovery()
+    loop, task = asyncio.get_running_loop(), asyncio.current_task()
+    for sig in (signal.SIGTERM, signal.SIGINT):
+        loop.add_signal_handler(sig, task.cancel)
+    if restore_power:
+        await operation.cleanup()
+    else:
+        await operation.tick(check=check)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    modes = parser.add_mutually_exclusive_group()
+    modes.add_argument("--check", action="store_true", help="Inspect only, without writing state or controlling anything")
+    modes.add_argument("--restore-power", action="store_true", help="Only finish a recorded, interrupted power-on")
+    args = parser.parse_args()
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+    try:
+        if args.check:
+            asyncio.run(run(True, False))
+        else:
+            runtime = Path("/run/{{ application }}")
+            runtime.mkdir(mode=0o700, parents=True, exist_ok=True)
+            with (runtime / "lock").open("w") as lock:
+                try:
+                    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                except BlockingIOError:
+                    LOG.info("Another recovery process holds the lock; skipping")
+                    return 0
+                asyncio.run(run(False, args.restore_power))
+    except asyncio.CancelledError:
+        LOG.warning("Recovery cancelled; pending power-on cleanup attempted")
+        return 1
+    except Exception as error:
+        LOG.error("Recovery stopped: %s", error)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

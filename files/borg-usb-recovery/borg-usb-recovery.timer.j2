@@ -1,0 +1,11 @@
+[Unit]
+Description=Check for a missing Borg USB backup disk
+
+[Timer]
+OnBootSec=300s
+OnUnitInactiveSec=60s
+AccuracySec=1s
+Unit={{ application }}.service
+
+[Install]
+WantedBy=timers.target
