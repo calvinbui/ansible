@@ -27,6 +27,7 @@
             6135363934383831320a386336373134306330366638323439313565393038316264386438633139
             34326339303261353162323733633837313134303036613331613035366466656639656133616233
             3766303463623037313665633161633934613962363965323735
+          port: 51822
           address: 100.83.42.92
           gateway: 10.255.255.1
 
@@ -93,7 +94,7 @@
         name: "{{ item.provider }}-{{ item.location }}"
         private_key: "{{ item.server.private_key }}"
         public_key: "{{ _wireguard_vpn_public_keys.results[ansible_loop.index0].stdout }}"
-        port: "{{ 51820 + ansible_loop.index }}"
+        port: "{{ item.server.port }}"
         mtu: 1420
         tunnel_address: "{{ item.server.address }}/32"
         link_peers: false
