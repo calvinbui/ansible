@@ -251,6 +251,13 @@
       matchPackageNames: ['/browserless\\/chrom.*$/'],
       changelogUrl: 'https://github.com/browserless/chrome/blob/main/CHANGELOG.md',
     },
+    /* karakeep chrome */
+    {
+      matchDatasources: ['docker'],
+      matchPackageNames: ['ghcr.io/karakeep-app/karakeep-chrome'],
+      // Track image revisions without selecting architecture-specific tags.
+      versioning: 'regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)\\.(?<build>\\d+)-r(?<revision>\\d+)$',
+    },
     /* apache tika */
     {
       matchPackageNames: ['/.*\\/tika$/'],
