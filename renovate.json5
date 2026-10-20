@@ -386,6 +386,12 @@
       versioning: 'regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?:-hotfix\\.(?<build>\\d+))?$',
       sourceUrl: 'https://github.com/Euro-Office/DocumentServer',
     },
+    /* rustfs */
+    {
+      matchDatasources: ['docker'],
+      matchPackageNames: ['ghcr.io/rustfs/rustfs'],
+      sourceUrl: 'https://github.com/rustfs/rustfs',
+    },
     /* emqx */
     {
       matchPackageNames: ['/.*\\/emqx$/'],
