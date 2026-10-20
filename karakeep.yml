@@ -34,7 +34,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-chrome"
-        image: ghcr.io/karakeep-app/karakeep-chrome:release
+        image: ghcr.io/karakeep-app/karakeep-chrome:154.0.8037.57-r1
         init: true
         command:
           - --disable-gpu
@@ -55,6 +55,7 @@
           DATA_DIR: /data
 
           NEXTAUTH_URL: "https://{{ application }}.{{ common_tld }}"
+          AUTH_TRUSTED_ORIGINS: ""  # Only allow NEXTAUTH_URL.
           NEXTAUTH_SECRET: !vault |
             $ANSIBLE_VAULT;1.1;AES256
             33353666616562643038353030303064393162633934343265373930633066383630336165646433
