@@ -25,6 +25,7 @@
         container_name: "{{ application }}-chrome"
         image: ghcr.io/browserless/chromium:v2.57.1
         env:
+          TZ: "{{ common_timezone }}"
           TOKEN: "{{ changedetection_browserless_token }}"
           CONCURRENT: "10"
           TIMEOUT: "60000"
