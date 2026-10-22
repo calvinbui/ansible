@@ -23,7 +23,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-chrome"
-        image: ghcr.io/browserless/chromium:v2.57.1
+        image: ghcr.io/browserless/chromium:v2.57.2
         env:
           TZ: "{{ common_timezone }}"
           TOKEN: "{{ changedetection_browserless_token }}"
