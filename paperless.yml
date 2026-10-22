@@ -62,7 +62,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-tika"
-        image: docker.io/apache/tika:3.3.1.0
+        image: docker.io/apache/tika:3.3.3.0
         blackbox:
           protocol: http
           host: "{{ application }}-tika.{{ common_local_tld }}:9998"
