@@ -94,6 +94,9 @@
           ServiceSettings/EnablePostUsernameOverride: true
           ServiceSettings/EnablePostIconOverride: true
 
+          # https://docs.mattermost.com/administration-guide/configure/integrations-configuration-settings#enable-dynamic-client-registration
+          ServiceSettings/EnableDynamicClientRegistration: true
+
           # https://docs.mattermost.com/configure/experimental-configuration-settings.html#enable-local-mode-for-mmctl
           ServiceSettings/EnableLocalMode: true
 
@@ -112,5 +115,8 @@
           EmailSettings/EnableSMTPAuth: true
           EmailSettings/SMTPUsername: "{{ common_email_username }}"
           EmailSettings/SMTPPassword: "{{ common_email_password }}"
+
+          # https://docs.mattermost.com/administration-guide/configure/plugins-configuration-settings#enable-plugins
+          PluginSettings/Enable: true
       no_log: true
       diff: false
