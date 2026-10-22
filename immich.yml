@@ -67,7 +67,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-server"
-        image: ghcr.io/immich-app/immich-server:v3.3.3
+        image: ghcr.io/immich-app/immich-server:v3.3.5
         group_add:
           - 992 # 'render'
         env:
@@ -116,7 +116,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-machine-learning"
-        image: ghcr.io/immich-app/immich-machine-learning:v3.3.3-openvino
+        image: ghcr.io/immich-app/immich-machine-learning:v3.3.5-openvino
         blackbox:
           protocol: http
           host: "{{ application }}-machine-learning.{{ common_local_tld }}:3003"
