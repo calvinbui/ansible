@@ -21,6 +21,7 @@
         name: postgres
       vars:
         postgres_version: 18.6
+        postgres_shm_size: "256m"
         postgres_password: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           37356632623934376432366231323839613236316266326363613733303462353062396461333766
