@@ -80,7 +80,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-app"
-        image: docker.io/freikin/dawarich:1.16.0
+        image: docker.io/freikin/dawarich:1.17.0
         entrypoint: web-entrypoint.sh
         command:
           - bin/rails
@@ -89,9 +89,13 @@
           - "3000"
           - -b
           - "::"
-        env: &dawarich_env
+        env:
           RAILS_ENV: production
           RAILS_LOG_TO_STDOUT: "true"
+
+          SIDEKIQ_EMBEDDED: "true"
+          WEB_CONCURRENCY: "0"
+          BACKGROUND_PROCESSING_CONCURRENCY: "2"
 
           REDIS_URL: "{{ _valkey_url }}"
 
@@ -148,20 +152,3 @@
           description: "Location tracking"
         blackbox:
           path: /api/v1/health
-
-    - name: Create sidekiq container
-      ansible.builtin.include_role:
-        name: podman_container
-      vars:
-        container_name: "{{ application }}-sidekiq"
-        image: docker.io/freikin/dawarich:1.16.0
-        entrypoint: sidekiq-entrypoint.sh
-        command:
-          - sidekiq
-        env:
-          <<: *dawarich_env
-          BACKGROUND_PROCESSING_CONCURRENCY: "5"
-        volumes:
-          - "{{ config_directory }}/public:/var/app/public"
-          - "{{ config_directory }}/watched:/var/app/tmp/imports/watched"
-          - "{{ config_directory }}/storage:/var/app/storage"
