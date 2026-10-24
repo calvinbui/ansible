@@ -95,7 +95,7 @@
           HAPPIER_PUBLIC_SERVER_URL: "https://{{ application }}.{{ common_tld }}"
           HAPPIER_WEBAPP_URL: "https://{{ application }}.{{ common_tld }}"
           PUBLIC_URL: "https://{{ application }}.{{ common_tld }}"
-          HAPPIER_SERVER_TRUST_PROXY: "1"
+          HAPPIER_SERVER_TRUST_PROXY: "{{ traefik_ip }}"
 
           HAPPIER_FEATURE_BUG_REPORTS__ENABLED: "0"
           HAPPIER_FEATURE_SOCIAL_FRIENDS__ENABLED: "0"
