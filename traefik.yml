@@ -93,7 +93,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-logrotate"
-        image: ghcr.io/vegardit/traefik-logrotate:latest@sha256:82624de48d6cb2a336b172115aad882ec7ed1f20b84d26275043649fe06eae24
+        image: ghcr.io/vegardit/traefik-logrotate:latest@sha256:ebe5be22ec8e8826f6bb6d68cdd8ed3b1467389c364e70967d74b26799a4b49e
         env:
           TZ: "{{ common_timezone }}"
 
