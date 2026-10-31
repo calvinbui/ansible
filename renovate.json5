@@ -101,6 +101,10 @@
       matchPackageNames: ['/.*\\/portainer-[c|e]e$/'],
       sourceUrl: 'https://github.com/portainer/portainer',
     },
+    {
+      matchPackageNames: ['/.*\\/portainer-ee$/'],
+      changelogUrl: 'https://docs.portainer.io/portainer-documentation/sts/release-notes',
+    },
     /* outline */
     {
       matchPackageNames: ['/outlinewiki\\/outline$/'],
