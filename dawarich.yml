@@ -80,7 +80,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-app"
-        image: docker.io/freikin/dawarich:1.17.0
+        image: docker.io/freikin/dawarich:1.19.0
         entrypoint: web-entrypoint.sh
         command:
           - bin/rails
