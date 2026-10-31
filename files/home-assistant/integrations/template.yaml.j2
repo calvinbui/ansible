@@ -235,7 +235,7 @@
       {% set val = bat_dis - bat_to_grid %}
       {{ (val if val > 0 else 0.0) | float(0) }}
 
-  # Current electricity plan time of use periods
+  # Retain the existing TOU periods for reporting; all three have the same import rate.
   # - Peak: 4pm-11pm every day
   # - Off-peak: 12pm-3pm every day
   # - Shoulder: All other times
@@ -254,33 +254,33 @@
 
       {{tou_period}}
 
-  # Current electricity plan: GloBird ZEROHERO VPP - Ausgrid
+  # Current AGL single-rate tariff; all import prices below include GST.
   -
     # Peak
     name: Electricity Peak Cost
     icon: mdi:currency-usd
     unit_of_measurement: AUD
-    state: "0.594"
+    state: "0.29821"
   -
     # Offpeak
     name: Electricity Offpeak Cost
     icon: mdi:currency-usd
     unit_of_measurement: AUD
-    state: "0"
+    state: "0.29821"
   -
     # Shoulder
     name: Electricity Shoulder Cost
     icon: mdi:currency-usd
     unit_of_measurement: AUD
-    state: "0.517"
+    state: "0.29821"
   -
     # Supply
     name: Electricity Supply Cost
     icon: mdi:currency-usd
     unit_of_measurement: AUD
-    state: "1.815"
+    state: "1.49567"
   -
-    # A sensor to calculate the current cost of electricity based on the TOU and price
+    # Current import price used by the Energy dashboard and cost calculations.
     name: Electricity Cost
     icon: mdi:currency-usd
     unit_of_measurement: AUD/kWh
@@ -293,11 +293,17 @@
         {{ states('sensor.electricity_shoulder_cost') }}
       {% endif %}
   -
-    # Feed in
+    # FiT follows its own daily schedule and is exclusive of GST.
+    # Morning peak (7am-8am) and off-peak both pay 3c/kWh.
+    # Evening peak pays 28c/kWh from 5pm up to, but not including, 9pm daily.
     name: Solar Feed In
     icon: mdi:currency-usd
     unit_of_measurement: AUD/kWh
-    state: "0.1000"
+    state: "{{ 0.28 if 17 <= now().hour < 21 else 0.03 }}"
+    attributes:
+      period: "{{ 'evening_peak' if 17 <= now().hour < 21 else 'anytime' }}"
+      offpeak_rate: 0.03
+      evening_peak_rate: 0.28
 
   # Alternative electricity plan: 1st Energy - 1st Opal Time of Use
   #
@@ -483,6 +489,7 @@
     state: >
       {{
         states('sensor.grid_power_export_daily_anytime') | float(0) +
+        states('sensor.grid_power_export_daily_evening_peak') | float(0) +
         states('sensor.electricity_usage_today_solar') | float(0)
       }}
   -
@@ -493,6 +500,7 @@
     state: >
       {{
         state_attr('sensor.grid_power_export_daily_anytime', 'last_period') | float(0) +
+        state_attr('sensor.grid_power_export_daily_evening_peak', 'last_period') | float(0) +
         states('sensor.electricity_usage_yesterday_solar') | float(0)
       }}
   -
@@ -503,12 +511,13 @@
     state: >
       {{
         states('sensor.grid_power_export_monthly_anytime') | float(0) +
+        states('sensor.grid_power_export_monthly_evening_peak') | float(0) +
         states('sensor.electricity_usage_month_solar') | float(0)
       }}
 
 
   # Electricity costs DAILY
-  # Calculated by multiplying how much was used/generated and multiplying by the price
+  # Price each existing energy-meter tariff bucket at its applicable rate.
   -
     name: Electricity Costs Today - Peak
     device_class: monetary
@@ -532,7 +541,11 @@
     device_class: monetary
     state_class: total
     unit_of_measurement: AUD
-    state: "{{ states('sensor.grid_power_export_daily_anytime') | float(0)* states('sensor.solar_feed_in') | float(0) }}"
+    state: >
+      {{
+        states('sensor.grid_power_export_daily_anytime') | float(0) * state_attr('sensor.solar_feed_in', 'offpeak_rate') | float(0) +
+        states('sensor.grid_power_export_daily_evening_peak') | float(0) * state_attr('sensor.solar_feed_in', 'evening_peak_rate') | float(0)
+      }}
   -
     name: Electricity Costs Today - Import
     device_class: monetary
@@ -557,7 +570,7 @@
       }}
 
   # Electricity costs YESTERDAY
-  # Calculated by multiplying how much was used/generated and multiplying by the price
+  # Price each existing energy-meter tariff bucket at its applicable rate.
   -
     name: Electricity Costs Yesterday - Peak
     device_class: monetary
@@ -581,7 +594,11 @@
     device_class: monetary
     state_class: total
     unit_of_measurement: AUD
-    state: "{{ state_attr('sensor.grid_power_export_daily_anytime', 'last_period') | float(0)* states('sensor.solar_feed_in') | float(0) }}"
+    state: >
+      {{
+        state_attr('sensor.grid_power_export_daily_anytime', 'last_period') | float(0) * state_attr('sensor.solar_feed_in', 'offpeak_rate') | float(0) +
+        state_attr('sensor.grid_power_export_daily_evening_peak', 'last_period') | float(0) * state_attr('sensor.solar_feed_in', 'evening_peak_rate') | float(0)
+      }}
   -
     name: Electricity Costs Yesterday - Import
     device_class: monetary
@@ -606,7 +623,7 @@
       }}
 
   # Electricity costs MONTHLY
-  # Calculated by multiplying how much was used/generated and multiplying by the price
+  # Price each existing energy-meter tariff bucket at its applicable rate.
   -
     name: Electricity Costs Month - Peak
     device_class: monetary
@@ -630,7 +647,11 @@
     device_class: monetary
     state_class: total
     unit_of_measurement: AUD
-    state: "{{ states('sensor.grid_power_export_monthly_anytime') | float(0)* states('sensor.solar_feed_in') | float(0) }}"
+    state: >
+      {{
+        states('sensor.grid_power_export_monthly_anytime') | float(0) * state_attr('sensor.solar_feed_in', 'offpeak_rate') | float(0) +
+        states('sensor.grid_power_export_monthly_evening_peak') | float(0) * state_attr('sensor.solar_feed_in', 'evening_peak_rate') | float(0)
+      }}
   -
     name: Electricity Costs Month - Supply
     device_class: monetary
@@ -782,8 +803,8 @@
       }}
 
   # Battery savings TODAY
-  # Savings = discharge × (import_rate - feed_in_rate)
-  # Calculated per TOU period
+  # Savings = discharge × (import_rate - feed_in_rate).
+  # Existing peak/offpeak buckets follow the FiT period; shoulder is retained for history.
   -
     name: Battery Savings Today - Peak
     device_class: monetary
@@ -792,7 +813,7 @@
     state: >
       {{
         states('sensor.battery_discharge_self_consumption_daily_peak') | float(0) *
-        (states('sensor.electricity_peak_cost') | float(0) - states('sensor.solar_feed_in') | float(0))
+        (states('sensor.electricity_peak_cost') | float(0) - state_attr('sensor.solar_feed_in', 'evening_peak_rate') | float(0))
       }}
   -
     name: Battery Savings Today - Offpeak
@@ -802,7 +823,7 @@
     state: >
       {{
         states('sensor.battery_discharge_self_consumption_daily_offpeak') | float(0) *
-        (states('sensor.electricity_offpeak_cost') | float(0) - states('sensor.solar_feed_in') | float(0))
+        (states('sensor.electricity_offpeak_cost') | float(0) - state_attr('sensor.solar_feed_in', 'offpeak_rate') | float(0))
       }}
   -
     name: Battery Savings Today - Shoulder
@@ -812,7 +833,7 @@
     state: >
       {{
         states('sensor.battery_discharge_self_consumption_daily_shoulder') | float(0) *
-        (states('sensor.electricity_shoulder_cost') | float(0) - states('sensor.solar_feed_in') | float(0))
+        (states('sensor.electricity_shoulder_cost') | float(0) - state_attr('sensor.solar_feed_in', 'offpeak_rate') | float(0))
       }}
   -
     name: Battery Savings Today - Total
@@ -835,7 +856,7 @@
     state: >
       {{
         state_attr('sensor.battery_discharge_self_consumption_daily_peak', 'last_period') | float(0) *
-        (states('sensor.electricity_peak_cost') | float(0) - states('sensor.solar_feed_in') | float(0))
+        (states('sensor.electricity_peak_cost') | float(0) - state_attr('sensor.solar_feed_in', 'evening_peak_rate') | float(0))
       }}
   -
     name: Battery Savings Yesterday - Offpeak
@@ -845,7 +866,7 @@
     state: >
       {{
         state_attr('sensor.battery_discharge_self_consumption_daily_offpeak', 'last_period') | float(0) *
-        (states('sensor.electricity_offpeak_cost') | float(0) - states('sensor.solar_feed_in') | float(0))
+        (states('sensor.electricity_offpeak_cost') | float(0) - state_attr('sensor.solar_feed_in', 'offpeak_rate') | float(0))
       }}
   -
     name: Battery Savings Yesterday - Shoulder
@@ -855,7 +876,7 @@
     state: >
       {{
         state_attr('sensor.battery_discharge_self_consumption_daily_shoulder', 'last_period') | float(0) *
-        (states('sensor.electricity_shoulder_cost') | float(0) - states('sensor.solar_feed_in') | float(0))
+        (states('sensor.electricity_shoulder_cost') | float(0) - state_attr('sensor.solar_feed_in', 'offpeak_rate') | float(0))
       }}
   -
     name: Battery Savings Yesterday - Total
@@ -878,7 +899,7 @@
     state: >
       {{
         states('sensor.battery_discharge_self_consumption_monthly_peak') | float(0) *
-        (states('sensor.electricity_peak_cost') | float(0) - states('sensor.solar_feed_in') | float(0))
+        (states('sensor.electricity_peak_cost') | float(0) - state_attr('sensor.solar_feed_in', 'evening_peak_rate') | float(0))
       }}
   -
     name: Battery Savings Month - Offpeak
@@ -888,7 +909,7 @@
     state: >
       {{
         states('sensor.battery_discharge_self_consumption_monthly_offpeak') | float(0) *
-        (states('sensor.electricity_offpeak_cost') | float(0) - states('sensor.solar_feed_in') | float(0))
+        (states('sensor.electricity_offpeak_cost') | float(0) - state_attr('sensor.solar_feed_in', 'offpeak_rate') | float(0))
       }}
   -
     name: Battery Savings Month - Shoulder
@@ -898,7 +919,7 @@
     state: >
       {{
         states('sensor.battery_discharge_self_consumption_monthly_shoulder') | float(0) *
-        (states('sensor.electricity_shoulder_cost') | float(0) - states('sensor.solar_feed_in') | float(0))
+        (states('sensor.electricity_shoulder_cost') | float(0) - state_attr('sensor.solar_feed_in', 'offpeak_rate') | float(0))
       }}
   -
     name: Battery Savings Month - Total
