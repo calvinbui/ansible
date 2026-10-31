@@ -235,50 +235,45 @@
       {% set val = bat_dis - bat_to_grid %}
       {{ (val if val > 0 else 0.0) | float(0) }}
 
-  # Retain the existing TOU periods for reporting; all three have the same import rate.
-  # - Peak: 4pm-11pm every day
-  # - Off-peak: 12pm-3pm every day
-  # - Shoulder: All other times
+  # AGL TOU from 1 November 2026, using Home Assistant's local time.
+  # Peak: 3pm-9pm daily in November-March and June-August.
+  # Off-peak: all other times, including all of April-May and September-October.
   -
     name: TOU Period
     icon: mdi:clock-time-three-outline
     state: >
-      {% set tou_period = 'shoulder' %}
-      {% set n_hour = now().hour %}
-
-      {% if 12 <= n_hour < 15 %}
-        {% set tou_period = 'offpeak' %}
-      {% elif 16 <= n_hour < 23 %}
-        {% set tou_period = 'peak' %}
+      {% set current = now() %}
+      {% if current.month in [11, 12, 1, 2, 3, 6, 7, 8] and 15 <= current.hour < 21 %}
+        peak
+      {% else %}
+        offpeak
       {% endif %}
 
-      {{tou_period}}
-
-  # Current AGL single-rate tariff; all import prices below include GST.
+  # Current AGL TOU tariff; all import prices below include GST.
   -
     # Peak
     name: Electricity Peak Cost
     icon: mdi:currency-usd
     unit_of_measurement: AUD
-    state: "0.29821"
+    state: "0.54175"
   -
     # Offpeak
     name: Electricity Offpeak Cost
     icon: mdi:currency-usd
     unit_of_measurement: AUD
-    state: "0.29821"
+    state: "0.21626"
   -
-    # Shoulder
+    # Same price as peak; the battery shoulder bucket covers 3pm-5pm.
     name: Electricity Shoulder Cost
     icon: mdi:currency-usd
     unit_of_measurement: AUD
-    state: "0.29821"
+    state: "0.54175"
   -
     # Supply
     name: Electricity Supply Cost
     icon: mdi:currency-usd
     unit_of_measurement: AUD
-    state: "1.49567"
+    state: "1.58631"
   -
     # Current import price used by the Energy dashboard and cost calculations.
     name: Electricity Cost
@@ -804,16 +799,18 @@
 
   # Battery savings TODAY
   # Savings = discharge × (import_rate - feed_in_rate).
-  # Existing peak/offpeak buckets follow the FiT period; shoulder is retained for history.
+  # Existing battery buckets: peak = 5pm-9pm; shoulder = import peak before 5pm;
+  # offpeak = all other times. Evening import prices depend on the season.
   -
     name: Battery Savings Today - Peak
     device_class: monetary
     state_class: total
     unit_of_measurement: AUD
     state: >
+      {% set import_rate = states('sensor.electricity_peak_cost') if now().month in [11, 12, 1, 2, 3, 6, 7, 8] else states('sensor.electricity_offpeak_cost') %}
       {{
         states('sensor.battery_discharge_self_consumption_daily_peak') | float(0) *
-        (states('sensor.electricity_peak_cost') | float(0) - state_attr('sensor.solar_feed_in', 'evening_peak_rate') | float(0))
+        (import_rate | float(0) - state_attr('sensor.solar_feed_in', 'evening_peak_rate') | float(0))
       }}
   -
     name: Battery Savings Today - Offpeak
@@ -854,9 +851,10 @@
     state_class: total
     unit_of_measurement: AUD
     state: >
+      {% set import_rate = states('sensor.electricity_peak_cost') if (now() - timedelta(days=1)).month in [11, 12, 1, 2, 3, 6, 7, 8] else states('sensor.electricity_offpeak_cost') %}
       {{
         state_attr('sensor.battery_discharge_self_consumption_daily_peak', 'last_period') | float(0) *
-        (states('sensor.electricity_peak_cost') | float(0) - state_attr('sensor.solar_feed_in', 'evening_peak_rate') | float(0))
+        (import_rate | float(0) - state_attr('sensor.solar_feed_in', 'evening_peak_rate') | float(0))
       }}
   -
     name: Battery Savings Yesterday - Offpeak
@@ -897,9 +895,10 @@
     state_class: total
     unit_of_measurement: AUD
     state: >
+      {% set import_rate = states('sensor.electricity_peak_cost') if now().month in [11, 12, 1, 2, 3, 6, 7, 8] else states('sensor.electricity_offpeak_cost') %}
       {{
         states('sensor.battery_discharge_self_consumption_monthly_peak') | float(0) *
-        (states('sensor.electricity_peak_cost') | float(0) - state_attr('sensor.solar_feed_in', 'evening_peak_rate') | float(0))
+        (import_rate | float(0) - state_attr('sensor.solar_feed_in', 'evening_peak_rate') | float(0))
       }}
   -
     name: Battery Savings Month - Offpeak
