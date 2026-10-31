@@ -470,6 +470,11 @@
       allowedVersions: '/^\\d+\\.\\d+\\.\\d+-[0-9a-f]+$/',
       sourceUrl: 'https://github.com/wez/govee2mqtt',
     },
+    /* openspeedtest */
+    {
+      matchPackageNames: ['/openspeedtest\\/latest$/'],
+      sourceUrl: 'https://github.com/openspeedtest/Docker-Image',
+    },
   ],
 
   customManagers: [
