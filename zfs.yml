@@ -100,6 +100,12 @@
               - /dev/disk/by-id/ata-ST24000NM000C-3WD103_ZXA0PFAJ
               - /dev/disk/by-id/ata-ST24000NM000C-3WD103_ZXA0RZRY
       # https://github.com/ansible-collections/community.general/issues/10744
+      # Fix: https://github.com/ansible-collections/community.general/pull/12948
+      # Expected in community.general 13.5.1 / 14.0.0, planned around 2026-11-02:
+      # https://github.com/ansible-collections/community.general/issues/11482
+      # Ansible 15.0.0a4 still pins 13.5.0; inclusion in the final 15.0.0 release is unconfirmed:
+      # https://github.com/ansible-community/ansible-build-data/blob/main/15/ansible-15.0.0a4.deps
+      # Verify the bundled collection and successful reruns before removing failed_when and the unused register.
       register: _zpool_result
       failed_when: false
 
