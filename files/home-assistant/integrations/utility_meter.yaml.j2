@@ -79,6 +79,27 @@ solar_self_consumption_monthly:
     - peak
 
 #
+# SOLAR GENERATION
+#
+
+## The source is a lifetime counter, so energy produced while it was unavailable is counted on recovery.
+## Daily
+solar_generated_daily:
+  unique_id: utility_meter_daily_solar_generated
+  source: sensor.solar_total_yield
+  name: Solar Generated - Daily
+  cycle: daily
+  periodically_resetting: false
+
+## Monthly
+solar_generated_monthly:
+  unique_id: utility_meter_monthly_solar_generated
+  source: sensor.solar_total_yield
+  name: Solar Generated - Monthly
+  cycle: monthly
+  periodically_resetting: false
+
+#
 # BATTERY DISCHARGE SELF CONSUMPTION
 #
 
@@ -103,6 +124,28 @@ battery_discharge_self_consumption_monthly:
     - offpeak
     - shoulder
     - peak
+
+#
+# BATTERY SAVINGS
+#
+
+## Net savings can go down while charging, so allow negative changes.
+## The source is a running total that never resets.
+battery_savings_daily:
+  unique_id: utility_meter_daily_battery_savings
+  source: sensor.battery_savings
+  name: Battery Savings - Daily
+  cycle: daily
+  net_consumption: true
+  periodically_resetting: false
+
+battery_savings_monthly:
+  unique_id: utility_meter_monthly_battery_savings
+  source: sensor.battery_savings
+  name: Battery Savings - Monthly
+  cycle: monthly
+  net_consumption: true
+  periodically_resetting: false
 
 #
 # ALTERNATIVE ELECTRICITY PLAN

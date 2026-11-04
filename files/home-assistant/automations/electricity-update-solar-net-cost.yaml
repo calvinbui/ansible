@@ -1,13 +1,18 @@
 ---
 
 # Updates the net cost of the solar system each night.
-# Takes the input_number value and minuses the difference between the yesterdays electricity costs (usage minus feed-in+self-consumption) and the alternative plan
+# Yesterday's total saving (alternative plan minus the actual bill) covers solar and battery together,
+# so the battery's share is taken out; electricity-update-battery-net-cost adds it to the battery instead.
 - id: electricity_update_solar_net_cost
   alias: Electricity - Update Solar Net Cost
   description: ""
   triggers:
     - platform: time
       at: "00:05:00"
+  conditions:
+    - alias: Skip, like the battery update, rather than give solar the battery's share
+      condition: template
+      value_template: "{{ is_number(states('sensor.battery_savings_yesterday_total')) }}"
   actions:
     - action: input_number.set_value
       data:
@@ -19,6 +24,8 @@
               states('sensor.electricity_costs_alternative_plan')|float(0)
               -
               states('sensor.electricity_costs_yesterday_total')|float(0)
+              -
+              states('sensor.battery_savings_yesterday_total')|float(0)
             )
           }}
       target:

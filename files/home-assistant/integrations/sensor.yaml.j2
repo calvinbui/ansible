@@ -43,5 +43,12 @@
   source: sensor.alternative_electricity_usage_cost_rate
   method: left
   unit_time: h
+-
+  platform: integration
+  name: Battery Savings
+  unique_id: battery_savings
+  source: sensor.battery_savings_rate
+  method: left
+  unit_time: h
 
 {%- endraw %}

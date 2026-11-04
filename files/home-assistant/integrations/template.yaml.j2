@@ -102,6 +102,19 @@
       {% set inverter_2_power = states('sensor.inverter_2_active_power') | float(0) %}
       {{ (inverter_1_power + inverter_2_power) | float(0) }}
   -
+    # Lifetime AC energy produced by both inverters, read from their own counters.
+    # Unavailable unless both inverters report, so the utility meters never see a dip.
+    name: "Solar Total Yield"
+    unique_id: "solar_total_yield"
+    icon: mdi:solar-power-variant
+    unit_of_measurement: "kWh"
+    device_class: energy
+    state_class: total_increasing
+    availability: >
+      {{ is_number(states('sensor.inverter_1_total_yield')) and is_number(states('sensor.inverter_2_total_yield')) }}
+    state: >
+      {{ (states('sensor.inverter_1_total_yield') | float(0) + states('sensor.inverter_2_total_yield') | float(0)) | round(3) }}
+  -
     # How much solar is being self-consumed by the house
     #
     # Take the total raw solar yield and minus what we are feeding to the grid
@@ -475,40 +488,29 @@
       }}
 
 
-  # Calculate solar yield by adding the how much solar was exported + how much was self-consumed on a day/month basis
+  # Solar yield from the inverters' own counters (via the solar_generated utility meters).
+  # Export + self-consumption is not used because evening battery export would count as solar.
   -
     name: Solar Generated - Today
     state_class: total_increasing
     unit_of_measurement: kWh
     device_class: energy
-    state: >
-      {{
-        states('sensor.grid_power_export_daily_anytime') | float(0) +
-        states('sensor.grid_power_export_daily_evening_peak') | float(0) +
-        states('sensor.electricity_usage_today_solar') | float(0)
-      }}
+    availability: "{{ is_number(states('sensor.solar_generated_daily')) }}"
+    state: "{{ states('sensor.solar_generated_daily') | float }}"
   -
     name: Solar Generated - Yesterday
-    state_class: total_increasing
+    state_class: total
     unit_of_measurement: kWh
     device_class: energy
-    state: >
-      {{
-        state_attr('sensor.grid_power_export_daily_anytime', 'last_period') | float(0) +
-        state_attr('sensor.grid_power_export_daily_evening_peak', 'last_period') | float(0) +
-        states('sensor.electricity_usage_yesterday_solar') | float(0)
-      }}
+    availability: "{{ is_number(state_attr('sensor.solar_generated_daily', 'last_period')) }}"
+    state: "{{ state_attr('sensor.solar_generated_daily', 'last_period') | float }}"
   -
     name: Solar Generated - Month
     state_class: total_increasing
     unit_of_measurement: kWh
     device_class: energy
-    state: >
-      {{
-        states('sensor.grid_power_export_monthly_anytime') | float(0) +
-        states('sensor.grid_power_export_monthly_evening_peak') | float(0) +
-        states('sensor.electricity_usage_month_solar') | float(0)
-      }}
+    availability: "{{ is_number(states('sensor.solar_generated_monthly')) }}"
+    state: "{{ states('sensor.solar_generated_monthly') | float }}"
 
 
   # Electricity costs DAILY
@@ -797,140 +799,46 @@
         states('sensor.battery_discharge_self_consumption_monthly_shoulder') | float(0)
       }}
 
-  # Battery savings TODAY
-  # Savings = discharge × (import_rate - feed_in_rate).
-  # Existing battery buckets: peak = 5pm-9pm; shoulder = import peak before 5pm;
-  # offpeak = all other times. Evening import prices depend on the season.
+  # Battery savings
+  # The battery gets the value of what it discharges, less what its charge would otherwise have earned or cost:
+  #   + discharge to home x import price     + discharge to grid x feed-in
+  #   - solar charging x feed-in              - grid charging x import price
+  # Solar keeps the feed-in for energy sent to the battery, so solar + battery add up to the total saving.
+  # sensor.battery_savings integrates this rate; the battery_savings utility meters split it per day/month.
   -
-    name: Battery Savings Today - Peak
-    device_class: monetary
-    state_class: total
-    unit_of_measurement: AUD
+    name: Battery Savings Rate
+    icon: mdi:currency-usd
+    unit_of_measurement: AUD/h
+    state_class: measurement
     state: >
-      {% set import_rate = states('sensor.electricity_peak_cost') if now().month in [11, 12, 1, 2, 3, 6, 7, 8] else states('sensor.electricity_offpeak_cost') %}
-      {{
-        states('sensor.battery_discharge_self_consumption_daily_peak') | float(0) *
-        (import_rate | float(0) - state_attr('sensor.solar_feed_in', 'evening_peak_rate') | float(0))
-      }}
-  -
-    name: Battery Savings Today - Offpeak
-    device_class: monetary
-    state_class: total
-    unit_of_measurement: AUD
-    state: >
-      {{
-        states('sensor.battery_discharge_self_consumption_daily_offpeak') | float(0) *
-        (states('sensor.electricity_offpeak_cost') | float(0) - state_attr('sensor.solar_feed_in', 'offpeak_rate') | float(0))
-      }}
-  -
-    name: Battery Savings Today - Shoulder
-    device_class: monetary
-    state_class: total
-    unit_of_measurement: AUD
-    state: >
-      {{
-        states('sensor.battery_discharge_self_consumption_daily_shoulder') | float(0) *
-        (states('sensor.electricity_shoulder_cost') | float(0) - state_attr('sensor.solar_feed_in', 'offpeak_rate') | float(0))
-      }}
+      {% set import_rate = states('sensor.electricity_cost') | float(0) %}
+      {% set feed_in = states('sensor.solar_feed_in') | float(0) %}
+      {% set to_home = states('sensor.battery_discharge_self_consumption') | float(0) %}
+      {% set to_grid = states('sensor.battery_discharge_to_grid') | float(0) %}
+      {% set from_solar = states('sensor.solar_battery_charging') | float(0) %}
+      {% set from_grid = states('sensor.battery_charge_from_grid') | float(0) %}
+      {{ ((to_home * import_rate + to_grid * feed_in - from_solar * feed_in - from_grid * import_rate) / 1000) | round(6) }}
   -
     name: Battery Savings Today - Total
     device_class: monetary
     state_class: total
     unit_of_measurement: AUD
-    state: >
-      {{
-        states('sensor.battery_savings_today_peak') | float(0) +
-        states('sensor.battery_savings_today_offpeak') | float(0) +
-        states('sensor.battery_savings_today_shoulder') | float(0)
-      }}
-
-  # Battery savings YESTERDAY
-  -
-    name: Battery Savings Yesterday - Peak
-    device_class: monetary
-    state_class: total
-    unit_of_measurement: AUD
-    state: >
-      {% set import_rate = states('sensor.electricity_peak_cost') if (now() - timedelta(days=1)).month in [11, 12, 1, 2, 3, 6, 7, 8] else states('sensor.electricity_offpeak_cost') %}
-      {{
-        state_attr('sensor.battery_discharge_self_consumption_daily_peak', 'last_period') | float(0) *
-        (import_rate | float(0) - state_attr('sensor.solar_feed_in', 'evening_peak_rate') | float(0))
-      }}
-  -
-    name: Battery Savings Yesterday - Offpeak
-    device_class: monetary
-    state_class: total
-    unit_of_measurement: AUD
-    state: >
-      {{
-        state_attr('sensor.battery_discharge_self_consumption_daily_offpeak', 'last_period') | float(0) *
-        (states('sensor.electricity_offpeak_cost') | float(0) - state_attr('sensor.solar_feed_in', 'offpeak_rate') | float(0))
-      }}
-  -
-    name: Battery Savings Yesterday - Shoulder
-    device_class: monetary
-    state_class: total
-    unit_of_measurement: AUD
-    state: >
-      {{
-        state_attr('sensor.battery_discharge_self_consumption_daily_shoulder', 'last_period') | float(0) *
-        (states('sensor.electricity_shoulder_cost') | float(0) - state_attr('sensor.solar_feed_in', 'offpeak_rate') | float(0))
-      }}
+    availability: "{{ is_number(states('sensor.battery_savings_daily')) }}"
+    state: "{{ states('sensor.battery_savings_daily') | float }}"
   -
     name: Battery Savings Yesterday - Total
     device_class: monetary
     state_class: total
     unit_of_measurement: AUD
-    state: >
-      {{
-        states('sensor.battery_savings_yesterday_peak') | float(0) +
-        states('sensor.battery_savings_yesterday_offpeak') | float(0) +
-        states('sensor.battery_savings_yesterday_shoulder') | float(0)
-      }}
-
-  # Battery savings MONTHLY
-  -
-    name: Battery Savings Month - Peak
-    device_class: monetary
-    state_class: total
-    unit_of_measurement: AUD
-    state: >
-      {% set import_rate = states('sensor.electricity_peak_cost') if now().month in [11, 12, 1, 2, 3, 6, 7, 8] else states('sensor.electricity_offpeak_cost') %}
-      {{
-        states('sensor.battery_discharge_self_consumption_monthly_peak') | float(0) *
-        (import_rate | float(0) - state_attr('sensor.solar_feed_in', 'evening_peak_rate') | float(0))
-      }}
-  -
-    name: Battery Savings Month - Offpeak
-    device_class: monetary
-    state_class: total
-    unit_of_measurement: AUD
-    state: >
-      {{
-        states('sensor.battery_discharge_self_consumption_monthly_offpeak') | float(0) *
-        (states('sensor.electricity_offpeak_cost') | float(0) - state_attr('sensor.solar_feed_in', 'offpeak_rate') | float(0))
-      }}
-  -
-    name: Battery Savings Month - Shoulder
-    device_class: monetary
-    state_class: total
-    unit_of_measurement: AUD
-    state: >
-      {{
-        states('sensor.battery_discharge_self_consumption_monthly_shoulder') | float(0) *
-        (states('sensor.electricity_shoulder_cost') | float(0) - state_attr('sensor.solar_feed_in', 'offpeak_rate') | float(0))
-      }}
+    availability: "{{ is_number(state_attr('sensor.battery_savings_daily', 'last_period')) }}"
+    state: "{{ state_attr('sensor.battery_savings_daily', 'last_period') | float }}"
   -
     name: Battery Savings Month - Total
     device_class: monetary
     state_class: total
     unit_of_measurement: AUD
-    state: >
-      {{
-        states('sensor.battery_savings_month_peak') | float(0) +
-        states('sensor.battery_savings_month_offpeak') | float(0) +
-        states('sensor.battery_savings_month_shoulder') | float(0)
-      }}
+    availability: "{{ is_number(states('sensor.battery_savings_monthly')) }}"
+    state: "{{ states('sensor.battery_savings_monthly') | float }}"
 
   # Battery Initial Cost
   -
