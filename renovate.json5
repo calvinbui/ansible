@@ -602,6 +602,16 @@
       extractVersionTemplate: "^pg(?<version>\\d+)\\.\\d+-ts\\d+\\.\\d+\\.\\d+$",
     },
 
+    /* librechat fetch MCP */
+    {
+      customType: "regex",
+      managerFilePatterns: ['/^librechat\\.ya?ml$/'],
+      matchStrings: ['mcp-server-fetch==(?<currentValue>\\d+\\.\\d+\\.\\d+)'],
+      depNameTemplate: "mcp-server-fetch",
+      datasourceTemplate: "pypi",
+      versioningTemplate: "pep440",
+    },
+
     /* librechat postgres */
     {
       customType: "regex",
