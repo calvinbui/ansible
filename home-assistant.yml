@@ -29,9 +29,12 @@
 
     - name: Create postgres container
       tags:
-        - integrations
+        - always
       ansible.builtin.include_role:
         name: postgres
+        apply:
+          tags:
+            - always
       vars:
         postgres_version: 18.6
         postgres_password: !vault |
