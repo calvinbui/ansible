@@ -129,6 +129,15 @@
               - "home-assistant-mcp:8086"
 
           mcpServers:
+            web-fetch:
+              title: Web Fetch
+              description: Read web pages from a URL
+              type: stdio
+              command: uvx
+              args:
+                - mcp-server-fetch==2026.10.28
+              initTimeout: 120000
+
             actual-mcp-server:
               type: streamable-http
               url: http://actual-mcp-server:3600/http
@@ -197,6 +206,7 @@
                 name: {{ model.name | ansible.builtin.to_json }}
                 label: {{ model.label | ansible.builtin.to_json }}
                 default: {{ (model.name == ai_default_model) | ansible.builtin.to_json }}
+                mcpServers: [web-fetch]
                 preset:
                   endpoint: anthropic
                   model: {{ model.name | ansible.builtin.to_json }}
