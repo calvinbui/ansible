@@ -152,25 +152,7 @@ cards:
             left: 200
             right: 200
         calibration_source:
-          calibration_points:
-            - vacuum:
-                x: 25500
-                y: 25500
-              map:
-                x: 1360
-                y: 848
-            - vacuum:
-                x: 35500
-                y: 25500
-              map:
-                x: 2160
-                y: 848
-            - vacuum:
-                x: 25500
-                y: 35500
-              map:
-                x: 1360
-                y: 48
+          camera: true
         activate_on_switch: true
         activate:
           service: select.select_option
@@ -483,25 +465,7 @@ cards:
                 left: 500
                 right: 500
             calibration_source:
-              calibration_points:
-                - vacuum:
-                    x: 25500
-                    y: 25500
-                  map:
-                    x: 788
-                    y: 516
-                - vacuum:
-                    x: 35500
-                    y: 25500
-                  map:
-                    x: 1588
-                    y: 516
-                - vacuum:
-                    x: 25500
-                    y: 35500
-                  map:
-                    x: 788
-                    y: -284
+              camera: true
             activate_on_switch: true
             activate:
               service: select.select_option
