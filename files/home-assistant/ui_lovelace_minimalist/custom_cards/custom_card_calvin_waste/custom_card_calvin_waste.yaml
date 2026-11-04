@@ -5,60 +5,24 @@ custom_card_calvin_waste:
   variables:
     ulm_card_generic_swap_name: "[[[ return variables.ulm_card_generic_swap_name ]]]"
     ulm_card_generic_swap_icon: "[[[ return variables.ulm_card_generic_swap_icon ]]]"
-  state:
-    - operator: "template"
-      value: "[[[ return states[entity.entity_id].attributes.daysTo == 0; ]]]"
-      styles:
-        custom_fields:
-          notification:
-            - border-radius: "50%"
-            - position: "absolute"
-            - left: "38px"
-            - top: "8px"
-            - height: "16px"
-            - width: "16px"
-            - border: "2px solid var(--card-background-color)"
-            - font-size: "12px"
-            - line-height: "14px"
-            - background-color: >
-                [[[
-                  return "rgba(var(--color-red),1)";
-                ]]]
-    - operator: "template"
-      value: "[[[ return states[entity.entity_id].attributes.daysTo == 1; ]]]"
-      styles:
-        custom_fields:
-          notification:
-            - border-radius: "50%"
-            - position: "absolute"
-            - left: "38px"
-            - top: "8px"
-            - height: "16px"
-            - width: "16px"
-            - border: "2px solid var(--card-background-color)"
-            - font-size: "12px"
-            - line-height: "14px"
-            - background-color: >
-                [[[
-                  return "rgba(var(--color-red),1)";
-                ]]]
-    - value: "unavailable"
-      styles:
-        custom_fields:
-          notification:
-            - border-radius: "50%"
-            - position: "absolute"
-            - left: "38px"
-            - top: "8px"
-            - height: "16px"
-            - width: "16px"
-            - border: "2px solid var(--card-background-color)"
-            - font-size: "12px"
-            - line-height: "14px"
-            - background-color: >
-                [[[
-                  return "rgba(var(--color-red),1)";
-                ]]]
+  styles:
+    custom_fields:
+      notification:
+        - display: >
+            [[[
+              const d = states[entity.entity_id].attributes.daysTo;
+              return (entity.state == 'unavailable' || d == 0 || d == 1) ? 'block' : 'none';
+            ]]]
+        - border-radius: "50%"
+        - position: "absolute"
+        - left: "38px"
+        - top: "8px"
+        - height: "16px"
+        - width: "16px"
+        - border: "2px solid var(--card-background-color)"
+        - font-size: "12px"
+        - line-height: "14px"
+        - background-color: "rgba(var(--color-red),1)"
   custom_fields:
     item1:
       card:
