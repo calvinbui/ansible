@@ -69,7 +69,8 @@ cards:
           graph_span: 24h
           span:
             start: day
-            offset: ${"-" + states['input_number.solar_graph_offset'].state + "d"}
+            offset: >-
+              ${(Number(states['input_number.solar_graph_offset'].state) > 0 ? "-" : "+") + Math.abs(Number(states['input_number.solar_graph_offset'].state)) + "d"}
 
           show:
             loading: true
@@ -229,7 +230,7 @@ cards:
             -
               name: Forecast
               # Keep the chart renderable while Solcast is unavailable; the
-              # generated data is read from the Solcast entity below.
+              # generated data is read from the Solcast entities below.
               entity: sensor.total_solar_generation
               yaxis_id: kW
               type: line
@@ -237,15 +238,22 @@ cards:
               curve: stepline
               extend_to: end
               data_generator: |
-                const detailedForecast = hass.states[
-                  'sensor.solcast_pv_forecast_forecast_today'
-                ]?.attributes?.detailedForecast;
+                const forecastEntities = [
+                  'sensor.solcast_pv_forecast_forecast_today',
+                  'sensor.solcast_pv_forecast_forecast_tomorrow',
+                  'sensor.solcast_pv_forecast_forecast_day_3',
+                  'sensor.solcast_pv_forecast_forecast_day_4',
+                  'sensor.solcast_pv_forecast_forecast_day_5',
+                  'sensor.solcast_pv_forecast_forecast_day_6',
+                  'sensor.solcast_pv_forecast_forecast_day_7',
+                ];
 
-                if (!Array.isArray(detailedForecast)) {
-                  return [];
-                }
-
-                return detailedForecast
+                return forecastEntities
+                  .flatMap((entityId) => {
+                    const detailedForecast =
+                      hass.states[entityId]?.attributes?.detailedForecast;
+                    return Array.isArray(detailedForecast) ? detailedForecast : [];
+                  })
                   .map((entry) => {
                     const timestamp = new Date(entry.period_start).getTime();
                     return [timestamp, Math.min(entry.pv_estimate, 10)];
