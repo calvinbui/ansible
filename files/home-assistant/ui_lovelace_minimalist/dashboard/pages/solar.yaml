@@ -302,8 +302,12 @@ cards:
               # from the Zeekr Battery Forecast Model calibration (9.65 kW DC
               # charges ~18 %/h, 90.5% conversion efficiency).
               data_generator: |
+                // config-template-card only passes new states to this card when
+                // its own entities change, so read them from the live frontend
+                hass = document.querySelector('home-assistant')?.hass ?? hass;
+
                 const now = Date.now();
-                const startSoc = Number(entity.state);
+                const startSoc = Number(hass.states[entity.entity_id]?.state);
                 if (now < start.getTime() || now >= end.getTime() || !Number.isFinite(startSoc)) {
                   return [];
                 }
