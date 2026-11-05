@@ -4,36 +4,21 @@ title: Outdoor Cameras
 path: outdoor-cameras
 icon: mdi:camera-wireless-outline
 
-type: custom:horizontal-layout
-layout:
-  max_cols: 2
-  width: 420
+# one combined go2rtc stream: the wall tablets run out of hardware decoders with separate streams
+type: panel
 
 cards:
-  -
+  - type: custom:webrtc-camera
+    server: http://go2rtc:1984/
     streams:
-      - url: driveway
-    <<: &webrtc_camera
-      type: custom:webrtc-camera
-      server: http://go2rtc:1984/
-      background: false
-      ui: true
-      mode: mse
-      media: video
-      poster: https://wallpapers.com/images/hd/please-stand-by-fallout-76-ye5n5c08piahzmne.jpg
-      style: >-
-        .screenshot {display: none}
-        .pictureinpicture {display: none}
-        .mode {display: none}
-  -
-    streams:
-      - url: rear_balcony
-    <<: *webrtc_camera
-  -
-    streams:
-      - url: outdoor_side
-    <<: *webrtc_camera
-  -
-    streams:
-      - url: backyard
-    <<: *webrtc_camera
+      - url: outdoor_mosaic
+    background: false
+    ui: true
+    mode: webrtc,mse
+    media: video
+    poster: /local/camera-poster.jpg
+    style: >-
+      .screenshot {display: none}
+      .pictureinpicture {display: none}
+      .mode {display: none}
+      video {max-height: calc(100vh - var(--header-height, 56px) - 16px)}

@@ -43,7 +43,7 @@ cards:
         muted: true
         background: false
         ui: false
-        poster: https://wallpapers.com/images/hd/please-stand-by-fallout-76-ye5n5c08piahzmne.jpg
+        poster: /local/camera-poster.jpg
         style: >-
           .screenshot {display: none}
           .pictureinpicture {display: none}

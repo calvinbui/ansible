@@ -4,68 +4,21 @@ title: Indoor Cameras
 path: indoor-cameras
 icon: mdi:camera-wireless
 
-type: custom:grid-layout
-layout:
-  grid-template-columns: 10% repeat(auto-fill) 10%
-  grid-template-areas: |
-    ". camera1 camera2 camera3 ."
-    ". camera4 camera5 camera6 ."
-  mediaquery:
-    "(max-width: 800px)":
-      grid-template-columns: 1
-      grid-template-areas: |
-        "camera1"
-        "camera2"
-        "camera3"
-        "camera4"
-        "camera5"
-        "camera6"
+# one combined go2rtc stream: the wall tablets run out of hardware decoders with six separate streams
+type: panel
 
 cards:
-  -
+  - type: custom:webrtc-camera
+    server: http://go2rtc:1984/
     streams:
-      - url: downstairs_common
-    view_layout:
-      grid-area: camera1
-    <<: &webrtc_camera
-      type: custom:webrtc-camera
-      server: http://go2rtc:1984/
-      background: true
-      ui: true
-      mode: mse
-      media: video
-      poster: https://wallpapers.com/images/hd/please-stand-by-fallout-76-ye5n5c08piahzmne.jpg
-      style: >-
-        .screenshot {display: none}
-        .pictureinpicture {display: none}
-        .mode {display: none}
-  -
-    streams:
-      - url: foyer
-    view_layout:
-      grid-area: camera2
-    <<: *webrtc_camera
-  -
-    streams:
-      - url: downstairs_hallway
-    view_layout:
-      grid-area: camera3
-    <<: *webrtc_camera
-  -
-    streams:
-      - url: front_bedrooms
-    view_layout:
-      grid-area: camera4
-    <<: *webrtc_camera
-  -
-    streams:
-      - url: upstairs_hallway
-    view_layout:
-      grid-area: camera5
-    <<: *webrtc_camera
-  -
-    streams:
-      - url: garage
-    view_layout:
-      grid-area: camera6
-    <<: *webrtc_camera
+      - url: indoor_mosaic
+    background: false
+    ui: true
+    mode: webrtc,mse
+    media: video
+    poster: /local/camera-poster.jpg
+    style: >-
+      .screenshot {display: none}
+      .pictureinpicture {display: none}
+      .mode {display: none}
+      video {max-height: calc(100vh - var(--header-height, 56px) - 16px)}

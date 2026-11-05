@@ -299,6 +299,16 @@
       with_fileglob:
         - "{{ files_directory }}/ui_lovelace_minimalist/dashboard/pages/*.j2"
 
+    - name: Copy dashboard images
+      tags:
+        - dashboard
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: "{{ config_directory }}/config/www/{{ item | ansible.builtin.basename }}"
+        mode: "0644"
+      with_fileglob:
+        - "{{ files_directory }}/www/*"
+
     - name: Install HACS
       containers.podman.podman_container_exec:
         name: "{{ application }}"
