@@ -7,6 +7,12 @@
 
     container_network: "{{ networks.iot }}"
 
+  handlers:
+    - name: Restart screenshot
+      containers.podman.podman_container:
+        name: "{{ application }}-screenshot"
+        force_restart: true
+
   tasks:
     - name: Create config folder
       ansible.builtin.file:
@@ -26,16 +32,24 @@
         force: true
         update: true
 
-    - name: Create MCP server
-      ansible.builtin.include_role:
-        name: podman_container
+    - name: Clone Puppet screenshot engine
+      ansible.builtin.git:
+        repo: https://github.com/balloob/home-assistant-addons.git
+        dest: "{{ config_directory }}/puppet"
+        force: true
+        update: true
+      notify: Restart screenshot
+
+    # Puppet reads options-dev.json when it isn't running as an HA add-on
+    - name: Write screenshot engine options
+      ansible.builtin.copy:
+        content: "{{ _puppet_options | ansible.builtin.to_nice_json }}"
+        dest: "{{ config_directory }}/puppet-options.json"
+        mode: "0600"
       vars:
-        container_name: "{{ application }}"
-        image: ghcr.io/homeassistant-ai/ha-mcp:9.0.0
-        command: ha-mcp-web
-        env:
-          HOMEASSISTANT_URL: "http://home-assistant:8123"
-          HOMEASSISTANT_TOKEN: !vault |
+        _puppet_options:
+          home_assistant_url: http://home-assistant:8123
+          access_token: &home_assistant_token !vault |
             $ANSIBLE_VAULT;1.1;AES256
             63666665353264303035316261353966633162666163363362613565623232623531623835393262
             3637303061306539663032373830313465653233656530610a623335376532643339313039333232
@@ -50,6 +64,41 @@
             66313431393237643532313663336236663637666536363837353333633032356463343833333130
             31303365396335306338383766623436633662623362313164356466653939336263666465383137
             35343663366232346330316664303466663531613232303361336165356266356534
+          chromium_executable: /tmp/chromium
+          keep_browser_open: false
+      notify: Restart screenshot
+
+    # Unauthenticated listener on port 10000; reachable only by other containers
+    - name: Create screenshot container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        container_name: "{{ application }}-screenshot"
+        image: mcr.microsoft.com/playwright:v1.64.1-noble
+        command:
+          - sh
+          - -c
+          - >-
+            ln -sf "$(ls -d /ms-playwright/chromium-*/chrome-linux*/chrome | head -n 1)" /tmp/chromium
+            && cd /app
+            && npm ci --omit=dev
+            && exec node http.js
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: "true"
+        volumes:
+          - "{{ config_directory }}/puppet/puppet/ha-puppet:/app"
+          - "{{ config_directory }}/puppet-options.json:/app/options-dev.json:ro"
+
+    - name: Create MCP server
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        container_name: "{{ application }}"
+        image: ghcr.io/homeassistant-ai/ha-mcp:9.0.0
+        command: ha-mcp-web
+        env:
+          HOMEASSISTANT_URL: "http://home-assistant:8123"
+          HOMEASSISTANT_TOKEN: *home_assistant_token
 
           HA_MCP_CONFIG_DIR: /data
           HAMCP_BACKUP_DIR: /data/backups
@@ -59,6 +108,10 @@
           ENABLE_TOOL_SEARCH: "true"
           ENABLE_SKILLS: "true"
           ENABLE_SKILLS_AS_TOOLS: "true"
+
+          ENABLE_BETA_FEATURES: "true"
+          HAMCP_ENABLE_DASHBOARD_SCREENSHOT: "true"
+          HAMCP_DASHBOARD_SCREENSHOT_ENGINE_URL: "http://{{ application }}-screenshot:10000"
         volumes:
           - "{{ config_directory }}/data:/data"
           - "{{ config_directory }}/skills/skills:/app/src/ha_mcp/resources/skills-vendor/skills"
