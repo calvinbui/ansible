@@ -631,16 +631,6 @@
       extractVersionTemplate: "^\\d+\\.\\d+\\.\\d+-pg(?<version>\\d+)$",
     },
 
-    /* home assistant apexcharts-card */
-    {
-      customType: "regex",
-      managerFilePatterns: ['/^home-assistant\\.ya?ml$/'],
-      matchStrings: ['apexcharts_card_version: (?<currentValue>v\\d+\\.\\d+\\.\\d+)'],
-      depNameTemplate: "foXaCe/apexcharts-card",
-      datasourceTemplate: "github-releases",
-      versioningTemplate: "semver",
-    },
-
     /* ansible.builtin.git */
     {
       customType: "regex",

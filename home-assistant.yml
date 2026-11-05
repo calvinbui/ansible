@@ -12,9 +12,6 @@
 
     home_assistant_integrations_dir: "{{ config_directory }}/config/integrations"
 
-    # maintained fork of RomRider/apexcharts-card, loaded via frontend extra_module_url
-    apexcharts_card_version: v2.6.21
-
   handlers:
     - name: Restart
       containers.podman.podman_container:
@@ -301,14 +298,6 @@
         group: "root"
       with_fileglob:
         - "{{ files_directory }}/ui_lovelace_minimalist/dashboard/pages/*.j2"
-
-    - name: Download apexcharts-card
-      tags:
-        - dashboard
-      ansible.builtin.get_url:
-        url: https://github.com/foXaCe/apexcharts-card/releases/download/{{ apexcharts_card_version }}/apexcharts-card.js
-        dest: "{{ config_directory }}/config/www/apexcharts-card.js"
-        mode: "0644"
 
     - name: Copy dashboard images
       tags:
