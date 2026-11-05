@@ -103,6 +103,7 @@ cards:
                   - Battery Usage
                   - Solar Battery Charging
                   - Solar Export
+                  - Battery Export
                 min: 0
                 max: 10
                 tickAmount: 5
@@ -191,7 +192,7 @@ cards:
             type: area
             stroke_width: 2
             curve: smooth
-            opacity: 0.85
+            opacity: 0.75
             unit: kW
             fill_raw: last
             extend_to: now
@@ -229,8 +230,9 @@ cards:
                 func: avg
                 duration: 5m
             -
+              # Excludes battery discharge to the grid, shown as Battery Export
               name: Battery Usage
-              entity: sensor.battery_discharging_power
+              entity: sensor.battery_discharge_self_consumption
               transform: return x / 1000;
               color: '#4db6ac'
               group_by:
@@ -245,10 +247,49 @@ cards:
                 func: avg
                 duration: 5m
             -
+              # Grid export minus Battery Export, built from the history of
+              # both so past days work (transform doesn't apply to generators)
               name: Solar Export
               entity: sensor.grid_power_export
-              transform: return x / 1000;
               color: '#18cf87'
+              group_by:
+                func: avg
+                duration: 5m
+              data_generator: |
+                const exportId = 'sensor.grid_power_export';
+                const batteryId = 'sensor.battery_discharge_to_grid';
+                const history = await hass.callWS({
+                  type: 'history/history_during_period',
+                  start_time: start.toISOString(),
+                  end_time: end.toISOString(),
+                  entity_ids: [exportId, batteryId],
+                  minimal_response: true,
+                  no_attributes: true,
+                  significant_changes_only: false,
+                });
+
+                const changes = [exportId, batteryId]
+                  .flatMap((entityId) =>
+                    (history[entityId] ?? []).map((item) => ({
+                      entityId,
+                      time: Math.max(item.lu * 1000, start.getTime()),
+                      value: parseFloat(item.s),
+                    }))
+                  )
+                  .sort((a, b) => a.time - b.time);
+
+                const current = {};
+                return changes.map(({ entityId, time, value }) => {
+                  current[entityId] = Number.isNaN(value) ? null : value;
+                  const exported = current[exportId];
+                  if (exported === null || exported === undefined) return [time, null];
+                  return [time, Math.max(exported - (current[batteryId] ?? 0), 0) / 1000];
+                });
+            -
+              name: Battery Export
+              entity: sensor.battery_discharge_to_grid
+              transform: return x / 1000;
+              color: '#9575cd'
               group_by:
                 func: avg
                 duration: 5m
