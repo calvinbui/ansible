@@ -262,6 +262,10 @@ cards:
               curve: stepline
               extend_to: end
               data_generator: |
+                // config-template-card only passes new states to this card when
+                // its own entities change, so read them from the live frontend
+                hass = document.querySelector('home-assistant')?.hass ?? hass;
+
                 const forecastEntities = [
                   'sensor.solcast_pv_forecast_forecast_today',
                   'sensor.solcast_pv_forecast_forecast_tomorrow',
