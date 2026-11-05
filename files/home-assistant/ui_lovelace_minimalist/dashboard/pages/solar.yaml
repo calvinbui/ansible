@@ -80,7 +80,7 @@ cards:
 
           cache: true
 
-          stacked: false
+          stacked: true
 
           header:
             show: true
@@ -89,25 +89,46 @@ cards:
             colorize_states: true
             disable_actions: true
 
-          yaxis:
-            -
-              id: kW
-              min: 0
-              decimals: 0
-              apex_config:
-                tickAmount: 5
-            -
-              id: percent
-              min: 0
-              max: 100
-              decimals: 0
-              opposite: true
-              apex_config:
-                tickAmount: 5
-
           apex_config:
+            # The card's own `yaxis` option gives every series a separate
+            # ApexCharts axis, and ApexCharts only stacks series sharing an
+            # axis, so the axes are defined here by series name instead.
+            # Forecast gets its own hidden axis so it isn't stacked; its
+            # min/max must match the kW axis.
+            yaxis:
+              -
+                seriesName:
+                  - Grid Consumption
+                  - Solar Usage
+                  - Battery Usage
+                  - Solar Battery Charging
+                  - Solar Export
+                min: 0
+                max: 10
+                tickAmount: 5
+                decimalsInFloat: 0
+              -
+                seriesName: Battery Charge
+                opposite: true
+                min: 0
+                max: 100
+                tickAmount: 5
+                decimalsInFloat: 0
+              -
+                seriesName: Forecast
+                show: false
+                min: 0
+                max: 10
+            theme:
+              mode: dark
+            tooltip:
+              x:
+                format: h:mm TT
             chart:
               type: area
+              background: transparent
+              # Without this, mixed area/line charts only stack columns
+              stackOnlyBar: false
               zoom:
                 enabled: true
                 type: x
@@ -127,14 +148,9 @@ cards:
               enabled: true
             legend:
               show: false
+            # Gradient fills apply the series opacity twice in ApexCharts 5
             fill:
-              type: gradient
-              gradient:
-                inverseColors: true
-                type: vertical
-                shadeIntensity: 0
-                opacityFrom: 0.7
-                opacityTo: 0.7
+              type: solid
             grid:
               show: false
             annotations:
@@ -158,11 +174,18 @@ cards:
 
           locale: en
 
+          # The card fills toolbar icons, but ApexCharts 5 icons are outlines
+          card_mod:
+            style: |
+              .apexcharts-toolbar svg {
+                fill: none !important;
+              }
+
           all_series_config:
             type: area
             stroke_width: 2
             curve: smooth
-            opacity: 0.7
+            opacity: 0.85
             unit: kW
             fill_raw: last
             extend_to: now
@@ -174,7 +197,6 @@ cards:
             -
               name: Grid Consumption
               entity: sensor.grid_power_consumption
-              yaxis_id: kW
               color: '#f76354' # red
               transform: return x / 1000;
               float_precision: 3
@@ -182,9 +204,19 @@ cards:
                 func: avg
                 duration: 5m
             -
+              # Must stay second: the card places extrema markers on the
+              # y-axis whose index equals the series index (the % axis).
+              name: Battery Charge
+              entity: sensor.solplanet_battery_al010k5sq2590170_battery_state_of_charge
+              type: line
+              stroke_width: 5
+              color: '#ffa500'
+              unit: '%'
+              show:
+                extremas: true
+            -
               name: Solar Usage
               entity: sensor.solar_direct_home_consumption
-              yaxis_id: kW
               transform: return x / 1000;
               color: '#ff9800'
               group_by:
@@ -193,7 +225,6 @@ cards:
             -
               name: Battery Usage
               entity: sensor.battery_discharging_power
-              yaxis_id: kW
               transform: return x / 1000;
               color: '#4db6ac'
               group_by:
@@ -202,7 +233,6 @@ cards:
             -
               name: Solar Battery Charging
               entity: sensor.solar_battery_charging
-              yaxis_id: kW
               transform: return x / 1000;
               color: '#f06292'
               group_by:
@@ -211,28 +241,16 @@ cards:
             -
               name: Solar Export
               entity: sensor.grid_power_export
-              yaxis_id: kW
               transform: return x / 1000;
               color: '#18cf87'
               group_by:
                 func: avg
                 duration: 5m
             -
-              name: Battery Charge
-              entity: sensor.solplanet_battery_al010k5sq2590170_battery_state_of_charge
-              yaxis_id: percent
-              type: line
-              stroke_width: 5
-              color: '#ffa500'
-              unit: '%'
-              show:
-                extremas: true
-            -
               name: Forecast
               # Keep the chart renderable while Solcast is unavailable; the
               # generated data is read from the Solcast entities below.
               entity: sensor.total_solar_generation
-              yaxis_id: kW
               type: line
               color: '#3798fe'
               curve: stepline
