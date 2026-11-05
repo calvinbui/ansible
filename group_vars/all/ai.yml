@@ -15,6 +15,9 @@ ai_models:
   opus:
     name: claude-opus-5-5
     label: Claude Opus 5.5
+  opus48:
+    name: claude-opus-4-8
+    label: Claude Opus 4.8
   fable:
     name: claude-fable-5-1
     label: Claude Fable 5.1
