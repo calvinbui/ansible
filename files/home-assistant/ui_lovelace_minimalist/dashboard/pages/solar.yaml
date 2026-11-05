@@ -119,6 +119,12 @@ cards:
                 show: false
                 min: 0
                 max: 10
+              -
+                # Separate from Battery Charge so the two aren't stacked
+                seriesName: Battery Forecast
+                show: false
+                min: 0
+                max: 100
             theme:
               mode: dark
             tooltip:
@@ -279,6 +285,131 @@ cards:
                   .filter(([timestamp]) =>
                     timestamp >= start.getTime() && timestamp <= end.getTime()
                   );
+            -
+              name: Battery Forecast
+              entity: sensor.solplanet_battery_al010k5sq2590170_battery_state_of_charge
+              type: line
+              stroke_width: 3
+              stroke_dash: 6
+              curve: smooth
+              color: '#ffa500'
+              unit: '%'
+              extend_to: false
+              # Simulates SOC from now until midnight in 5-minute steps using
+              # the Solcast P50 forecast, the household load for each hour of
+              # the day (7-day average, excluding car charging) and the AGL
+              # 17:00-21:00 export pacing down to 40%. Battery constants come
+              # from the Zeekr Battery Forecast Model calibration (9.65 kW DC
+              # charges ~18 %/h, 90.5% conversion efficiency).
+              data_generator: |
+                const now = Date.now();
+                const startSoc = Number(entity.state);
+                if (now < start.getTime() || now >= end.getTime() || !Number.isFinite(startSoc)) {
+                  return [];
+                }
+
+                const num = (entityId, fallback) => {
+                  const value = Number(hass.states[entityId]?.state);
+                  return Number.isFinite(value) ? value : fallback;
+                };
+                const atHour = (hour) => new Date(start).setHours(hour, 0, 0, 0);
+
+                const CAPACITY_KWH = 53.6;
+                const EFFICIENCY = 0.905;
+                const MAX_CHARGE_KW = 9.65;
+                const MAX_DISCHARGE_KW = 10;
+                const STEP = 5 * 60 * 1000;
+                const PLOT_EVERY = 30 * 60 * 1000;
+                const minSoc = num('number.solplanet_battery_al010k5sq2590170_soc_min', 5);
+                const maxSoc = num('number.solplanet_battery_al010k5sq2590170_soc_max', 100);
+
+                // Refreshed hourly rather than on every 30s chart update
+                const cached = window.batteryForecastLoadProfile;
+                let profile = cached && now - cached.fetched < 60 * 60 * 1000 ? cached.profile : null;
+                if (!profile) {
+                  const home = 'sensor.home_power_consumption';
+                  const car = 'sensor.garage_zeekr_7x_awd_charge_power';
+                  const stats = await hass.callWS({
+                    type: 'recorder/statistics_during_period',
+                    start_time: new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString(),
+                    end_time: new Date(now).toISOString(),
+                    statistic_ids: [home, car],
+                    period: 'hour',
+                    types: ['mean'],
+                  });
+                  const carKw = new Map(
+                    (stats[car] ?? []).map((s) => [new Date(s.start).getTime(), s.mean ?? 0])
+                  );
+                  const sums = Array(24).fill(0);
+                  const counts = Array(24).fill(0);
+                  for (const s of stats[home] ?? []) {
+                    if (s.mean == null) continue;
+                    const timestamp = new Date(s.start).getTime();
+                    const hour = new Date(timestamp).getHours();
+                    sums[hour] += Math.max(s.mean / 1000 - (carKw.get(timestamp) ?? 0), 0);
+                    counts[hour]++;
+                  }
+                  profile = sums.map((sum, hour) => (counts[hour] ? sum / counts[hour] : null));
+                  window.batteryForecastLoadProfile = { fetched: now, profile };
+                }
+                const knownLoads = profile.filter((load) => load !== null);
+                const fallbackLoad = knownLoads.length
+                  ? knownLoads.reduce((a, b) => a + b, 0) / knownLoads.length
+                  : 1.2;
+
+                const solar = (
+                  hass.states['sensor.solcast_pv_forecast_forecast_today']?.attributes?.detailedForecast ?? []
+                ).map((entry) => [new Date(entry.period_start).getTime(), Number(entry.pv_estimate) || 0]);
+                const solarAt = (timestamp) =>
+                  solar.find(([s]) => timestamp >= s && timestamp < s + 30 * 60 * 1000)?.[1] ?? 0;
+
+                // Mirrors the conditions in the AGL Battery Export to 40% automation
+                const exportStart = atHour(17);
+                const exportEnd = atHour(21);
+                const exportEnabled =
+                  hass.states['automation.electricity_zerohero_conditional_export']?.state === 'on' &&
+                  hass.states['binary_sensor.solplanet_battery_al010k5sq2590170_schedule_configured']?.state === 'on' &&
+                  num('sensor.solcast_pv_forecast_forecast_tomorrow', 0) > 30;
+                let exportFrom = null;
+                let exportSoc = null;
+                const sessionStart =
+                  (hass.states['input_datetime.agl_export_session_start']?.attributes?.timestamp ?? 0) * 1000;
+                if (exportEnabled && sessionStart >= exportStart && sessionStart <= now && now < exportEnd) {
+                  exportFrom = sessionStart;
+                  exportSoc = num('input_number.agl_export_start_soc', startSoc);
+                }
+
+                let soc = startSoc;
+                const points = [[now, soc]];
+                for (let t = now, dt; t < end.getTime(); t += dt) {
+                  // The first step is shortened so later steps land on 5-minute boundaries
+                  dt = Math.min(STEP - (t % STEP), end.getTime() - t);
+                  const hours = dt / (60 * 60 * 1000);
+                  if (exportEnabled && exportFrom === null && t >= exportStart && t < exportEnd) {
+                    exportFrom = t;
+                    exportSoc = soc;
+                  }
+
+                  const net = solarAt(t) - (profile[new Date(t).getHours()] ?? fallbackLoad);
+                  const kwh = net >= 0
+                    ? Math.min(net, MAX_CHARGE_KW) * EFFICIENCY * hours
+                    : (Math.max(net, -MAX_DISCHARGE_KW) / EFFICIENCY) * hours;
+                  let next = soc + (kwh / CAPACITY_KWH) * 100;
+
+                  if (exportFrom !== null && t < exportEnd) {
+                    const progress = Math.min((t + dt - exportFrom) / (exportEnd - exportFrom), 1);
+                    const target = Math.max(40, exportSoc - (exportSoc - 40) * progress);
+                    const fastest = soc - ((MAX_DISCHARGE_KW / EFFICIENCY) * hours / CAPACITY_KWH) * 100;
+                    next = Math.min(next, Math.max(target, fastest));
+                  }
+
+                  soc = Math.min(Math.max(next, minSoc), maxSoc);
+                  // Sparse points let the smooth curve round off the corners
+                  if ((t + dt) % PLOT_EVERY === 0 || t + dt >= end.getTime()) {
+                    points.push([t + dt, Math.round(soc * 10) / 10]);
+                  }
+                }
+                return points;
 
       -
         type: horizontal-stack
