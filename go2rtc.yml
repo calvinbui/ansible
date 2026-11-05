@@ -26,6 +26,11 @@
     - name: Create config
       ansible.builtin.copy:
         content: |
+          # keep the mosaics running so the wall tablets don't wait for every camera to connect
+          preload:
+            indoor_mosaic: video
+            outdoor_mosaic: video
+
           streams:
             backyard: rtsp://{{ networks.iot.subnet | ansible.utils.nthhost(255) }}:7447/AKV6ed7s96ojGDU0
             downstairs_common: rtsp://{{ networks.iot.subnet | ansible.utils.nthhost(255) }}:7447/pUoYtfbCbSjvhIyR
@@ -37,6 +42,45 @@
             outdoor_side: rtsp://{{ networks.iot.subnet | ansible.utils.nthhost(255) }}:7447/zUs5nXcCogxPqbzi
             rear_balcony: rtsp://{{ networks.iot.subnet | ansible.utils.nthhost(255) }}:7447/E82ebu7JnaHYUv9u
             upstairs_hallway: rtsp://{{ networks.iot.subnet | ansible.utils.nthhost(255) }}:7447/QGDEqJaMlkK8volh
+
+            # driveway is H.265, which the outdoor mosaic can't decode reliably from mid-stream
+            driveway_h264: ffmpeg:driveway#video=h264#hardware
+
+            # all indoor cameras in one 3x2 stream, so the wall tablets only decode one video
+            indoor_mosaic: >-
+              exec:ffmpeg -hide_banner -v error
+              -hwaccel vaapi -hwaccel_output_format vaapi -hwaccel_flags allow_profile_mismatch -fflags nobuffer -flags low_delay -use_wallclock_as_timestamps 1 -analyzeduration 500000 -probesize 100000 -rtsp_transport tcp -i rtsp://127.0.0.1:8554/downstairs_common?video
+              -hwaccel vaapi -hwaccel_output_format vaapi -hwaccel_flags allow_profile_mismatch -fflags nobuffer -flags low_delay -use_wallclock_as_timestamps 1 -analyzeduration 500000 -probesize 100000 -rtsp_transport tcp -i rtsp://127.0.0.1:8554/foyer?video
+              -hwaccel vaapi -hwaccel_output_format vaapi -hwaccel_flags allow_profile_mismatch -fflags nobuffer -flags low_delay -use_wallclock_as_timestamps 1 -analyzeduration 500000 -probesize 100000 -rtsp_transport tcp -i rtsp://127.0.0.1:8554/downstairs_hallway?video
+              -hwaccel vaapi -hwaccel_output_format vaapi -hwaccel_flags allow_profile_mismatch -fflags nobuffer -flags low_delay -use_wallclock_as_timestamps 1 -analyzeduration 500000 -probesize 100000 -rtsp_transport tcp -i rtsp://127.0.0.1:8554/front_bedrooms?video
+              -hwaccel vaapi -hwaccel_output_format vaapi -hwaccel_flags allow_profile_mismatch -fflags nobuffer -flags low_delay -use_wallclock_as_timestamps 1 -analyzeduration 500000 -probesize 100000 -rtsp_transport tcp -i rtsp://127.0.0.1:8554/upstairs_hallway?video
+              -hwaccel vaapi -hwaccel_output_format vaapi -hwaccel_flags allow_profile_mismatch -fflags nobuffer -flags low_delay -use_wallclock_as_timestamps 1 -analyzeduration 500000 -probesize 100000 -rtsp_transport tcp -i rtsp://127.0.0.1:8554/garage?video
+              -filter_complex "
+              [0:v]fps=5,setpts=(RTCTIME-RTCSTART)/(TB*1000000),scale_vaapi=w=640:h=360:format=nv12[v0];
+              [1:v]fps=5,setpts=(RTCTIME-RTCSTART)/(TB*1000000),scale_vaapi=w=640:h=360:format=nv12[v1];
+              [2:v]fps=5,setpts=(RTCTIME-RTCSTART)/(TB*1000000),scale_vaapi=w=640:h=360:format=nv12[v2];
+              [3:v]fps=5,setpts=(RTCTIME-RTCSTART)/(TB*1000000),scale_vaapi=w=640:h=360:format=nv12[v3];
+              [4:v]fps=5,setpts=(RTCTIME-RTCSTART)/(TB*1000000),scale_vaapi=w=640:h=360:format=nv12[v4];
+              [5:v]fps=5,setpts=(RTCTIME-RTCSTART)/(TB*1000000),scale_vaapi=w=640:h=360:format=nv12[v5];
+              [v0][v1][v2][v3][v4][v5]xstack_vaapi=inputs=6:layout=0_0|w0_0|w0+w1_0|0_h0|w0_h0|w0+w1_h0,fps=5"
+              -an -c:v h264_vaapi -profile:v main -bf 0 -g 5 -b:v 1500k -maxrate 2M -bufsize 2M
+              -rtsp_transport tcp -f rtsp {output}
+
+            # all outdoor cameras in one 2x2 stream, so the wall tablets only decode one video
+            outdoor_mosaic: >-
+              exec:ffmpeg -hide_banner -v error
+              -hwaccel vaapi -hwaccel_output_format vaapi -hwaccel_flags allow_profile_mismatch -fflags nobuffer -flags low_delay -use_wallclock_as_timestamps 1 -analyzeduration 500000 -probesize 100000 -rtsp_transport tcp -i rtsp://127.0.0.1:8554/driveway_h264?video
+              -hwaccel vaapi -hwaccel_output_format vaapi -hwaccel_flags allow_profile_mismatch -fflags nobuffer -flags low_delay -use_wallclock_as_timestamps 1 -analyzeduration 500000 -probesize 100000 -rtsp_transport tcp -i rtsp://127.0.0.1:8554/rear_balcony?video
+              -hwaccel vaapi -hwaccel_output_format vaapi -hwaccel_flags allow_profile_mismatch -fflags nobuffer -flags low_delay -use_wallclock_as_timestamps 1 -analyzeduration 500000 -probesize 100000 -rtsp_transport tcp -i rtsp://127.0.0.1:8554/outdoor_side?video
+              -hwaccel vaapi -hwaccel_output_format vaapi -hwaccel_flags allow_profile_mismatch -fflags nobuffer -flags low_delay -use_wallclock_as_timestamps 1 -analyzeduration 500000 -probesize 100000 -rtsp_transport tcp -i rtsp://127.0.0.1:8554/backyard?video
+              -filter_complex "
+              [0:v]fps=5,setpts=(RTCTIME-RTCSTART)/(TB*1000000),scale_vaapi=w=640:h=360:format=nv12,setparams=range=tv:colorspace=bt709[v0];
+              [1:v]fps=5,setpts=(RTCTIME-RTCSTART)/(TB*1000000),scale_vaapi=w=640:h=360:format=nv12,setparams=range=tv:colorspace=bt709[v1];
+              [2:v]fps=5,setpts=(RTCTIME-RTCSTART)/(TB*1000000),scale_vaapi=w=640:h=360:format=nv12,setparams=range=tv:colorspace=bt709[v2];
+              [3:v]fps=5,setpts=(RTCTIME-RTCSTART)/(TB*1000000),scale_vaapi=w=640:h=360:format=nv12,setparams=range=tv:colorspace=bt709[v3];
+              [v0][v1][v2][v3]xstack_vaapi=inputs=4:layout=0_0|w0_0|0_h0|w0_h0,fps=5"
+              -an -c:v h264_vaapi -profile:v main -bf 0 -g 5 -b:v 1500k -maxrate 2M -bufsize 2M
+              -rtsp_transport tcp -f rtsp {output}
 
             reolink_doorbell:
               - rtsp://admin:{{ reolink_doorbell_password }}@reolink-doorbell.{{ common_local_tld }}:554/h264Preview_01_sub
