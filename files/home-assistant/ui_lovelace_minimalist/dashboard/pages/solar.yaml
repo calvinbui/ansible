@@ -248,13 +248,12 @@ cards:
                 duration: 5m
             -
               # Grid export minus Battery Export, built from the history of
-              # both so past days work (transform doesn't apply to generators)
+              # both so past days work (transform doesn't apply to generators).
+              # Averaged into 5-minute buckets here because the card's group_by
+              # fills generated series all the way to the end of the span.
               name: Solar Export
               entity: sensor.grid_power_export
               color: '#18cf87'
-              group_by:
-                func: avg
-                duration: 5m
               data_generator: |
                 const exportId = 'sensor.grid_power_export';
                 const batteryId = 'sensor.battery_discharge_to_grid';
@@ -279,12 +278,32 @@ cards:
                   .sort((a, b) => a.time - b.time);
 
                 const current = {};
-                return changes.map(({ entityId, time, value }) => {
+                const points = changes.map(({ entityId, time, value }) => {
                   current[entityId] = Number.isNaN(value) ? null : value;
                   const exported = current[exportId];
                   if (exported === null || exported === undefined) return [time, null];
                   return [time, Math.max(exported - (current[batteryId] ?? 0), 0) / 1000];
                 });
+
+                const STEP = 5 * 60 * 1000;
+                const last = Math.min(Date.now(), end.getTime());
+                const buckets = [];
+                let index = 0;
+                let previous = null;
+                for (let t = start.getTime(); t <= last; t += STEP) {
+                  const values = [];
+                  while (index < points.length && points[index][0] < t + STEP) {
+                    values.push(points[index++][1]);
+                  }
+                  const known = values.filter((value) => value !== null);
+                  if (known.length) {
+                    previous = known.reduce((a, b) => a + b, 0) / known.length;
+                  } else if (values.length) {
+                    previous = null;
+                  }
+                  buckets.push([t, previous]);
+                }
+                return buckets;
             -
               name: Battery Export
               entity: sensor.battery_discharge_to_grid
