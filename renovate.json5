@@ -214,6 +214,7 @@
     /* gotenberg */
     {
       matchPackageNames: ['/.*\\/gotenberg$/'],
+      allowedVersions: '<9',
       sourceUrl: 'https://github.com/gotenberg/gotenberg',
     },
     /* scrutiny */
