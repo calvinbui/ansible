@@ -48,7 +48,7 @@
         name: postgres
       vars:
         postgres_image: docker.io/postgis/postgis
-        postgres_version: 18-3.6
+        postgres_version: 18-3.7
         postgres_password: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           33343037303963363364646666303630396435643232663862363565343336303631646130396535
