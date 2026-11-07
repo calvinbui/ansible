@@ -308,12 +308,3 @@
         mode: "0644"
       with_fileglob:
         - "{{ files_directory }}/www/*"
-
-    - name: Install HACS
-      containers.podman.podman_container_exec:
-        name: "{{ application }}"
-        command: bash -c "wget -O - https://get.hacs.xyz | bash -"
-        workdir: /config
-      notify: Restart
-      register: _command_result
-      changed_when: "'HACS directory already exist' not in _command_result.stdout"
