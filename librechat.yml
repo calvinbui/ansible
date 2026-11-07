@@ -135,7 +135,7 @@
               type: stdio
               command: uvx
               args:
-                - mcp-server-fetch==2026.10.28
+                - mcp-server-fetch==2026.11.4
               initTimeout: 120000
 
             actual-mcp-server:
