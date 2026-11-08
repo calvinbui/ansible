@@ -26,18 +26,14 @@
     - name: Create settings.yaml
       ansible.builtin.copy:
         content: |
-          library:
-            paths:
-            - /games
+          server:
+            uid: 707f36ad5bee428f8f740462e11a9bdd
           shop:
-            encrypt: false
+            clients:
+              tinfoil:
+                encrypt: false
             host: ownfoil.{{ common_local_tld }}:8465
-            motd: Welcome to your own shop!
             public: true
-          titles:
-            language: en
-            region: US
-            valid_keys: true
         dest: "{{ config_directory }}/settings.yaml"
         mode: "0644"
 
