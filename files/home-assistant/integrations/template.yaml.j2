@@ -871,6 +871,12 @@
       night_factor: >
         {% from 'battery_export.jinja' import battery_export_plan %}
         {{ (battery_export_plan() | from_json).night_factor }}
+      car_kwh: >
+        {% from 'battery_export.jinja' import battery_export_plan %}
+        {{ (battery_export_plan() | from_json).car_kwh }}
+      car_needed_kwh: >
+        {% from 'battery_export.jinja' import battery_export_plan %}
+        {{ (battery_export_plan() | from_json).car_needed_kwh }}
       solar_tomorrow_kwh: "{{ states('sensor.solcast_pv_forecast_forecast_tomorrow') }}"
 
   # Battery Initial Cost

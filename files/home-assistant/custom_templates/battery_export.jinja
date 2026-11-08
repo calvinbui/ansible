@@ -7,7 +7,12 @@
   solar dashboard forecast (53.6 kWh, 90.5% conversion, 9.65 kW charge, 10 kW discharge).
   House load is the 7-day hourly profile from sensor.house_load_profile. Night hours (21:00-07:00)
   are scaled so the simulated night drains the battery by the largest overnight drop measured in
-  the last 7 nights (night_drop_max_pct), falling back to the heaviest night's load. Returns JSON.
+  the last 7 nights (night_drop_max_pct), falling back to the heaviest night's load.
+  Car: when the Zeekr is at least 10 points below its charge limit, the plan also charges it at
+  2.3 kW between sunrise and sunset whenever solar covers the house plus the car (the same rule the
+  Zeekr stop automation enforces), until it has the energy to reach its limit (100 kWh pack, 90%
+  charger efficiency). This holds back export so the battery still fills by 17:00 with the car
+  charging. Returns JSON.
 #}
 {% macro battery_export_plan() %}
   {%- set cap = 53.6 %}
@@ -21,14 +26,28 @@
   {%- set drop = state_attr('sensor.house_load_profile', 'night_drop_max_pct') | float(0) %}
   {%- set factor = (drop / 100 * cap * eff / night_avg) if drop > 0 and night_avg > 0
                    else (night_max / night_avg) if night_avg > 0 else 1 %}
-  {%- set ns = namespace(pv={}, c=0, low=0, low_at=none) %}
+  {%- set car_kw = 2.3 %}
+  {%- set car_level = states('sensor.garage_zeekr_7x_awd_battery_level') | float(none) %}
+  {%- set car_limit = states('number.garage_zeekr_7x_awd_charging_limit') | float(none) %}
+  {%- set car_needed = ((car_limit - car_level) / 100 * 100 / 0.9)
+                       if car_level is not none and car_limit is not none and car_limit - car_level >= 10
+                       else 0 %}
+  {%- set start = as_timestamp(today_at('21:00')) %}
+  {%- set rise = as_timestamp(state_attr('sun.sun', 'next_rising'), 0) %}
+  {%- set set_ = as_timestamp(state_attr('sun.sun', 'next_setting'), 0) %}
+  {%- set rise = rise + 86400 if rise and rise < start else rise %}
+  {%- set set_ = set_ + 86400 if set_ and set_ < rise else set_ %}
+  {%- set ns = namespace(pv={}, c=0, low=0, low_at=none, car=0) %}
   {%- for p in state_attr('sensor.solcast_pv_forecast_forecast_tomorrow', 'detailedForecast') or [] %}
     {%- set ns.pv = dict(ns.pv, **{(as_timestamp(p.period_start) | int | string): p.pv_estimate | float(0)}) %}
   {%- endfor %}
   {%- for i in range(40) %}
     {%- set t = today_at('21:00') + timedelta(minutes=30 * i) %}
     {%- set load = (profile[t.hour] | float(1.2)) * (factor if t.hour >= 21 or t.hour < 7 else 1) %}
-    {%- set net = ns.pv.get(as_timestamp(t) | int | string, 0) - load %}
+    {%- set pv = ns.pv.get(as_timestamp(t) | int | string, 0) %}
+    {%- set car = car_kw if ns.car < car_needed and rise <= as_timestamp(t) < set_ and pv - load >= car_kw else 0 %}
+    {%- set ns.car = ns.car + car * 0.5 %}
+    {%- set net = pv - load - car %}
     {%- set kwh = ([net, max_charge] | min * eff if net >= 0 else [net, -max_discharge] | max / eff) * 0.5 %}
     {%- set ns.c = ns.c + kwh / cap * 100 %}
     {%- if ns.c < ns.low %}
@@ -45,6 +64,8 @@
     'overnight_target': overnight | round(1),
     'low_point_soc': (target + ns.low) | round(1),
     'low_point_at': ns.low_at,
-    'night_factor': factor | round(2)
+    'night_factor': factor | round(2),
+    'car_kwh': ns.car | round(1),
+    'car_needed_kwh': car_needed | round(1)
   } | to_json -}}
 {% endmacro %}
