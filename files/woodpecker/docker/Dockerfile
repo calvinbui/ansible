@@ -1,5 +1,5 @@
 FROM quay.io/woodpeckerci/woodpecker-agent:v3.20.1 AS woodpecker
-FROM quay.io/woodpeckerci/plugin-git:2.12.0 AS plugin-git
+FROM quay.io/woodpeckerci/plugin-git:2.12.1 AS plugin-git
 FROM quay.io/woodpeckerci/plugin-s3:v1.1.0 as plugin-s3
 FROM ghcr.io/opentofu/opentofu:1.13.9-minimal AS opentofu
 FROM ghcr.io/terraform-linters/tflint:v0.65.0 AS tflint
