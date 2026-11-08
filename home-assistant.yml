@@ -284,6 +284,8 @@
         src: "{{ files_directory }}/ui_lovelace_minimalist/"
         dest: "{{ config_directory }}/config/ui_lovelace_minimalist/"
         delete: false
+        checksum: true
+        times: false
         owner: false
         group: false
         perms: false
