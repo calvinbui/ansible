@@ -59,6 +59,22 @@
       "size": 250
     }
   },
+  "integrityChecks": {
+    "checksumFiles": {
+      "cronExpression": "0 03 * * *",
+      "enabled": false,
+      "percentageLimit": 1,
+      "timeLimit": 3600000
+    },
+    "missingFiles": {
+      "cronExpression": "0 03 * * *",
+      "enabled": true
+    },
+    "untrackedFiles": {
+      "cronExpression": "0 03 * * *",
+      "enabled": true
+    }
+  },
   "job": {
     "backgroundTask": {
       "concurrency": 5
