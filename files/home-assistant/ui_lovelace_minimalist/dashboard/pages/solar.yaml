@@ -362,7 +362,8 @@ cards:
               # Simulates SOC from now until midnight in 5-minute steps using
               # the Solcast P50 forecast, the household load for each hour of
               # the day (7-day average, excluding car charging) and the AGL
-              # 17:00-21:00 export pacing down to 40%. Battery constants come
+              # 17:00-21:00 export pacing down to sensor.battery_export_target
+              # (captured into input_number.agl_export_target_soc at 17:00). Battery constants come
               # from the Zeekr Battery Forecast Model calibration (9.65 kW DC
               # charges ~18 %/h, 90.5% conversion efficiency).
               data_generator: |
@@ -431,20 +432,26 @@ cards:
                 const solarAt = (timestamp) =>
                   solar.find(([s]) => timestamp >= s && timestamp < s + 30 * 60 * 1000)?.[1] ?? 0;
 
-                // Mirrors the conditions in the AGL Battery Export to 40% automation
+                // Mirrors the conditions in the AGL Battery Export to Target automation
                 const exportStart = atHour(17);
                 const exportEnd = atHour(21);
                 const exportEnabled =
                   hass.states['automation.electricity_zerohero_conditional_export']?.state === 'on' &&
-                  hass.states['binary_sensor.solplanet_battery_al010k5sq2590170_schedule_configured']?.state === 'on' &&
-                  num('sensor.solcast_pv_forecast_forecast_tomorrow', 0) > 30;
+                  hass.states['binary_sensor.solplanet_battery_al010k5sq2590170_schedule_configured']?.state === 'on';
                 let exportFrom = null;
                 let exportSoc = null;
+                let exportTarget = num('sensor.battery_export_target', 100);
                 const sessionStart =
                   (hass.states['input_datetime.agl_export_session_start']?.attributes?.timestamp ?? 0) * 1000;
                 if (exportEnabled && sessionStart >= exportStart && sessionStart <= now && now < exportEnd) {
                   exportFrom = sessionStart;
                   exportSoc = num('input_number.agl_export_start_soc', startSoc);
+                  exportTarget = num('input_number.agl_export_target_soc', 100);
+                }
+                // The automation only exports when the starting SOC is more than 2 points above the target
+                let exportSkipped = exportFrom !== null && exportSoc <= exportTarget + 2;
+                if (exportSkipped) {
+                  exportFrom = null;
                 }
 
                 let soc = startSoc;
@@ -453,9 +460,12 @@ cards:
                   // The first step is shortened so later steps land on 5-minute boundaries
                   dt = Math.min(STEP - (t % STEP), end.getTime() - t);
                   const hours = dt / (60 * 60 * 1000);
-                  if (exportEnabled && exportFrom === null && t >= exportStart && t < exportEnd) {
-                    exportFrom = t;
-                    exportSoc = soc;
+                  if (exportEnabled && !exportSkipped && exportFrom === null && t >= exportStart && t < exportEnd) {
+                    exportSkipped = soc <= exportTarget + 2;
+                    if (!exportSkipped) {
+                      exportFrom = t;
+                      exportSoc = soc;
+                    }
                   }
 
                   const net = solarAt(t) - (profile[new Date(t).getHours()] ?? fallbackLoad);
@@ -466,7 +476,7 @@ cards:
 
                   if (exportFrom !== null && t < exportEnd) {
                     const progress = Math.min((t + dt - exportFrom) / (exportEnd - exportFrom), 1);
-                    const target = Math.max(40, exportSoc - (exportSoc - 40) * progress);
+                    const target = Math.max(exportTarget, exportSoc - (exportSoc - exportTarget) * progress);
                     const fastest = soc - ((MAX_DISCHARGE_KW / EFFICIENCY) * hours / CAPACITY_KWH) * 100;
                     next = Math.min(next, Math.max(target, fastest));
                   }

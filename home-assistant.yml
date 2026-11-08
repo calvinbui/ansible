@@ -101,6 +101,23 @@
           no_log: true
           diff: false
 
+        - name: Create custom templates folder
+          ansible.builtin.file:
+            path: "{{ config_directory }}/config/custom_templates"
+            state: directory
+            owner: "{{ common_root_id }}"
+            group: "{{ common_root_group }}"
+            mode: "0771"
+
+        - name: Copy custom templates
+          ansible.builtin.copy:
+            src: "{{ item }}"
+            dest: "{{ config_directory }}/config/custom_templates/{{ item | ansible.builtin.basename }}"
+            mode: "0644"
+          notify: Restart
+          with_fileglob:
+            - "{{ files_directory }}/custom_templates/*.jinja"
+
         - name: Include integration config within main configuration file
           ansible.builtin.lineinfile:
             path: "{{ home_assistant_configuration }}"

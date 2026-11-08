@@ -1,0 +1,67 @@
+{%- raw %}
+---
+
+# https://www.home-assistant.io/integrations/sql/
+
+# Household load over the last 7 days, excluding Zeekr charging, from the recorder's
+# hourly statistics. State is the heaviest night (21:00-07:00) in kWh. Attributes hold
+# the average night, the average load for each hour of the day (kW, index = hour) and
+# the largest measured overnight battery drop (SOC at 21:00 to the low before 10:00, in
+# percentage points). Used by sensor.battery_export_target.
+-
+  name: House Load Profile
+  unique_id: house_load_profile
+  unit_of_measurement: kWh
+  column: night_max_kwh
+  query: >
+    WITH m AS (
+      SELECT id, statistic_id FROM statistics_meta
+      WHERE statistic_id IN ('sensor.home_power_consumption', 'sensor.garage_zeekr_7x_awd_charge_power')
+    ),
+    h AS (
+      SELECT to_timestamp(s.start_ts) AT TIME ZONE 'Australia/Sydney' AS local_start,
+             MAX(CASE WHEN m.statistic_id = 'sensor.home_power_consumption' THEN s.mean END) AS home_w,
+             COALESCE(MAX(CASE WHEN m.statistic_id = 'sensor.garage_zeekr_7x_awd_charge_power' THEN s.mean END), 0) AS car_kw
+      FROM statistics s JOIN m ON s.metadata_id = m.id
+      WHERE s.start_ts >= EXTRACT(EPOCH FROM now() - INTERVAL '7 days')
+      GROUP BY s.start_ts
+    ),
+    l AS (
+      SELECT local_start, GREATEST(home_w / 1000.0 - car_kw, 0) AS kw FROM h WHERE home_w IS NOT NULL
+    ),
+    p AS (
+      SELECT EXTRACT(HOUR FROM local_start)::int AS hr, ROUND(AVG(kw)::numeric, 3) AS kw FROM l GROUP BY 1
+    ),
+    n AS (
+      SELECT (local_start - INTERVAL '7 hours')::date AS night, SUM(kw) AS kwh
+      FROM l
+      WHERE EXTRACT(HOUR FROM local_start) >= 21 OR EXTRACT(HOUR FROM local_start) < 7
+      GROUP BY 1
+      HAVING COUNT(*) = 10
+    ),
+    soc AS (
+      SELECT to_timestamp(s.start_ts) AT TIME ZONE 'Australia/Sydney' AS local_start, s.min, s.max
+      FROM statistics s JOIN statistics_meta sm ON s.metadata_id = sm.id
+      WHERE sm.statistic_id = 'sensor.solplanet_battery_al010k5sq2590170_battery_state_of_charge'
+        AND s.start_ts >= EXTRACT(EPOCH FROM now() - INTERVAL '8 days')
+    ),
+    d AS (
+      SELECT (local_start - INTERVAL '10 hours')::date AS night,
+             MAX(CASE WHEN EXTRACT(HOUR FROM local_start) = 21 THEN max END) - MIN(min) AS drop
+      FROM soc
+      WHERE EXTRACT(HOUR FROM local_start) >= 21 OR EXTRACT(HOUR FROM local_start) < 10
+      GROUP BY 1
+      HAVING COUNT(*) = 13
+      ORDER BY 1 DESC
+      LIMIT 7
+    )
+    SELECT
+      (SELECT ROUND(MAX(kwh)::numeric, 2) FROM n) AS night_max_kwh,
+      (SELECT ROUND(AVG(kwh)::numeric, 2) FROM n) AS night_avg_kwh,
+      (SELECT COUNT(*) FROM n) AS nights,
+      (SELECT json_agg(kw ORDER BY hr)::text FROM p) AS profile,
+      (SELECT COUNT(*) FROM p) AS hours,
+      (SELECT MAX(drop) FROM d) AS night_drop_max_pct,
+      (SELECT COUNT(*) FROM d) AS drop_nights
+
+{%- endraw %}

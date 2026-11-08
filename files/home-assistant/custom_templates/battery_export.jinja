@@ -1,0 +1,50 @@
+{#
+  Lowest SOC the AGL 17:00-21:00 export could finish at while still:
+    - refilling to 100% by 17:00 tomorrow (Solcast P50, half-hourly; dampened by the integration's
+      automated dampening), and
+    - keeping the early-morning low point 5 points above the inverter's SOC min.
+  Steps from 21:00 today to 17:00 tomorrow in 30-minute steps with the same battery model as the
+  solar dashboard forecast (53.6 kWh, 90.5% conversion, 9.65 kW charge, 10 kW discharge).
+  House load is the 7-day hourly profile from sensor.house_load_profile. Night hours (21:00-07:00)
+  are scaled so the simulated night drains the battery by the largest overnight drop measured in
+  the last 7 nights (night_drop_max_pct), falling back to the heaviest night's load. Returns JSON.
+#}
+{% macro battery_export_plan() %}
+  {%- set cap = 53.6 %}
+  {%- set eff = 0.905 %}
+  {%- set max_charge = 9.65 %}
+  {%- set max_discharge = 10 %}
+  {%- set floor = states('number.solplanet_battery_al010k5sq2590170_soc_min') | float(5) %}
+  {%- set profile = state_attr('sensor.house_load_profile', 'profile') | from_json %}
+  {%- set night_max = states('sensor.house_load_profile') | float(0) %}
+  {%- set night_avg = state_attr('sensor.house_load_profile', 'night_avg_kwh') | float(0) %}
+  {%- set drop = state_attr('sensor.house_load_profile', 'night_drop_max_pct') | float(0) %}
+  {%- set factor = (drop / 100 * cap * eff / night_avg) if drop > 0 and night_avg > 0
+                   else (night_max / night_avg) if night_avg > 0 else 1 %}
+  {%- set ns = namespace(pv={}, c=0, low=0, low_at=none) %}
+  {%- for p in state_attr('sensor.solcast_pv_forecast_forecast_tomorrow', 'detailedForecast') or [] %}
+    {%- set ns.pv = dict(ns.pv, **{(as_timestamp(p.period_start) | int | string): p.pv_estimate | float(0)}) %}
+  {%- endfor %}
+  {%- for i in range(40) %}
+    {%- set t = today_at('21:00') + timedelta(minutes=30 * i) %}
+    {%- set load = (profile[t.hour] | float(1.2)) * (factor if t.hour >= 21 or t.hour < 7 else 1) %}
+    {%- set net = ns.pv.get(as_timestamp(t) | int | string, 0) - load %}
+    {%- set kwh = ([net, max_charge] | min * eff if net >= 0 else [net, -max_discharge] | max / eff) * 0.5 %}
+    {%- set ns.c = ns.c + kwh / cap * 100 %}
+    {%- if ns.c < ns.low %}
+      {%- set ns.low = ns.c %}
+      {%- set ns.low_at = (t + timedelta(minutes=30)).strftime('%H:%M') %}
+    {%- endif %}
+  {%- endfor %}
+  {%- set refill = 100 - ns.c %}
+  {%- set overnight = floor + 5 - ns.low %}
+  {%- set target = [[refill, overnight, floor] | max, 100] | min | round(0, 'ceil') %}
+  {{- {
+    'target': target,
+    'refill_target': refill | round(1),
+    'overnight_target': overnight | round(1),
+    'low_point_soc': (target + ns.low) | round(1),
+    'low_point_at': ns.low_at,
+    'night_factor': factor | round(2)
+  } | to_json -}}
+{% endmacro %}

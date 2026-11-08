@@ -840,6 +840,39 @@
     availability: "{{ is_number(states('sensor.battery_savings_monthly')) }}"
     state: "{{ states('sensor.battery_savings_monthly') | float }}"
 
+  # Lowest SOC the AGL 17:00-21:00 export could finish at and still refill to 100% by 17:00
+  # tomorrow without the morning low point dropping below SOC min. Calculated by the
+  # battery_export_plan macro in custom_templates/battery_export.jinja.
+  # The AGL export automation captures it into input_number.agl_export_target_soc at 17:00.
+  -
+    name: Battery Export Target
+    unique_id: battery_export_target
+    icon: mdi:battery-arrow-down
+    unit_of_measurement: "%"
+    availability: >
+      {{ (state_attr('sensor.house_load_profile', 'hours') | int(0)) == 24
+         and (state_attr('sensor.solcast_pv_forecast_forecast_tomorrow', 'detailedForecast') or []) | count > 0 }}
+    state: >
+      {% from 'battery_export.jinja' import battery_export_plan %}
+      {{ (battery_export_plan() | from_json).target }}
+    attributes:
+      refill_target: >
+        {% from 'battery_export.jinja' import battery_export_plan %}
+        {{ (battery_export_plan() | from_json).refill_target }}
+      overnight_target: >
+        {% from 'battery_export.jinja' import battery_export_plan %}
+        {{ (battery_export_plan() | from_json).overnight_target }}
+      low_point_soc: >
+        {% from 'battery_export.jinja' import battery_export_plan %}
+        {{ (battery_export_plan() | from_json).low_point_soc }}
+      low_point_at: >
+        {% from 'battery_export.jinja' import battery_export_plan %}
+        {{ (battery_export_plan() | from_json).low_point_at }}
+      night_factor: >
+        {% from 'battery_export.jinja' import battery_export_plan %}
+        {{ (battery_export_plan() | from_json).night_factor }}
+      solar_tomorrow_kwh: "{{ states('sensor.solcast_pv_forecast_forecast_tomorrow') }}"
+
   # Battery Initial Cost
   -
     name: Battery Initial Cost
@@ -879,5 +912,21 @@
       {% else %}
         {{ 0.00 }}
       {% endif %}
+
+-
+  binary_sensor:
+    # Tells Solcast automated dampening to ignore half-hours where PV output was curtailed rather
+    # than shaded: the battery is full outside the forced evening export and grid export is at the
+    # meter export limit, so the inverter throttles the panels. The integration watches for an
+    # entity with exactly this name.
+    # https://github.com/BJReplay/ha-solcast-solar#modifying-automated-dampening-behaviour
+    -
+      name: solcast_suppress_auto_dampening
+      unique_id: solcast_suppress_auto_dampening
+      state: >
+        {{ states('sensor.solplanet_battery_al010k5sq2590170_battery_state_of_charge') | float(0) >= 99
+           and is_state('select.solplanet_battery_al010k5sq2590170_work_mode', 'Self-consumption mode')
+           and states('sensor.grid_power_export') | float(0)
+               >= states('sensor.eastron_sdm120ct_40ma_export_power_limit_setpoint') | float(5300) - 300 }}
 
 {%- endraw %}
