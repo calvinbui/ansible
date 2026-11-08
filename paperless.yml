@@ -74,7 +74,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-gotenberg"
-        image: docker.io/gotenberg/gotenberg:8.39.0
+        image: docker.io/gotenberg/gotenberg:8.40.0
         blackbox:
           protocol: http
           host: "{{ application }}-gotenberg.{{ common_local_tld }}:3000"
