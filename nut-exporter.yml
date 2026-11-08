@@ -12,6 +12,7 @@
       containers.podman.podman_container:
         name: "{{ application }}"
         force_restart: true
+      no_log: true
 
   tasks:
     - name: Create container

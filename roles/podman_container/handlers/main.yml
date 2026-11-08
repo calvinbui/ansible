@@ -4,3 +4,4 @@
   containers.podman.podman_container:
     name: homepage
     force_restart: true
+  no_log: true
