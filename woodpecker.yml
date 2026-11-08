@@ -212,6 +212,16 @@
         key: "{{ hostvars['homeserver.' + common_local_tld].woodpecker_public_ssh_key }}"
         comment: "{{ hostvars['homeserver.' + common_local_tld].woodpecker_authorized_keys_comment }}"
 
+- hosts: nut
+  gather_facts: false
+  tasks:
+    - name: Set authorized keys
+      ansible.posix.authorized_key:
+        user: "{{ common_user }}"
+        state: present
+        key: "{{ hostvars['homeserver.' + common_local_tld].woodpecker_public_ssh_key }}"
+        comment: "{{ hostvars['homeserver.' + common_local_tld].woodpecker_authorized_keys_comment }}"
+
 - hosts: octopi
   gather_facts: false
   tasks:
