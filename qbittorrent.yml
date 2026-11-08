@@ -176,31 +176,32 @@
       no_log: true
       diff: false
 
+    # Match the format qBittorrent saves on shutdown, otherwise it overwrites this file on every restart
     - name: Create categories
       ansible.builtin.copy:
         content: |
-          {
-            "Movies": {
-              "save_path": ""
-            },
-            "MyAnonaMouse": {
-              "save_path": ""
-            },
-            "TV": {
-              "save_path": ""
-            },
-            "TV-Anime": {
-              "save_path": ""
-            },
-            "prowlarr": {
-              "save_path": ""
-            }
-          }
+          {{ dict(_qbittorrent_categories | ansible.builtin.zip_longest([], fillvalue=_qbittorrent_category)) | ansible.builtin.to_nice_json(indent=4) }}
         dest: "{{ config_directory }}/config/categories.json"
         owner: "{{ common_user }}"
         group: "{{ common_root_group }}"
         mode: "0644"
       notify: Restart
+      vars:
+        _qbittorrent_categories:
+          - Movies
+          - MyAnonaMouse
+          - Seedpool
+          - TV
+          - TV-Anime
+          - prowlarr
+        _qbittorrent_category:
+          download_path: null
+          inactive_seeding_time_limit: -2
+          ratio_limit: -2
+          save_path: ""
+          seeding_time_limit: -2
+          share_limit_action: Default
+          share_limits_mode: Default
 
     - name: Find search engines to disable
       ansible.builtin.stat:
