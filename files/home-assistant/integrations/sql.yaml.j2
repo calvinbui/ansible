@@ -6,8 +6,8 @@
 # Household load over the last 7 days, excluding Zeekr charging, from the recorder's
 # hourly statistics. State is the heaviest night (21:00-07:00) in kWh. Attributes hold
 # the average night, the average load for each hour of the day (kW, index = hour) and
-# the largest measured overnight battery drop (SOC at 21:00 to the low before 10:00, in
-# percentage points). Used by sensor.battery_export_target.
+# the largest and average measured overnight battery drop (SOC at 21:00 to the low before
+# 10:00, in percentage points). Used by sensor.battery_export_target.
 -
   name: House Load Profile
   unique_id: house_load_profile
@@ -62,6 +62,7 @@
       (SELECT json_agg(kw ORDER BY hr)::text FROM p) AS profile,
       (SELECT COUNT(*) FROM p) AS hours,
       (SELECT MAX(drop) FROM d) AS night_drop_max_pct,
+      (SELECT ROUND(AVG(drop)::numeric, 1) FROM d) AS night_drop_avg_pct,
       (SELECT COUNT(*) FROM d) AS drop_nights
 
 {%- endraw %}

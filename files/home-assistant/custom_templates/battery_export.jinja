@@ -6,8 +6,10 @@
   Steps from 21:00 today to 17:00 tomorrow in 30-minute steps with the same battery model as the
   solar dashboard forecast (53.6 kWh, 90.5% conversion, 9.65 kW charge, 10 kW discharge).
   House load is the 7-day hourly profile from sensor.house_load_profile. Night hours (21:00-07:00)
-  are scaled so the simulated night drains the battery by the largest overnight drop measured in
-  the last 7 nights (night_drop_max_pct), falling back to the heaviest night's load.
+  are scaled to measured overnight battery drops from the last 7 nights: the refill check uses the
+  average drop (an error there only moves export between nights), while the morning low-point check
+  uses the largest drop so a heavy night never reaches SOC min. Both fall back to the heaviest
+  night's load.
   Car: when the Zeekr is at least 10 points below its charge limit, the plan also charges it at
   2.3 kW between sunrise and sunset whenever solar covers the house plus the car (the same rule the
   Zeekr stop automation enforces), until it has the energy to reach its limit (100 kWh pack, 90%
@@ -23,9 +25,11 @@
   {%- set profile = state_attr('sensor.house_load_profile', 'profile') | from_json %}
   {%- set night_max = states('sensor.house_load_profile') | float(0) %}
   {%- set night_avg = state_attr('sensor.house_load_profile', 'night_avg_kwh') | float(0) %}
-  {%- set drop = state_attr('sensor.house_load_profile', 'night_drop_max_pct') | float(0) %}
-  {%- set factor = (drop / 100 * cap * eff / night_avg) if drop > 0 and night_avg > 0
-                   else (night_max / night_avg) if night_avg > 0 else 1 %}
+  {%- set fallback = (night_max / night_avg) if night_avg > 0 else 1 %}
+  {%- set drop_max = state_attr('sensor.house_load_profile', 'night_drop_max_pct') | float(0) %}
+  {%- set drop_avg = state_attr('sensor.house_load_profile', 'night_drop_avg_pct') | float(0) %}
+  {%- set factor = (drop_max / 100 * cap * eff / night_avg) if drop_max > 0 and night_avg > 0 else fallback %}
+  {%- set factor_typical = (drop_avg / 100 * cap * eff / night_avg) if drop_avg > 0 and night_avg > 0 else factor %}
   {%- set car_kw = 2.3 %}
   {%- set car_level = states('sensor.garage_zeekr_7x_awd_battery_level') | float(none) %}
   {%- set car_limit = states('number.garage_zeekr_7x_awd_charging_limit') | float(none) %}
@@ -37,25 +41,31 @@
   {%- set set_ = as_timestamp(state_attr('sun.sun', 'next_setting'), 0) %}
   {%- set rise = rise + 86400 if rise and rise < start else rise %}
   {%- set set_ = set_ + 86400 if set_ and set_ < rise else set_ %}
-  {%- set ns = namespace(pv={}, c=0, low=0, low_at=none, car=0) %}
+  {%- set ns = namespace(pv={}, c=0, low=0, low_at=none, car=0, c_typical=0) %}
   {%- for p in state_attr('sensor.solcast_pv_forecast_forecast_tomorrow', 'detailedForecast') or [] %}
     {%- set ns.pv = dict(ns.pv, **{(as_timestamp(p.period_start) | int | string): p.pv_estimate | float(0)}) %}
   {%- endfor %}
   {%- for i in range(40) %}
     {%- set t = today_at('21:00') + timedelta(minutes=30 * i) %}
-    {%- set load = (profile[t.hour] | float(1.2)) * (factor if t.hour >= 21 or t.hour < 7 else 1) %}
+    {%- set night = t.hour >= 21 or t.hour < 7 %}
+    {%- set base = profile[t.hour] | float(1.2) %}
+    {%- set load = base * (factor if night else 1) %}
+    {%- set load_typical = base * (factor_typical if night else 1) %}
     {%- set pv = ns.pv.get(as_timestamp(t) | int | string, 0) %}
     {%- set car = car_kw if ns.car < car_needed and rise <= as_timestamp(t) < set_ and pv - load >= car_kw else 0 %}
     {%- set ns.car = ns.car + car * 0.5 %}
     {%- set net = pv - load - car %}
     {%- set kwh = ([net, max_charge] | min * eff if net >= 0 else [net, -max_discharge] | max / eff) * 0.5 %}
     {%- set ns.c = ns.c + kwh / cap * 100 %}
+    {%- set net_typical = pv - load_typical - car %}
+    {%- set kwh_typical = ([net_typical, max_charge] | min * eff if net_typical >= 0 else [net_typical, -max_discharge] | max / eff) * 0.5 %}
+    {%- set ns.c_typical = ns.c_typical + kwh_typical / cap * 100 %}
     {%- if ns.c < ns.low %}
       {%- set ns.low = ns.c %}
       {%- set ns.low_at = (t + timedelta(minutes=30)).strftime('%H:%M') %}
     {%- endif %}
   {%- endfor %}
-  {%- set refill = 100 - ns.c %}
+  {%- set refill = 100 - ns.c_typical %}
   {%- set overnight = floor + 5 - ns.low %}
   {%- set target = [[refill, overnight, floor] | max, 100] | min | round(0, 'ceil') %}
   {{- {
@@ -65,6 +75,7 @@
     'low_point_soc': (target + ns.low) | round(1),
     'low_point_at': ns.low_at,
     'night_factor': factor | round(2),
+    'night_factor_typical': factor_typical | round(2),
     'car_kwh': ns.car | round(1),
     'car_needed_kwh': car_needed | round(1)
   } | to_json -}}
