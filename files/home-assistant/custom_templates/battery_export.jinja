@@ -1,8 +1,9 @@
 {#
   Lowest SOC the AGL 17:00-21:00 export could finish at while still:
-    - refilling to 95% by 17:00 tomorrow (Solcast P50, half-hourly; dampened by the integration's
-      automated dampening). Falling short only moves export to the next evening at the same 28c,
-      while filling early sends it out at 3c, so the plan leans short, and
+    - refilling to 100% by 17:00 tomorrow on a forecast halfway between Solcast P50 and P90
+      (half-hourly; dampened by the integration's automated dampening). Falling short only moves
+      export to the next evening at the same 28c, while filling early sends it out at 3c, so the
+      forecast leans optimistic, and
     - keeping the early-morning low point 5 points above the inverter's SOC min.
   Steps from 21:00 today to 17:00 tomorrow in 30-minute steps with the same battery model as the
   solar dashboard forecast (53.6 kWh, 90.5% conversion, 9.65 kW charge, 10 kW discharge).
@@ -44,7 +45,7 @@
   {%- set set_ = set_ + 86400 if set_ and set_ < rise else set_ %}
   {%- set ns = namespace(pv={}, c=0, low=0, low_at=none, car=0, c_typical=0) %}
   {%- for p in state_attr('sensor.solcast_pv_forecast_forecast_tomorrow', 'detailedForecast') or [] %}
-    {%- set ns.pv = dict(ns.pv, **{(as_timestamp(p.period_start) | int | string): p.pv_estimate | float(0)}) %}
+    {%- set ns.pv = dict(ns.pv, **{(as_timestamp(p.period_start) | int | string): ((p.pv_estimate | float(0)) + (p.pv_estimate90 | float(0))) / 2}) %}
   {%- endfor %}
   {%- for i in range(40) %}
     {%- set t = today_at('21:00') + timedelta(minutes=30 * i) %}
@@ -66,7 +67,7 @@
       {%- set ns.low_at = (t + timedelta(minutes=30)).strftime('%H:%M') %}
     {%- endif %}
   {%- endfor %}
-  {%- set refill = 95 - ns.c_typical %}
+  {%- set refill = 100 - ns.c_typical %}
   {%- set overnight = floor + 5 - ns.low %}
   {%- set target = [[refill, overnight, floor] | max, 100] | min | round(0, 'ceil') %}
   {{- {
