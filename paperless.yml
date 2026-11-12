@@ -15,14 +15,6 @@
 
     container_network: "{{ networks.pub }}"
 
-  handlers:
-    - name: Restart AI
-      containers.podman.podman_container:
-        name: "{{ application }}-ai"
-        force_restart: true
-      no_log: true
-      when: not (_podman_container_started | ansible.builtin.default({})).get(application ~ '-ai', false)
-
   tasks:
     - name: Create config directory
       ansible.builtin.file:
@@ -193,15 +185,16 @@
         group: "{{ common_group_id }}"
         mode: "0750"
 
-    - name: Configure AI env
-      ansible.builtin.lineinfile:
-        dest: "{{ config_directory }}/ai/.env"
-        regexp: "^{{ item.key }}="
-        line: "{{ item.key }}={{ item.value }}"
-      loop: "{{ paperless_ai_config | ansible.builtin.dict2items }}"
-      notify: Restart AI
+    - name: Create AI container
+      ansible.builtin.include_role:
+        name: podman_container
       vars:
-        paperless_ai_config:
+        container_name: "{{ application }}-ai"
+        image: ghcr.io/clusterzx/paperless-ai:4.0.0
+        user: "{{ common_user_id }}:{{ common_group_id }}"
+        env:
+          TRUST_PROXY: "1"
+
           # Connection Settings
           PAPERLESS_API_URL: "https://{{ application }}.{{ common_tld }}/api"
           PAPERLESS_API_TOKEN: !vault |
@@ -220,43 +213,30 @@
           CUSTOM_BASE_URL: "{{ ai_openai_base_url }}"
           CUSTOM_API_KEY: "{{ ai_api_key }}"
           CUSTOM_MODEL: "{{ ai_default_model }}"
-          TOKEN_LIMIT: 128000
-          RESPONSE_TOKENS: 1000
+          TOKEN_LIMIT: "128000"
+          RESPONSE_TOKENS: "1000"
 
           # Advanced Settings
-          USE_EXISTING_DATA: false
+          USE_EXISTING_DATA: "false"
           SCAN_INTERVAL: "30 8 * * *"
-          PROCESS_PREDEFINED_DOCUMENTS: false
+          PROCESS_PREDEFINED_DOCUMENTS: "false"
 
           # AI Restrictions
-          RESTRICT_TO_EXISTING_TAGS: false
-          RESTRICT_TO_EXISTING_CORRESPONDENTS: false
+          RESTRICT_TO_EXISTING_TAGS: "false"
+          RESTRICT_TO_EXISTING_CORRESPONDENTS: "false"
 
           # External API Integration
-          EXTERNAL_API_ENABLED: false
-          ADD_AI_PROCESSED_TAG: false
-          USE_PROMPT_TAGS: false
-          DISABLE_AUTOMATIC_PROCESSING: false
+          EXTERNAL_API_ENABLED: "false"
+          ADD_AI_PROCESSED_TAG: "false"
+          USE_PROMPT_TAGS: "false"
+          DISABLE_AUTOMATIC_PROCESSING: "false"
 
           # AI Function Limits
-          ACTIVATE_TAGGING: true
-          ACTIVATE_CORRESPONDENTS: true
-          ACTIVATE_DOCUMENT_TYPE: true
-          ACTIVATE_TITLE: true
-          ACTIVATE_CUSTOM_FIELDS: false
-      no_log: true
-      diff: false
-
-    - name: Create AI container
-      ansible.builtin.include_role:
-        name: podman_container
-      vars:
-        container_name: "{{ application }}-ai"
-        image: ghcr.io/clusterzx/paperless-ai:4.0.0
-        stop_signal: "{{ signal_map['SIGKILL'] }}"
-        env:
-          PUID: "{{ common_user_id }}"
-          PGID: "{{ common_group_id }}"
+          ACTIVATE_TAGGING: "true"
+          ACTIVATE_CORRESPONDENTS: "true"
+          ACTIVATE_DOCUMENT_TYPE: "true"
+          ACTIVATE_TITLE: "true"
+          ACTIVATE_CUSTOM_FIELDS: "false"
         volumes:
           - "{{ config_directory }}/ai:/app/data"
         traefik:
