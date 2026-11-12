@@ -1,7 +1,8 @@
 {#
   Lowest SOC the AGL 17:00-21:00 export could finish at while still:
-    - refilling to 100% by 17:00 tomorrow (Solcast P50, half-hourly; dampened by the integration's
-      automated dampening), and
+    - refilling to 95% by 17:00 tomorrow (Solcast P50, half-hourly; dampened by the integration's
+      automated dampening). Falling short only moves export to the next evening at the same 28c,
+      while filling early sends it out at 3c, so the plan leans short, and
     - keeping the early-morning low point 5 points above the inverter's SOC min.
   Steps from 21:00 today to 17:00 tomorrow in 30-minute steps with the same battery model as the
   solar dashboard forecast (53.6 kWh, 90.5% conversion, 9.65 kW charge, 10 kW discharge).
@@ -65,7 +66,7 @@
       {%- set ns.low_at = (t + timedelta(minutes=30)).strftime('%H:%M') %}
     {%- endif %}
   {%- endfor %}
-  {%- set refill = 100 - ns.c_typical %}
+  {%- set refill = 95 - ns.c_typical %}
   {%- set overnight = floor + 5 - ns.low %}
   {%- set target = [[refill, overnight, floor] | max, 100] | min | round(0, 'ceil') %}
   {{- {
