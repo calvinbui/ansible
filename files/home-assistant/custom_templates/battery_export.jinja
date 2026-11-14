@@ -12,7 +12,9 @@
   average drop (an error there only moves export between nights), while the morning low-point check
   uses the largest drop so a heavy night never reaches SOC min. Both fall back to the heaviest
   night's load.
-  Car: when the Zeekr is at least 10 points below its charge limit, the plan also charges it at
+  Car: when the Zeekr is home, plugged in and at least 10 points below its charge limit (checked when
+  the export automation captures the target at 17:00, so a car that is out then is not planned for), the
+  plan also charges it at
   2.3 kW between sunrise and sunset whenever solar covers the house plus the car (the same rule the
   Zeekr stop automation enforces), until it has the energy to reach its limit (100 kWh pack, 90%
   charger efficiency). This holds back export so the battery still fills by 17:00 with the car
@@ -35,8 +37,10 @@
   {%- set car_kw = 2.3 %}
   {%- set car_level = states('sensor.garage_zeekr_7x_awd_battery_level') | float(none) %}
   {%- set car_limit = states('number.garage_zeekr_7x_awd_charging_limit') | float(none) %}
+  {%- set car_ready = is_state('device_tracker.garage_zeekr_7x_awd_location', 'home')
+                      and is_state('binary_sensor.garage_zeekr_7x_awd_plugged_in', 'on') %}
   {%- set car_needed = ((car_limit - car_level) / 100 * 100 / 0.9)
-                       if car_level is not none and car_limit is not none and car_limit - car_level >= 10
+                       if car_ready and car_level is not none and car_limit is not none and car_limit - car_level >= 10
                        else 0 %}
   {%- set start = as_timestamp(today_at('21:00')) %}
   {%- set rise = as_timestamp(state_attr('sun.sun', 'next_rising'), 0) %}
