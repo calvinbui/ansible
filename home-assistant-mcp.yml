@@ -75,7 +75,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-screenshot"
-        image: mcr.microsoft.com/playwright:v1.65.0-noble
+        image: mcr.microsoft.com/playwright:v1.65.1-noble
         command:
           - sh
           - -c
