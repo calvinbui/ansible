@@ -256,6 +256,11 @@
       matchPackageNames: ['/browserless\\/chrom.*$/'],
       changelogUrl: 'https://github.com/browserless/chrome/blob/main/CHANGELOG.md',
     },
+    /* playwright */
+    {
+      matchPackageNames: ['mcr.microsoft.com/playwright'],
+      sourceUrl: 'https://github.com/microsoft/playwright',
+    },
     /* karakeep chrome */
     {
       matchDatasources: ['docker'],
