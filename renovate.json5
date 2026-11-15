@@ -534,10 +534,11 @@
     {
       customType: "regex",
       managerFilePatterns: ['/^.*\\.ya?ml$/'],
-      matchStrings: ['elasticsearch_version: (?<currentValue>.*)'],
-      depNameTemplate: "docker.elastic.co/elasticsearch/elasticsearch",
-      datasourceTemplate: "docker",
+      matchStrings: ['elasticsearch_version: (?<currentValue>\\d+\\.\\d+\\.\\d+)(?:\\s|$)'],
+      depNameTemplate: "elastic/elasticsearch",
+      datasourceTemplate: "github-releases",
       versioningTemplate: "semver",
+      extractVersionTemplate: "^v(?<version>\\d+\\.\\d+\\.\\d+)$",
     },
 
     /* influxdb */
