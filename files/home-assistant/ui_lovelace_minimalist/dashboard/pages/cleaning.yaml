@@ -72,15 +72,17 @@ cards:
         variables:
           name: |
             setName => {
-              var program = states['select.washing_machine_selected_program'].state;
+              var program = states['select.laundry_bosch_washer_selected_program'].state
+                .replace(/^laundrycare_(washer|common)_program_/, '')
+                .replace(/_/g, ' ');
 
               var name = "Washing Machine";
 
-              switch(states['sensor.washing_machine_operation_state'].state) {
-                case "Running":
+              switch(states['sensor.laundry_bosch_washer_operation_state'].state) {
+                case "run":
                   name += ` - ${program}`;
                   break;
-                case "Finished":
+                case "finished":
                   name += ` - Finished`;
                   break;
               };
@@ -88,15 +90,18 @@ cards:
               return name;
             }
         entities:
-          - select.washing_machine_selected_program
+          - select.laundry_bosch_washer_selected_program
+          - sensor.laundry_bosch_washer_operation_state
         card:
           type: "custom:timer-bar-card"
           icon: mdi:washing-machine
           name: '${ name() }'
-          entity: sensor.washing_machine_operation_state
-          active_state: Running
-          end_time:
-            entity: sensor.washing_machine_program_finish_time
+          entity: sensor.laundry_bosch_washer_operation_state
+          active_state: run
+          pause_state: pause
+          remain_time:
+            entity: sensor.laundry_bosch_washer_remaining_program_time
+            units: hours
           text_width: 4em
           bar_width: calc(70% - 10em)
           mushroom:
