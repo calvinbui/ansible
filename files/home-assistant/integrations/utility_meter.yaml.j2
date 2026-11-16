@@ -148,6 +148,26 @@ battery_savings_monthly:
   periodically_resetting: false
 
 #
+# NET COST
+#
+
+## Running net cost of each system: starts at minus the purchase price and reaches zero at breakeven.
+## No cycle, so it never resets. Seeded once with utility_meter.calibrate from the old nightly totals.
+solar_net_cost:
+  unique_id: utility_meter_solar_net_cost
+  source: sensor.solar_savings
+  name: Solar Net Cost
+  net_consumption: true
+  periodically_resetting: false
+
+battery_net_cost:
+  unique_id: utility_meter_battery_net_cost
+  source: sensor.battery_savings
+  name: Battery Net Cost
+  net_consumption: true
+  periodically_resetting: false
+
+#
 # ALTERNATIVE ELECTRICITY PLAN
 #
 

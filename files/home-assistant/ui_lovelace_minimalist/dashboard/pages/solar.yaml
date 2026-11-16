@@ -599,7 +599,7 @@ cards:
           -
             type: custom:multiple-entity-row
             name: Solar Net Cost ($)
-            entity: input_number.solar_net_cost
+            entity: sensor.solar_net_cost
             unit: false
             format: precision2
           -
@@ -611,7 +611,7 @@ cards:
           -
             type: custom:multiple-entity-row
             name: Battery Net Cost ($)
-            entity: input_number.battery_net_cost
+            entity: sensor.battery_net_cost
             unit: false
             format: precision2
           -
