@@ -4,7 +4,12 @@
       (half-hourly; dampened by the integration's automated dampening). Falling short only moves
       export to the next evening at the same 28c, while filling early sends it out at 3c, so the
       forecast leans optimistic, and
-    - keeping the early-morning low point 5 points above the inverter's SOC min.
+    - keeping the early-morning low point 5 points above the inverter's SOC min, and
+    - two-day check (battery before car and export): from 21:00 today to 17:00 the day after
+      tomorrow, with the largest overnight drop each night, tomorrow on the same forecast and the day
+      after on Solcast P50, the battery never drops below SOC min + 5 and is back to 100% at the end.
+      Worked backwards so a full battery cannot bank surplus. On a cloudy run this pushes the target
+      towards 100%. The Zeekr start and stop rules compare the 17:00 forecast against this target.
   Steps from 21:00 today to 17:00 tomorrow in 30-minute steps with the same battery model as the
   solar dashboard forecast (53.6 kWh, 90.5% conversion, 9.65 kW charge, 10 kW discharge).
   House load is the 7-day hourly profile from sensor.house_load_profile. Night hours (21:00-07:00)
@@ -69,7 +74,23 @@
   {%- endfor %}
   {%- set refill = 100 - ns.c_typical %}
   {%- set overnight = floor + 5 - ns.low %}
-  {%- set target = [[refill, overnight, floor] | max, 100] | min | round(0, 'ceil') %}
+  {%- set d2 = namespace(pv={}, k=[], need=100) %}
+  {%- for p in state_attr('sensor.solcast_pv_forecast_forecast_day_3', 'detailedForecast') or [] %}
+    {%- set d2.pv = dict(d2.pv, **{(as_timestamp(p.period_start) | int | string): p.pv_estimate | float(0)}) %}
+  {%- endfor %}
+  {%- for i in range(88) %}
+    {%- set t = today_at('21:00') + timedelta(minutes=30 * i) %}
+    {%- set key = as_timestamp(t) | int | string %}
+    {%- set load = (profile[t.hour] | float(1.2)) * (factor if t.hour >= 21 or t.hour < 7 else 1) %}
+    {%- set net = ns.pv.get(key, d2.pv.get(key, 0)) - load %}
+    {%- set kwh = ([net, max_charge] | min * eff if net >= 0 else [net, -max_discharge] | max / eff) * 0.5 %}
+    {%- set d2.k = d2.k + [kwh / cap * 100] %}
+  {%- endfor %}
+  {%- for k in d2.k | reverse %}
+    {%- set d2.need = [[floor + 5, d2.need - k] | max, 100] | min %}
+  {%- endfor %}
+  {%- set two_day = d2.need if (d2.pv | length) > 0 else 100 %}
+  {%- set target = [[refill, overnight, two_day, floor] | max, 100] | min | round(0, 'ceil') %}
   {{- {
     'target': target,
     'refill_target': refill | round(1),
@@ -79,6 +100,7 @@
     'night_factor': factor | round(2),
     'night_factor_typical': factor_typical | round(2),
     'car_kwh': ns.car | round(1),
-    'car_needed_kwh': car_needed | round(1)
+    'car_needed_kwh': car_needed | round(1),
+    'two_day_target': two_day | round(1)
   } | to_json -}}
 {% endmacro %}

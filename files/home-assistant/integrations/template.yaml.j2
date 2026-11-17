@@ -900,6 +900,9 @@
       car_needed_kwh: >
         {% from 'battery_export.jinja' import battery_export_plan %}
         {{ (battery_export_plan() | from_json).car_needed_kwh }}
+      two_day_target: >
+        {% from 'battery_export.jinja' import battery_export_plan %}
+        {{ (battery_export_plan() | from_json).two_day_target }}
       solar_tomorrow_kwh: "{{ states('sensor.solcast_pv_forecast_forecast_tomorrow') }}"
 
   # Battery Initial Cost
