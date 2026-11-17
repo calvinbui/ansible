@@ -144,7 +144,6 @@
             group: "{{ common_root_group }}"
             mode: "0771"
           loop:
-            - eufy-security-ws
             - wyoming-piper
 
         - name: Create python_scripts folder
@@ -168,31 +167,6 @@
             group: "{{ common_root_group }}"
             mode: "0771"
           notify: Restart
-
-        - name: Create Eufy Security WS container
-          ansible.builtin.include_role:
-            name: podman_container
-          vars:
-            container_name: eufy-security-ws
-            image: docker.io/bropat/eufy-security-ws:3.1.0
-            env:
-              USERNAME: "{{ application }}{{ common_email_to }}"
-              PASSWORD: !vault |
-                $ANSIBLE_VAULT;1.1;AES256
-                32663633343362623462393864346631393638613933346166653764396530316264616364613065
-                6339376630643833346639653530333835653037613363620a663464623137663031313931356432
-                64383264306365656430363137353965643963313136616637626534396362376436626466303965
-                3839336635646338380a386564356461393564373236333464343835646535663462303862303361
-                6162
-              LANGUAGE: "{{ common_language_iso_639 }}"
-              COUNTRY: "{{ common_country_iso_3166 }}"
-              TRUSTED_DEVICE_NAME: "{{ application }}"
-              ACCEPT_INVITATIONS: "true"
-            volumes:
-              - "{{ home_assistant_addons_dir }}/eufy-security-ws:/data"
-            blackbox:
-              probe: tcp
-              host: "{{ container_name }}.{{ common_local_tld }}:3000"
 
         - name: Create govee2mqtt container
           ansible.builtin.include_role:

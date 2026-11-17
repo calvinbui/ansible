@@ -143,11 +143,6 @@
       matchPackageNames: ['/.*\\/mattermost-(team|enterprise)-edition$/'],
       enabled: false,
     },
-    /* eufy-security-ws */
-    {
-      matchPackageNames: ['/bropat\\/eufy-security-ws$/'],
-      sourceUrl: 'https://github.com/bropat/eufy-security-ws',
-    },
     /* changedetection.io */
     {
       matchPackageNames: ['/.*\\/changedetection.io$/'],
