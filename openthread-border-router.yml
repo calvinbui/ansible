@@ -1,0 +1,43 @@
+---
+
+- hosts: homeserver
+
+  vars:
+    application: openthread-border-router
+
+    container_network: "{{ networks.iot }}"
+
+  tasks:
+    - name: Create config folder
+      ansible.builtin.file:
+        path: "{{ config_directory }}"
+        state: directory
+        owner: "{{ common_root_id }}"
+        group: "{{ common_root_group }}"
+        mode: "0771"
+
+    - name: Create container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        image: ghcr.io/ownbee/hass-otbr-docker:v0.4.0
+        privileged: true
+        env:
+          NETWORK_DEVICE: slzb-mr5u:7638
+          DEVICE: /tmp/ttyOTBR
+          BAUDRATE: "460800"
+          FLOW_CONTROL: "0"
+          FIREWALL: "1"
+        # Thread is IPv6-only, so re-enable the IPv6 that containers.conf disables
+        sysctl:
+          net.ipv6.conf.all.disable_ipv6: "0"
+          net.ipv6.conf.default.disable_ipv6: "0"
+          net.ipv6.conf.all.forwarding: "1"
+          net.ipv6.conf.eth0.accept_ra: "2"
+          net.ipv6.conf.eth0.accept_ra_rt_info_max_plen: "64"
+        volumes:
+          - "{{ config_directory }}:/data"
+        blackbox:
+          protocol: http
+          host: "{{ application }}:8081"
+          path: /node
