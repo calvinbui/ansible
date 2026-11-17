@@ -72,7 +72,7 @@ cards:
         variables:
           name: |
             setName => {
-              var program = states['select.laundry_bosch_washer_selected_program'].state
+              var program = states['sensor.laundry_bosch_washer_active_program'].state
                 .replace(/^laundrycare_(washer|common)_program_/, '')
                 .replace(/_/g, ' ');
 
@@ -90,7 +90,7 @@ cards:
               return name;
             }
         entities:
-          - select.laundry_bosch_washer_selected_program
+          - sensor.laundry_bosch_washer_active_program
           - sensor.laundry_bosch_washer_operation_state
         card:
           type: "custom:timer-bar-card"
