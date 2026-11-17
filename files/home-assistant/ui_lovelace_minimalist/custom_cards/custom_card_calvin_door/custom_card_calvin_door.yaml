@@ -62,9 +62,9 @@ custom_card_calvin_door:
                   var door_status;
                   if (entity.state == "locked") {
                     door_status = "Locked"
-                  } else if (entity.status == "unlocked") {
+                  } else if (entity.state == "unlocked") {
                     door_status = "Unlocked"
-                  } else if (entity.status == "unavailable") {
+                  } else if (entity.state == "unavailable") {
                     door_status = "Unavailable"
                   } else {
                     door_status = "Unknown"

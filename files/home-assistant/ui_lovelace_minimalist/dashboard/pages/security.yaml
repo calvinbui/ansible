@@ -27,11 +27,11 @@ cards:
       -
         type: custom:button-card
         template: custom_card_calvin_door
-        entity: lock.front_door
+        entity: lock.aqara_smart_lock_u400
         variables:
           ulm_custom_card_entity_1_name: Front Door
-          ulm_custom_card_entity_1_lock: lock.front_door
-          ulm_custom_card_entity_1_lock_battery: sensor.front_door_battery_percentage
+          ulm_custom_card_entity_1_lock: lock.aqara_smart_lock_u400
+          ulm_custom_card_entity_1_lock_battery: sensor.aqara_smart_lock_u400_battery
       -
         name: 🛎️ Doorbell
         <<: *security_card_title
