@@ -1,0 +1,36 @@
+---
+
+- hosts: homeserver
+
+  vars:
+    application: matter-server
+
+    container_network: "{{ networks.iot }}"
+
+  tasks:
+    - name: Create config folder
+      ansible.builtin.file:
+        path: "{{ config_directory }}"
+        state: directory
+        owner: "{{ common_user }}"
+        group: "{{ common_group }}"
+        mode: "0771"
+
+    - name: Create container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        image: ghcr.io/matter-js/matterjs-server:1.6.0
+        # Matter is IPv6-only, so re-enable the IPv6 that containers.conf disables
+        sysctl:
+          net.ipv6.conf.all.disable_ipv6: "0"
+          net.ipv6.conf.default.disable_ipv6: "0"
+          net.ipv6.conf.eth0.accept_ra: "1"
+          net.ipv6.conf.eth0.autoconf: "1"
+          net.ipv6.conf.eth0.accept_ra_rt_info_max_plen: "64"
+        volumes:
+          - "{{ config_directory }}:/data"
+        blackbox:
+          protocol: http
+          host: "{{ application }}:5580"
+          path: /health
