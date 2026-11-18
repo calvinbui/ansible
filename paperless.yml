@@ -190,7 +190,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-ai"
-        image: ghcr.io/clusterzx/paperless-ai:4.0.0
+        image: ghcr.io/clusterzx/paperless-ai:4.1.0
         user: "{{ common_user_id }}:{{ common_group_id }}"
         env:
           TRUST_PROXY: "1"
