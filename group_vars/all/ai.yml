@@ -7,8 +7,8 @@ ai_api_key: "{{ agentgateway_api_key }}"
 
 ai_models:
   haiku:
-    name: claude-haiku-4-5-20251001
-    label: Claude Haiku 4.5
+    name: claude-haiku-5-5
+    label: Claude Haiku 5.5
   sonnet:
     name: claude-sonnet-5-5
     label: Claude Sonnet 5.5
@@ -19,8 +19,8 @@ ai_models:
     name: claude-opus-4-8
     label: Claude Opus 4.8
   fable:
-    name: claude-fable-5-1
-    label: Claude Fable 5.1
+    name: claude-fable-5-2
+    label: Claude Fable 5.2
 
 ai_default_model: "{{ ai_models.opus.name }}"
 ai_small_model: "{{ ai_models.haiku.name }}"
