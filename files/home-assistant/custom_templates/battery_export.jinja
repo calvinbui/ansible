@@ -1,9 +1,10 @@
 {#
   Lowest SOC the AGL 17:00-21:00 export could finish at while still:
-    - refilling to 100% by 17:00 tomorrow on a forecast halfway between Solcast P50 and P90
+    - refilling to 90% by 17:00 tomorrow on a forecast halfway between Solcast P50 and P90
       (half-hourly; dampened by the integration's automated dampening). Falling short only moves
       export to the next evening at the same 28c, while filling early sends it out at 3c, so the
-      forecast leans optimistic, and
+      forecast leans optimistic and the refill aims 10 points short of full (a morning away from home
+      leaves the car's planned solar for the battery), and
     - keeping the early-morning low point 5 points above the inverter's SOC min, and
     - two-day check (battery before car and export): from 21:00 today to 17:00 the day after
       tomorrow, with the largest overnight drop each night, tomorrow on the same forecast and the day
@@ -72,7 +73,7 @@
       {%- set ns.low_at = (t + timedelta(minutes=30)).strftime('%H:%M') %}
     {%- endif %}
   {%- endfor %}
-  {%- set refill = 100 - ns.c_typical %}
+  {%- set refill = 90 - ns.c_typical %}
   {%- set overnight = floor + 5 - ns.low %}
   {%- set d2 = namespace(pv={}, k=[], need=100) %}
   {%- for p in state_attr('sensor.solcast_pv_forecast_forecast_day_3', 'detailedForecast') or [] %}
