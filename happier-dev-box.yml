@@ -194,7 +194,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/happier-dev/dev-box:stable@sha256:9b4b662e3c7313e850e2ee0eae0536b9f59ce061a1cf22a82a854d450569ad52
+        image: ghcr.io/happier-dev/dev-box:stable@sha256:aaf58cd6cb18f3ca4df39e8facea28a064d7c724f512c27231199a023e155e52
         init: true
         command: ["happier", "daemon", "start-sync"]
         env:
