@@ -105,8 +105,6 @@
             64383064313763323465343030356561666665643936386430306530616461313434
           PAPERLESS_URL: "https://{{ application }}.{{ common_tld }}"
           PAPERLESS_CSRF_TRUSTED_ORIGINS: "https://{{ application }}.{{ common_tld }}"
-          PAPERLESS_ALLOWED_HOSTS: "https://{{ application }}.{{ common_tld }}"
-          PAPERLESS_CORS_ALLOWED_HOSTS: "https://{{ application }}.{{ common_tld }}"
 
           PAPERLESS_SOCIALACCOUNT_PROVIDERS: |
             {
