@@ -192,6 +192,14 @@
         user: "{{ common_user_id }}:{{ common_group_id }}"
         env:
           TRUST_PROXY: "1"
+          PAPERLESS_AI_URL: "https://{{ application }}-ai.{{ common_tld }}"
+
+          OIDC_ENABLED: "true"
+          OIDC_ISSUER: "{{ oidc_base_url }}"
+          OIDC_CLIENT_ID: "{{ application }}-ai"
+          OIDC_CLIENT_SECRET: "{{ oidc_auth['paperless-ai'].secret }}"
+          OIDC_BUTTON_LABEL: "{{ oidc_provider | ansible.builtin.title }}"
+          PASSWORD_LOGIN: "false"
 
           # Connection Settings
           PAPERLESS_API_URL: "https://{{ application }}.{{ common_tld }}/api"
