@@ -57,6 +57,15 @@
         target: traefik
         local_port: "123"
         description: NTP
+      -
+        sequence: 1000
+        interface: "{{ networks.vpn_windscribe_sydney.opnsense_identifier }}"
+        protocol: tcp/udp
+        destination_net: "{{ networks.vpn_windscribe_sydney.opnsense_identifier }}ip"
+        destination_port: "10033"
+        target: qbittorrent
+        local_port: "10033"
+        description: qBittorrent via Windscribe Sydney
 
   module_defaults:
     group/oxlorg.opnsense.all: "{{ oxlorg_opnsense_module_defaults }}"

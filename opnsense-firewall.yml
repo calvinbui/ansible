@@ -330,6 +330,21 @@
             description: Allow all
       notify: Reload firewall rules
 
+    - name: Firewall Rules - vpn windscribe sydney
+      oxlorg.opnsense.rule_multi:
+        rules:
+          -
+            sequence: 1
+            interface: "{{ networks.vpn_windscribe_sydney.opnsense_identifier }}"
+            action: pass
+            protocol: TCP/UDP
+            source_net: any
+            destination_net: qbittorrent
+            destination_port: 10033
+            replyto: "VPN_WINDSCRIBE_SYDNEY"
+            description: qBittorrent
+      notify: Reload firewall rules
+
     - name: Firewall Rules - wan
       oxlorg.opnsense.rule_multi:
         rules:
