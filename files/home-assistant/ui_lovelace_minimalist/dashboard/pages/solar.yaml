@@ -359,8 +359,9 @@ cards:
               color: '#ffa500'
               unit: '%'
               extend_to: false
-              # Simulates SOC from now until 17:00 tomorrow in 5-minute steps
-              # (use Next Day to see tomorrow) using the Solcast P50 forecast,
+              # Simulates SOC from now until 17:00 the day after tomorrow in
+              # 5-minute steps (use Next Day to see the next two days) using the
+              # Solcast P50 forecast,
               # the household load for each hour of the day (7-day average,
               # excluding car charging, with night hours scaled to the typical
               # measured overnight drop like the export plan), Zeekr charging at
@@ -368,8 +369,8 @@ cards:
               # covers the house plus the car, and the AGL 17:00-21:00 export
               # pacing down to sensor.battery_export_target (captured into
               # input_number.agl_export_target_soc at 17:00). Tomorrow evening's
-              # export target is not known yet, so the line stops at 17:00
-              # tomorrow. Battery constants come from the Zeekr Battery Forecast
+              # target is worked out in planTarget with the same rules as the
+              # export plan, from the day-after forecast. Battery constants come from the Zeekr Battery Forecast
               # Model calibration (9.65 kW DC charges ~18 %/h, 90.5% conversion
               # efficiency).
               data_generator: |
@@ -384,7 +385,7 @@ cards:
                   date.setDate(date.getDate() + days);
                   return date.setHours(hour, 0, 0, 0);
                 };
-                const horizon = atHour(17, 1);
+                const horizon = atHour(17, 2);
                 if (end.getTime() <= now || start.getTime() >= horizon || !Number.isFinite(startSoc)) {
                   return [];
                 }
@@ -437,18 +438,23 @@ cards:
                   ? knownLoads.reduce((a, b) => a + b, 0) / knownLoads.length
                   : 1.2;
 
-                // Night hours (21:00-07:00) scaled to the typical measured overnight drop
+                // Night hours (21:00-07:00) scaled to the measured overnight drops, like
+                // the export plan: typical for the line and the refill, largest for the floor
                 const loadProfile = hass.states['sensor.house_load_profile']?.attributes ?? {};
                 const nightAvgKwh = Number(loadProfile.night_avg_kwh);
-                const nightDropPct = Number(loadProfile.night_drop_avg_pct);
-                const nightFactor = nightAvgKwh > 0 && nightDropPct > 0
-                  ? (nightDropPct / 100) * CAPACITY_KWH * EFFICIENCY / nightAvgKwh
+                const nightFactorFor = (dropPct) => nightAvgKwh > 0 && dropPct > 0
+                  ? (dropPct / 100) * CAPACITY_KWH * EFFICIENCY / nightAvgKwh
                   : 1;
-                const loadAt = (timestamp) => {
+                const nightFactor = nightFactorFor(Number(loadProfile.night_drop_avg_pct));
+                const nightFactorMax = nightFactorFor(Number(loadProfile.night_drop_max_pct)) || nightFactor;
+                const loadAt = (timestamp, factor = nightFactor) => {
                   const hour = new Date(timestamp).getHours();
                   const load = profile[hour] ?? fallbackLoad;
-                  return hour >= 21 || hour < 7 ? load * nightFactor : load;
+                  return hour >= 21 || hour < 7 ? load * factor : load;
                 };
+                const batteryPct = (net, hours) =>
+                  ((net >= 0 ? Math.min(net, MAX_CHARGE_KW) * EFFICIENCY : Math.max(net, -MAX_DISCHARGE_KW) / EFFICIENCY)
+                    * hours / CAPACITY_KWH) * 100;
 
                 // Zeekr: 2.3 kW from solar only, while it still needs energy to reach its limit
                 const CAR_KW = 2.3;
@@ -460,35 +466,84 @@ cards:
                     ? Math.max(carLimit - carLevel, 0) / 0.9
                     : 0;
 
-                const solar = [
+                // Half-hourly Solcast P50 and P90, today to four days out
+                const HALF_HOUR = 30 * 60 * 1000;
+                const solar = new Map();
+                for (const entityId of [
                   'sensor.solcast_pv_forecast_forecast_today',
                   'sensor.solcast_pv_forecast_forecast_tomorrow',
-                ]
-                  .flatMap((entityId) => hass.states[entityId]?.attributes?.detailedForecast ?? [])
-                  .map((entry) => [new Date(entry.period_start).getTime(), Number(entry.pv_estimate) || 0]);
-                const solarAt = (timestamp) =>
-                  solar.find(([s]) => timestamp >= s && timestamp < s + 30 * 60 * 1000)?.[1] ?? 0;
+                  'sensor.solcast_pv_forecast_forecast_day_3',
+                  'sensor.solcast_pv_forecast_forecast_day_4',
+                ]) {
+                  for (const entry of hass.states[entityId]?.attributes?.detailedForecast ?? []) {
+                    solar.set(new Date(entry.period_start).getTime(), {
+                      p50: Number(entry.pv_estimate) || 0,
+                      p90: Number(entry.pv_estimate90) || 0,
+                    });
+                  }
+                }
+                const solarAt = (timestamp, field = 'p50') =>
+                  solar.get(Math.floor(timestamp / HALF_HOUR) * HALF_HOUR)?.[field] ?? 0;
 
-                // Mirrors the conditions in the AGL Battery Export to Target automation
-                const exportStart = atHour(17);
-                const exportEnd = atHour(21);
+                // Same rules as battery_export_plan (custom_templates/battery_export.jinja), for an
+                // evening whose target has not been captured yet: the highest of refilling to 90% by
+                // 17:00 the next day (P50/P90 midpoint, typical night, car allowance), the morning
+                // low 5 points above SOC min (largest night) and the two-day check.
+                const planTarget = (evening, carNeed) => {
+                  const floor = minSoc;
+                  const carAllowance = carNeed * 0.9 >= 10 ? carNeed : 0;
+                  let typical = 0;
+                  let worst = 0;
+                  let low = 0;
+                  let carUsed = 0;
+                  const steps = [];
+                  for (let i = 0; i < 88; i++) {
+                    const t = evening + i * HALF_HOUR;
+                    const firstDay = i < 40;
+                    const pv = firstDay ? (solarAt(t, 'p50') + solarAt(t, 'p90')) / 2 : solarAt(t, 'p50');
+                    const loadWorst = loadAt(t, nightFactorMax);
+                    const hour = new Date(t).getHours();
+                    const car = firstDay && carUsed < carAllowance && hour >= 6 && hour < 19 && pv - loadWorst >= CAR_KW ? CAR_KW : 0;
+                    carUsed += car * 0.5;
+                    const stepWorst = batteryPct(pv - loadWorst - car, 0.5);
+                    steps.push(stepWorst);
+                    if (firstDay) {
+                      typical += batteryPct(pv - loadAt(t) - car, 0.5);
+                      worst += stepWorst;
+                      low = Math.min(low, worst);
+                    }
+                  }
+                  let need = 100;
+                  for (const step of steps.reverse()) {
+                    need = Math.min(Math.max(floor + 5, need - step), 100);
+                  }
+                  return Math.ceil(Math.min(Math.max(90 - typical, floor + 5 - low, need, floor), 100));
+                };
+
+                // Mirrors the AGL Battery Export to Target automation: tonight uses the captured or
+                // live target, tomorrow evening the target the plan would capture then
                 const exportEnabled =
                   hass.states['automation.electricity_zerohero_conditional_export']?.state === 'on' &&
                   hass.states['binary_sensor.solplanet_battery_al010k5sq2590170_schedule_configured']?.state === 'on';
-                let exportFrom = null;
-                let exportSoc = null;
-                let exportTarget = num('sensor.battery_export_target', 100);
+                const windows = [0, 1].map((days) => ({
+                  start: atHour(17, days),
+                  end: atHour(21, days),
+                  target: days === 0 ? num('sensor.battery_export_target', 100) : null,
+                  from: null,
+                  soc: null,
+                  skipped: false,
+                }));
                 const sessionStart =
                   (hass.states['input_datetime.agl_export_session_start']?.attributes?.timestamp ?? 0) * 1000;
-                if (exportEnabled && sessionStart >= exportStart && sessionStart <= now && now < exportEnd) {
-                  exportFrom = sessionStart;
-                  exportSoc = num('input_number.agl_export_start_soc', startSoc);
-                  exportTarget = num('input_number.agl_export_target_soc', 100);
-                }
-                // The automation only exports when the starting SOC is more than 2 points above the target
-                let exportSkipped = exportFrom !== null && exportSoc <= exportTarget + 2;
-                if (exportSkipped) {
-                  exportFrom = null;
+                if (exportEnabled && sessionStart >= windows[0].start && sessionStart <= now && now < windows[0].end) {
+                  windows[0].from = sessionStart;
+                  windows[0].soc = num('input_number.agl_export_start_soc', startSoc);
+                  windows[0].target = num('input_number.agl_export_target_soc', 100);
+                  // The automation only exports when the starting SOC is more than 2 points above the target
+                  windows[0].skipped = windows[0].soc <= windows[0].target + 2;
+                  if (windows[0].skipped) {
+                    windows[0].from = null;
+                  }
                 }
 
                 let soc = startSoc;
@@ -497,11 +552,16 @@ cards:
                   // The first step is shortened so later steps land on 5-minute boundaries
                   dt = Math.min(STEP - (t % STEP), horizon - t);
                   const hours = dt / (60 * 60 * 1000);
-                  if (exportEnabled && !exportSkipped && exportFrom === null && t >= exportStart && t < exportEnd) {
-                    exportSkipped = soc <= exportTarget + 2;
-                    if (!exportSkipped) {
-                      exportFrom = t;
-                      exportSoc = soc;
+                  for (const w of windows) {
+                    if (exportEnabled && !w.skipped && w.from === null && t >= w.start && t < w.end) {
+                      if (w.target === null) {
+                        w.target = planTarget(w.end, carNeededKwh);
+                      }
+                      w.skipped = soc <= w.target + 2;
+                      if (!w.skipped) {
+                        w.from = t;
+                        w.soc = soc;
+                      }
                     }
                   }
 
@@ -510,15 +570,12 @@ cards:
                   const hour = new Date(t).getHours();
                   const car = carNeededKwh > 0 && hour >= 6 && hour < 17 && pv - load >= CAR_KW ? CAR_KW : 0;
                   carNeededKwh -= car * hours;
-                  const net = pv - load - car;
-                  const kwh = net >= 0
-                    ? Math.min(net, MAX_CHARGE_KW) * EFFICIENCY * hours
-                    : (Math.max(net, -MAX_DISCHARGE_KW) / EFFICIENCY) * hours;
-                  let next = soc + (kwh / CAPACITY_KWH) * 100;
+                  let next = soc + batteryPct(pv - load - car, hours);
 
-                  if (exportFrom !== null && t < exportEnd) {
-                    const progress = Math.min((t + dt - exportFrom) / (exportEnd - exportFrom), 1);
-                    const target = Math.max(exportTarget, exportSoc - (exportSoc - exportTarget) * progress);
+                  const active = windows.find((w) => w.from !== null && t >= w.from && t < w.end);
+                  if (active) {
+                    const progress = Math.min((t + dt - active.from) / (active.end - active.from), 1);
+                    const target = Math.max(active.target, active.soc - (active.soc - active.target) * progress);
                     const fastest = soc - ((MAX_DISCHARGE_KW / EFFICIENCY) * hours / CAPACITY_KWH) * 100;
                     next = Math.min(next, Math.max(target, fastest));
                   }
