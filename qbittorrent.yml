@@ -103,10 +103,10 @@
           AutoRun.OnTorrentAdded\Program: ""
 
           # Connections
-          BitTorrent.Session\BTProtocol: TCP # Peer connection protocol
+          BitTorrent.Session\BTProtocol: Both # Peer connection protocol
 
           ## Listening Port
-          BitTorrent.Session\Port: 34727 # Port used for incoming connections
+          BitTorrent.Session\Port: 10033 # Port used for incoming connections, forwarded by Windscribe
 
           ## Connection Limits
           BitTorrent.Session\MaxConnections: 500 # Global maximum number of connections
@@ -116,7 +116,7 @@
 
           # Speed
           ## Global Rate Limits
-          BitTorrent.Session\GlobalUPSpeedLimit: 200 # Upload
+          BitTorrent.Session\GlobalUPSpeedLimit: 5000 # Upload, about 40% of the 100 Mbit/s NBN upload
 
           ## Alternative Rate Limits
           BitTorrent.Session\AlternativeGlobalUPSpeedLimit: 0 # Upload
@@ -125,14 +125,14 @@
           # BitTorrent
           ## Torrent Queueing
           BitTorrent.Session\MaxActiveDownloads: 20 # Maximum active downloads
-          BitTorrent.Session\MaxActiveUploads: 0 # Maximum active uploads
-          BitTorrent.Session\MaxActiveTorrents: 20 # Maximum active torrents
+          BitTorrent.Session\MaxActiveUploads: -1 # Maximum active uploads
+          BitTorrent.Session\MaxActiveTorrents: -1 # Maximum active torrents
 
           ## Seeding Limits
           BitTorrent.Session\GlobalMaxRatio: -1 # When ratio reaches
-          BitTorrent.Session\GlobalMaxSeedingMinutes: 5000 # When total seeding time reaches
+          BitTorrent.Session\GlobalMaxSeedingMinutes: 0 # When total seeding time reaches, force-started torrents are exempt
           BitTorrent.Session\GlobalMaxInactiveSeedingMinutes: -1 # When inactive seeding time reaches
-          Preferences.Bittorrent\MaxRatioAction: 0 # then
+          BitTorrent.Session\ShareLimitAction: Stop # then
 
           # Web UI
           ## Language
@@ -153,6 +153,9 @@
           # Advanced
           ## qBittorrent Section
           Preferences.Connection\ResolvePeerCountries: "false" # Resolve peer countries
+
+          ## libtorrent Section
+          BitTorrent.Session\IncludeOverheadInLimits: "true" # Include overhead in rate limits
       no_log: true
       diff: false
 
