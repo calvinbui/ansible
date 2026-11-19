@@ -161,6 +161,7 @@
         name: "{{ application }}"
         state: stopped
       when: _qbittorrent_config.changed
+      no_log: true
 
     - name: Configure
       community.general.ini_file:
