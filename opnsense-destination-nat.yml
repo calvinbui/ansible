@@ -1,0 +1,131 @@
+---
+
+- hosts: localhost
+
+  become: false
+
+  connection: local
+
+  force_handlers: true
+
+  gather_facts: false
+
+  vars:
+    opnsense_destination_nat_rules:
+      -
+        sequence: 100
+        interface: "{{ networks.wan.opnsense_identifier }}"
+        protocol: tcp
+        destination_net: "{{ networks.wan.opnsense_identifier }}ip"
+        destination_port: "32400"
+        target: plex
+        local_port: "32400"
+        description: Plex
+      -
+        sequence: 200
+        interface: "{{ networks.wan.opnsense_identifier }}"
+        protocol: tcp/udp
+        destination_net: "{{ networks.wan.opnsense_identifier }}ip"
+        destination_port: "443"
+        target: traefik
+        local_port: "443"
+        description: HTTPS
+      -
+        sequence: 300
+        interface: "{{ networks.wan.opnsense_identifier }}"
+        protocol: tcp/udp
+        destination_net: "{{ networks.wan.opnsense_identifier }}ip"
+        destination_port: "22000"
+        target: syncthing
+        local_port: "22000"
+        description: Syncthing
+      -
+        sequence: 400
+        interface: "{{ networks.wan.opnsense_identifier }}"
+        protocol: tcp
+        destination_net: "{{ networks.wan.opnsense_identifier }}ip"
+        destination_port: "80"
+        target: traefik
+        local_port: "80"
+        description: HTTP
+      -
+        sequence: 500
+        interface: "{{ networks.wan.opnsense_identifier }}"
+        protocol: udp
+        destination_net: "{{ networks.wan.opnsense_identifier }}ip"
+        destination_port: "123"
+        target: traefik
+        local_port: "123"
+        description: NTP
+
+  module_defaults:
+    group/oxlorg.opnsense.all: "{{ oxlorg_opnsense_module_defaults }}"
+
+  handlers:
+    - name: Apply Destination NAT rules
+      oxlorg.opnsense.raw:
+        module: firewall
+        controller: d_nat
+        command: apply
+        action: post
+
+  tasks:
+    # oxlorg.opnsense has no module for the OPNsense 26.x destination NAT (port forward) API
+    - name: Destination NAT - Get rules
+      oxlorg.opnsense.raw:
+        module: firewall
+        controller: d_nat
+        command: search_rule
+      register: _destination_nat_rules
+      no_log: true
+
+    - name: Destination NAT - Add or update rules
+      oxlorg.opnsense.raw:
+        module: firewall
+        controller: d_nat
+        command: "{{ 'set_rule' if _matching_destination_nat_rule else 'add_rule' }}"
+        parameters: "{{ [_matching_destination_nat_rule.uuid] if _matching_destination_nat_rule else omit }}"
+        action: post
+        data:
+          rule:
+            disabled: "0"
+            nordr: "0"
+            nosync: "0"
+            sequence: "{{ item.sequence | ansible.builtin.string }}"
+            interface: "{{ item.interface }}"
+            ipprotocol: inet
+            protocol: "{{ item.protocol }}"
+            source:
+              network: any
+              not: "0"
+              port: ""
+            destination:
+              network: "{{ item.destination_net }}"
+              not: "0"
+              port: "{{ item.destination_port }}"
+            target: "{{ item.target }}"
+            local-port: "{{ item.local_port }}"
+            natreflection: ""
+            pass: ""
+            log: "0"
+            descr: "{{ item.description }}"
+      vars:
+        _matching_destination_nat_rule: >-
+          {{
+            _destination_nat_rules.response.rows
+            | selectattr('descr', 'equalto', item.description)
+            | first
+            | default({})
+          }}
+      when: >-
+        not _matching_destination_nat_rule or
+        _matching_destination_nat_rule.disabled != '0' or
+        _matching_destination_nat_rule.sequence != item.sequence | string or
+        _matching_destination_nat_rule.interface != item.interface or
+        _matching_destination_nat_rule.protocol != item.protocol or
+        _matching_destination_nat_rule['destination.network'] != item.destination_net or
+        _matching_destination_nat_rule['destination.port'] != item.destination_port or
+        _matching_destination_nat_rule.target != item.target or
+        _matching_destination_nat_rule['local-port'] != item.local_port
+      loop: "{{ opnsense_destination_nat_rules }}"
+      notify: Apply Destination NAT rules
