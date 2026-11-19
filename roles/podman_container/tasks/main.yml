@@ -29,6 +29,7 @@
 - name: Merge user provided labels into combined_labels
   ansible.builtin.set_fact:
     combined_labels: "{{ labels | ansible.builtin.map('split', '=', 1) | community.general.dict }}"
+  no_log: true
 
 - name: Generate Prometheus service discovery labels
   ansible.builtin.include_tasks: metrics.yml
@@ -41,6 +42,7 @@
   ansible.builtin.set_fact:
     combined_labels: "{{ combined_labels | ansible.builtin.combine(metrics_labels, recursive=True) }}"
   when: metrics is defined
+  no_log: true
 
 - name: Generate Traefik labels for each route
   ansible.builtin.include_tasks: traefik.yml
@@ -48,6 +50,7 @@
   loop: "{{ traefik }}"
   loop_control:
     loop_var: route
+    label: "{{ route.name | ansible.builtin.default(container_name) | ansible.builtin.default(application) }}"
   vars:
     route_name: "{{ route.name | ansible.builtin.default(container_name) | ansible.builtin.default(application) }}"
 
@@ -55,11 +58,13 @@
   ansible.builtin.set_fact:
     combined_labels: "{{ {'traefik.enable': 'true', 'traefik.docker.allownonrunning': 'true'} | ansible.builtin.combine(combined_labels, recursive=True) | ansible.builtin.combine(traefik_labels, recursive=True) }}"
   when: traefik is defined
+  no_log: true
 
 - name: Disable Traefik labels
   ansible.builtin.set_fact:
     combined_labels: "{{ {'traefik.enable': 'false'} | ansible.builtin.combine(combined_labels) }}"
   when: traefik is undefined
+  no_log: true
 
 - name: Generate homepage-service-discovery
   ansible.builtin.include_tasks: homepage.yml
@@ -71,6 +76,7 @@
   ansible.builtin.set_fact:
     combined_labels: "{{ combined_labels | ansible.builtin.combine(homepage_labels, recursive=True) }}"
   when: homepage is defined
+  no_log: true
 
 - name: Generate blackbox service discovery labels via Traefik
   ansible.builtin.include_tasks: blackbox.yml
@@ -86,6 +92,7 @@
   ansible.builtin.set_fact:
     combined_labels: "{{ combined_labels | ansible.builtin.combine(blackbox_labels, recursive=True) }}"
   when: blackbox_labels is defined
+  no_log: true
 
 # - name: Generate Watchtower labels
 #   ansible.builtin.include_tasks: watchtower.yml
@@ -118,6 +125,7 @@
     - >-
       _container_info.containers[0].State.Status != 'running'
       or (image is defined and _container_info.containers[0].ImageName not in [image, image | ansible.builtin.regex_replace(':[^/:@]+(?=@)', '')])
+  no_log: true
 
 - name: "Create podman container for {{ container_name | ansible.builtin.default(application) }}"
   containers.podman.podman_container:

@@ -14,6 +14,7 @@
     -
       key: "blackbox.target"
       value: "{{ blackbox.protocol|default('https') }}://{{ (route.rule | ansible.builtin.regex_replace('^Host\\(`(.*?)`\\).*$', '\\1')) if route.rule is defined else (blackbox.host | ansible.builtin.default(route_name + '.' + common_tld)) }}{{ blackbox.path | ansible.builtin.default('') }}"
+  no_log: true
 
 - name: "Generating TCP blackbox service discovery labels"
   when: (blackbox.probe | ansible.builtin.default(route.type) | ansible.builtin.default('http')) == 'tcp'
@@ -29,3 +30,4 @@
     -
       key: "blackbox.target"
       value: "{{ blackbox.host if blackbox.host is defined else common_tld ~ ':' ~ route.port }}"
+  no_log: true

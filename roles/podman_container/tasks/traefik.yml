@@ -47,6 +47,7 @@
       value: "{{ route.tls.certresolver | ansible.builtin.default(traefik_certresolver) }}"
     - key: "traefik.http.routers.{{ route_name }}-secure.middlewares"
       value: "{{ ','.join(route_middlewares) }}"
+  no_log: true
 
 - name: "Generating UDP Traefik labels for {{ route_name }}"
   when: traefik and (route.type is defined and route.type == "udp")
@@ -59,6 +60,7 @@
       value: "{{ route_name }}"
     - key: "traefik.udp.services.{{ route_name }}.loadbalancer.server.port"
       value: "{{ route.port | ansible.builtin.string }}"
+  no_log: true
 
 - name: "Generating TCP Traefik labels for {{ route_name }}"
   when: traefik and (route.type is defined and route.type == "tcp")
@@ -73,6 +75,7 @@
       value: "{{ route.port | ansible.builtin.string }}"
     - key: "traefik.tcp.routers.{{ route_name }}.rule"
       value: "{{ route.rule | ansible.builtin.default('HostSNI(`*`)') }}"
+  no_log: true
 
 - name: Add {{ route_name }} priority
   when: route.priority is defined
@@ -81,3 +84,4 @@
   loop:
     - key: "traefik.{{ route.type | ansible.builtin.default('http') }}.routers.{{ route_name }}-secure.priority"
       value: "{{ route.priority | ansible.builtin.string }}"
+  no_log: true

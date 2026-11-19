@@ -43,6 +43,7 @@
       - label: href
         default: "https://{{ application + '.' + common_tld }}"
       - label: weight
+  no_log: true
 
 - name: Add homepage default widget labels
   when: homepage['widget'] is defined
@@ -55,9 +56,11 @@
         default: "{{ application }}"
       - label: url
         default: "{{ 'https://' + application + '.' + common_tld if traefik is defined else homepage_labels['homepage.href'] }}"
+  no_log: true
 
 - name: Add homepage additional widget labels
   when: homepage['widget'] is defined
   ansible.builtin.set_fact:
     homepage_labels: "{{ homepage_labels | ansible.builtin.default({}) | ansible.builtin.combine({'homepage.widget.' + item.key : item.value | ansible.builtin.string}) }}"
   loop: "{{ homepage['widget'] | ansible.builtin.dict2items }}"
+  no_log: true
