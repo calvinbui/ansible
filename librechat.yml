@@ -88,7 +88,7 @@
         name: podman_container
       vars:
         container_name: "{{ application }}-rag-api"
-        image: ghcr.io/danny-avila/librechat-rag-api-dev@sha256:13898be3c4ce9ce60d40606c426929d504fef4d89dfddeac966e12fb740cae5c
+        image: ghcr.io/danny-avila/librechat-rag-api-dev@sha256:4665e5f1071fd050ea48683bfa12a6dbf4a63bdcc799afbc6cd9e5fb0d5dc7a7
         blackbox:
           protocol: http
           host: "{{ application }}-rag-api.{{ common_local_tld }}:8000"
