@@ -82,8 +82,8 @@
         filesystem_properties:
           compression: lz4
           atime: false
-          xattr: sa
-          acltype: posixacl
+          xattr: "on"
+          acltype: posix
         vdevs:
           - type: raidz2
             disks:
@@ -149,7 +149,7 @@
     - name: Set ZFS ARC max size
       ansible.builtin.copy:
         content: |
-          options zfs zfs_arc_max={{ 128 * 1024 * 1024 * 1024 }}
+          options zfs zfs_arc_max={{ 64 * 1024 * 1024 * 1024 }}
         dest: /etc/modprobe.d/zfs-arc-max-size.conf
         owner: root
         group: root
