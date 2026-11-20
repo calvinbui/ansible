@@ -76,6 +76,7 @@
                 provider:
                   custom:
                     formats:
+                      - type: completions
                       - type: embeddings
                 params:
                   baseUrl: http://llama-cpp:8080/v1
@@ -87,6 +88,9 @@
                   reference: cli-proxy-api
           {% endfor %}
               - name: {{ ai_embedding_model.name | ansible.builtin.to_json }}
+                provider:
+                  reference: llama-cpp
+              - name: {{ ai_local_model.name | ansible.builtin.to_json }}
                 provider:
                   reference: llama-cpp
 

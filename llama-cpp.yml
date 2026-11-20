@@ -55,6 +55,16 @@
               kv-unified-per-slot: 8192
               batch-size: 8192
               ubatch-size: 8192
+          - name: "{{ ai_local_model.name }}"
+            options:
+              hf-repo: "{{ ai_local_model.hf_repo }}"
+              ctx-size: 65536
+              sleep-idle-seconds: 1800
+              # Measured with llama bench on the i7-14700: generation is fastest on the
+              # 8 P-cores, prompt processing on 20 threads.
+              threads: 8
+              threads-batch: 20
+              spec-type: draft-mtp
       notify: Restart
 
     - name: Create container
