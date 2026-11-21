@@ -44,6 +44,20 @@
         postgres_uid: 1000
         postgres_gid: 1000
 
+    # Newer timescaledb-ha images drop old extension libraries, so the extensions must follow the image
+    - name: Update TimescaleDB extensions
+      containers.podman.podman_container_exec:
+        name: "{{ _postgres_hostname }}"
+        command: psql -X -v ON_ERROR_STOP=1 -U {{ _postgres_username }} -d {{ _postgres_database }} -c "ALTER EXTENSION {{ item }} UPDATE"
+      loop:
+        - timescaledb
+        - timescaledb_toolkit
+      register: _command_result
+      until: _command_result.rc == 0
+      retries: 6
+      delay: 5
+      changed_when: ('already installed' not in _command_result.stderr)
+
     - name: Create valkey container
       ansible.builtin.include_role:
         name: valkey
@@ -146,4 +160,4 @@
               666436393164393032303731336364333831
             view: both
         blackbox:
-          path: /health
+          path: /api/v1/setup/status
