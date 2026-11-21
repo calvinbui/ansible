@@ -49,7 +49,7 @@
   {%- set set_ = as_timestamp(state_attr('sun.sun', 'next_setting'), 0) %}
   {%- set rise = rise + 86400 if rise and rise < start else rise %}
   {%- set set_ = set_ + 86400 if set_ and set_ < rise else set_ %}
-  {%- set ns = namespace(pv={}, c=0, low=0, low_at=none, car=0, c_typical=0) %}
+  {%- set ns = namespace(pv={}, c=0, low=0, low_at=none, car=0, c_typical=0, c_nocar=0) %}
   {%- for p in state_attr('sensor.solcast_pv_forecast_forecast_tomorrow', 'detailedForecast') or [] %}
     {%- set ns.pv = dict(ns.pv, **{(as_timestamp(p.period_start) | int | string): ((p.pv_estimate | float(0)) + (p.pv_estimate90 | float(0))) / 2}) %}
   {%- endfor %}
@@ -68,6 +68,9 @@
     {%- set net_typical = pv - load_typical - car %}
     {%- set kwh_typical = ([net_typical, max_charge] | min * eff if net_typical >= 0 else [net_typical, -max_discharge] | max / eff) * 0.5 %}
     {%- set ns.c_typical = ns.c_typical + kwh_typical / cap * 100 %}
+    {%- set net_nocar = pv - load_typical %}
+    {%- set kwh_nocar = ([net_nocar, max_charge] | min * eff if net_nocar >= 0 else [net_nocar, -max_discharge] | max / eff) * 0.5 %}
+    {%- set ns.c_nocar = ns.c_nocar + kwh_nocar / cap * 100 %}
     {%- if ns.c < ns.low %}
       {%- set ns.low = ns.c %}
       {%- set ns.low_at = (t + timedelta(minutes=30)).strftime('%H:%M') %}
@@ -92,6 +95,10 @@
   {%- endfor %}
   {%- set two_day = d2.need if (d2.pv | length) > 0 else 100 %}
   {%- set target = [[refill, overnight, two_day, floor] | max, 100] | min | round(0, 'ceil') %}
+  {#- The same target without tomorrow's car allowance. The Zeekr start/stop rules compare against
+      this during the day: charging the car today reduces what it needs tomorrow, so tomorrow's
+      allowance must not block today's charging. #}
+  {%- set target_no_car = [[90 - ns.c_nocar, overnight, two_day, floor] | max, 100] | min | round(0, 'ceil') %}
   {{- {
     'target': target,
     'refill_target': refill | round(1),
@@ -102,6 +109,7 @@
     'night_factor_typical': factor_typical | round(2),
     'car_kwh': ns.car | round(1),
     'car_needed_kwh': car_needed | round(1),
-    'two_day_target': two_day | round(1)
+    'two_day_target': two_day | round(1),
+    'target_no_car': target_no_car
   } | to_json -}}
 {% endmacro %}

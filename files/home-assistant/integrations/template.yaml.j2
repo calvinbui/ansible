@@ -903,6 +903,9 @@
       two_day_target: >
         {% from 'battery_export.jinja' import battery_export_plan %}
         {{ (battery_export_plan() | from_json).two_day_target }}
+      target_no_car: >
+        {% from 'battery_export.jinja' import battery_export_plan %}
+        {{ (battery_export_plan() | from_json).target_no_car }}
       solar_tomorrow_kwh: "{{ states('sensor.solcast_pv_forecast_forecast_tomorrow') }}"
 
   # Battery Initial Cost
