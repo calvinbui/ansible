@@ -72,6 +72,9 @@
             - "dfree command = /etc/samba/dfree.sh"
             # Directory leases let clients cache listings that changes made outside Samba never invalidate
             - "smb3 directory leases = no"
+            - "map to guest = never"
+            - "veto files = /.DS_Store/Thumbs.db/"
+            - "delete veto files = yes"
 
           share:
             - name: files
