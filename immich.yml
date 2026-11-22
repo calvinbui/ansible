@@ -42,7 +42,7 @@
         name: postgres
       vars:
         postgres_image: ghcr.io/immich-app/postgres
-        postgres_version: 18-vectorchord1.1.1-pgvector0.8.5
+        postgres_version: 18-vectorchord1.1.1-pgvector0.8.7
         postgres_shm_size: "128m"
         postgres_password: !vault |
           $ANSIBLE_VAULT;1.1;AES256
