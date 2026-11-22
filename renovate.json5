@@ -584,6 +584,15 @@
       versioningTemplate: "loose",
       extractVersionTemplate: "^(?<version>\\d+)-vectorchord\\d+\\.\\d+\\.\\d+-\\w+\\d+\\.\\d+\\.\\d+$",
     },
+    {
+      customType: "regex",
+      managerFilePatterns: ['/^immich\\.ya?ml$/'],
+      matchStrings: ['postgres_version: (?<pgMajor>\\d+)-vectorchord(?<vectorchordVersion>\\d+\\.\\d+\\.\\d+)-pgvector(?<currentValue>\\d+\\.\\d+\\.\\d+)'],
+      depNameTemplate: "ghcr.io/immich-app/postgres",
+      datasourceTemplate: "docker",
+      versioningTemplate: "semver",
+      extractVersionTemplate: "^{{{pgMajor}}}-vectorchord{{{vectorchordVersion}}}-pgvector(?<version>\\d+\\.\\d+\\.\\d+)$",
+    },
 
     /* tracearr timescaledb-ha */
     {
