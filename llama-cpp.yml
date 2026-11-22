@@ -58,7 +58,9 @@
           - name: "{{ ai_local_model.name }}"
             options:
               hf-repo: "{{ ai_local_model.hf_repo }}"
-              ctx-size: 65536
+              # All slots share one unified KV pool. Two full 64K requests (the
+              # limit OpenCode is given) must fit at once, so size it for both.
+              ctx-size: 131072
               sleep-idle-seconds: 1800
               # Measured with llama bench on the i7-14700: generation is fastest on the
               # 8 P-cores, prompt processing on 20 threads.
