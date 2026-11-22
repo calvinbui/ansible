@@ -70,6 +70,8 @@
             - "use sendfile = yes"
             - "strict sync = no"
             - "dfree command = /etc/samba/dfree.sh"
+            # Directory leases let clients cache listings that changes made outside Samba never invalidate
+            - "smb3 directory leases = no"
 
           share:
             - name: files
