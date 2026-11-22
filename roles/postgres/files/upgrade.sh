@@ -79,13 +79,36 @@ else
   echo "Warning: ${CONTAINER} is not running, skipping the MD5 password check"
 fi
 
+# ---------------------------------------------------------
+# STEP 2: Find extensions that are not part of the base upgrade image
+# ---------------------------------------------------------
+# pg_upgrade needs each extension's library for both the old and new versions
+declare -A extension_packages=(
+  [vector]="pgvector"
+  [postgis]="postgis-3"
+)
+upgrade_packages=()
+if [[ $(podman inspect "$CONTAINER" -f '{{.State.Running}}') == "true" ]]; then
+  databases=$(podman exec "$CONTAINER" psql -U "$PG_USER" -d postgres -At -c "SELECT datname FROM pg_database WHERE datallowconn")
+  extensions=$(for db in $databases; do
+    podman exec "$CONTAINER" psql -U "$PG_USER" -d "$db" -At -c "SELECT extname FROM pg_extension"
+  done | sort -u)
+  for ext in $extensions; do
+    if [[ -n ${extension_packages[$ext]:-} ]]; then
+      upgrade_packages+=("postgresql-${PG_OLD_VERSION}-${extension_packages[$ext]}" "postgresql-${PG_NEW_VERSION}-${extension_packages[$ext]}")
+    fi
+  done
+else
+  echo "Warning: ${CONTAINER} is not running, skipping the extension check"
+fi
+
 echo "Stopping $APP_NAME"
 for c in $(podman ps -a --format '{{.Names}}' | grep "^${APP_NAME}" | sort); do
   podman stop "$c" || true
 done
 
 # ---------------------------------------------------------
-# STEP 2: Enable pg_checksums on pre-18 databases (18+ initdb enables them by default)
+# STEP 3: Enable pg_checksums on pre-18 databases (18+ initdb enables them by default)
 # ---------------------------------------------------------
 if [[ $PG_OLD_VERSION -lt 18 ]]; then
   echo "Enabling data checksums on existing database (Version ${PG_OLD_VERSION})..."
@@ -98,7 +121,7 @@ if [[ $PG_OLD_VERSION -lt 18 ]]; then
 fi
 
 # ---------------------------------------------------------
-# STEP 3: Prepare the upgrade environment
+# STEP 4: Prepare the upgrade environment
 # ---------------------------------------------------------
 work_dir=$(mktemp -d /tmp/postgres_upgrade.XXXXXXXX)
 echo "Created temporary directory ${work_dir}"
@@ -120,21 +143,34 @@ mkdir -p "${work_dir}/${PG_OLD_VERSION}"
 cp -a "$PG_OLD_DATA" "${work_dir}/${PG_OLD_VERSION}/${old_subdir}"
 
 # ---------------------------------------------------------
-# STEP 4: Run the upgrade
+# STEP 5: Run the upgrade
 # ---------------------------------------------------------
+upgrade_image="docker.io/tianon/postgres-upgrade:${PG_OLD_VERSION}-to-${PG_NEW_VERSION}"
+if [[ ${#upgrade_packages[@]} -gt 0 ]]; then
+  echo "Building upgrade image with ${upgrade_packages[*]}"
+  build_dir=$(mktemp -d /tmp/postgres_upgrade_build.XXXXXXXX)
+  cat > "${build_dir}/Containerfile" <<EOF
+FROM ${upgrade_image}
+RUN apt-get update && apt-get install -y --no-install-recommends ${upgrade_packages[*]} && rm -rf /var/lib/apt/lists/*
+EOF
+  podman build --pull=newer -t "localhost/postgres-upgrade:${PG_OLD_VERSION}-to-${PG_NEW_VERSION}-extensions" "$build_dir"
+  rm -rf "$build_dir"
+  upgrade_image="localhost/postgres-upgrade:${PG_OLD_VERSION}-to-${PG_NEW_VERSION}-extensions"
+fi
+
 echo "Starting upgrade container"
 podman run --rm \
   --name "${APP_NAME}-postgres-${PG_NEW_VERSION}-upgrade" \
   -e PGUSER="${PG_USER}" \
   -e POSTGRES_INITDB_ARGS="-U ${PG_USER}" \
   -v "${work_dir}":/var/lib/postgresql \
-  "docker.io/tianon/postgres-upgrade:${PG_OLD_VERSION}-to-${PG_NEW_VERSION}" \
+  "$upgrade_image" \
   --link
 
 echo "host all all all scram-sha-256" >> "${work_dir}/${PG_NEW_VERSION}/${new_subdir}/pg_hba.conf"
 
 # ---------------------------------------------------------
-# STEP 5: Move the upgraded data into place
+# STEP 6: Move the upgraded data into place
 # ---------------------------------------------------------
 echo "Creating a backup of old data at ${backup_path}"
 mv "$PG_PATH" "$backup_path"
