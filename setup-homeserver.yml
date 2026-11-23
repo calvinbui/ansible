@@ -56,7 +56,6 @@
           - rclone
           - tmux
           - python3-lxml
-          - python3-passlib
           - python3-yaml
           - ripgrep
           - unzip
