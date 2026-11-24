@@ -144,6 +144,7 @@
             group: "{{ common_root_group }}"
             mode: "0771"
           loop:
+            - govee2mqtt
             - wyoming-piper
 
         - name: Create python_scripts folder
@@ -205,6 +206,8 @@
                 39633232363530663238613331316432346634653661373063396135333937386532
 
               TZ: "{{ common_timezone }}"
+            volumes:
+              - "{{ home_assistant_addons_dir }}/govee2mqtt:/data"
             blackbox:
               protocol: http
               host: "{{ container_name }}.{{ common_local_tld }}:8056"
