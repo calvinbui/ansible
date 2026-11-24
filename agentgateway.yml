@@ -48,6 +48,23 @@
             default:
               port: 4000
 
+          # Claude sometimes accepts a request but never starts replying. CLIProxyAPI
+          # sends headers only after the first upstream chunk, so this fails those
+          # requests for the client to retry without cutting off long streams.
+          # Retries here only cover bodies up to AgentGateway's fixed 64 KiB limit.
+          binds:
+            - port: 4001
+              listeners:
+                - routes:
+                    - policies:
+                        timeout:
+                          backendRequestTimeout: 60s
+                        retry:
+                          attempts: 1
+                          codes: [504]
+                      backends:
+                        - host: cli-proxy-api:8317
+
           llm:
             policies:
               apiKey:
@@ -70,7 +87,7 @@
                     formats:
                       - type: messages
                 params:
-                  baseUrl: http://cli-proxy-api:8317/v1
+                  baseUrl: http://localhost:4001/v1
                   apiKey: "$CLI_PROXY_API_KEY"
               - name: llama-cpp
                 provider:
