@@ -17,3 +17,5 @@ github_api_token: !vault |
 github_ssh_key_ids:
   - id: 151782454
     comment: WSL
+  - id: 171147132
+    comment: MacBook
