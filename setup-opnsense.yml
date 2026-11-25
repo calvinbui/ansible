@@ -6,6 +6,11 @@
     - name: Set authorized keys from GitHub
       ansible.builtin.include_role:
         name: github_authorized_keys
+        apply:
+          tags:
+            - ssh_keys
       vars:
         github_authorized_keys_users:
           - root
+      tags:
+        - ssh_keys

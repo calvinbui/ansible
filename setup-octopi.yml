@@ -59,10 +59,15 @@
     - name: Set authorized keys from GitHub
       ansible.builtin.include_role:
         name: github_authorized_keys
+        apply:
+          tags:
+            - ssh_keys
       vars:
         github_authorized_keys_users:
           - root
           - "{{ common_user }}"
+      tags:
+        - ssh_keys
 
     - name: No password sudo
       community.general.sudoers:
