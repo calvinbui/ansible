@@ -52,7 +52,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/happier-dev/relay-server:stable@sha256:5bb3959bdecc54e9ef96bfd31ccd55ac1be5efb85f179856a43c7b4b0a048332
+        image: ghcr.io/happier-dev/relay-server:stable@sha256:af8a9c54b0d9500c1ac12f2798fdcbbbecb66485678024730b6f00b842445a09
         stop_signal: "{{ signal_map['SIGKILL'] }}"
         env:
           HAPPIER_SERVER_FLAVOR: full
