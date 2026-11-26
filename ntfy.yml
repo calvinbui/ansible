@@ -32,6 +32,11 @@
         username: "*"
         topic: "up*"
         permission: "write-only"
+      -
+        # Zeekr Shortcut sentry alerts
+        username: "*"
+        topic: "zeekrsc_*"
+        permission: "write-only"
 
     container_network: "{{ networks.pub }}"
 
