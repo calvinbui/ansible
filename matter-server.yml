@@ -20,7 +20,7 @@
       ansible.builtin.include_role:
         name: podman_container
       vars:
-        image: ghcr.io/matter-js/matterjs-server:1.6.0
+        image: ghcr.io/matter-js/matterjs-server:1.6.1
         # Matter is IPv6-only, so re-enable the IPv6 that containers.conf disables
         sysctl:
           net.ipv6.conf.all.disable_ipv6: "0"
