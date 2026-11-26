@@ -45,6 +45,10 @@
           PLAYWRIGHT_DRIVER_URL: "ws://{{ application }}-chrome:3000?token={{ changedetection_browserless_token }}&stealth=true"
           # PLAYWRIGHT_DRIVER_URL: "wss://production-sfo.browserless.io/chromium/stealth?token={{ changedetection_browserless_token }}&proxy=residential&proxyCountry=au"
 
+          LLM_MODEL: "anthropic/{{ ai_small_model }}"
+          LLM_API_BASE: "{{ ai_base_url }}"
+          LLM_API_KEY: "{{ ai_api_key }}"
+
           PUID: "{{ common_user_id | ansible.builtin.string }}"
           PGID: "{{ common_group_id | ansible.builtin.string }}"
         volumes:
