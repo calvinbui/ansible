@@ -1,0 +1,32 @@
+---
+
+- hosts: homeserver
+
+  vars:
+    application: nextcloud-mcp
+
+    container_network: "{{ networks.pub }}"
+
+  tasks:
+    - name: Create MCP server
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        image: ghcr.io/cbcoutinho/nextcloud-mcp-server:0.226.3
+        # Only expose tools for apps installed in Nextcloud
+        command:
+          - --enable-app=webdav
+          - --enable-app=sharing
+          - --enable-app=calendar
+          - --enable-app=contacts
+          - --enable-app=activity
+        env:
+          NEXTCLOUD_HOST: http://nextcloud
+          NEXTCLOUD_PUBLIC_URL: "https://nextcloud.{{ common_tld }}"
+
+          # Each client authenticates with its own Nextcloud app password
+          MCP_DEPLOYMENT_MODE: multi_user_basic
+        blackbox:
+          protocol: http
+          host: "{{ application }}.{{ common_local_tld }}:8000"
+          path: /health/ready

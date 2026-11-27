@@ -128,6 +128,7 @@
               - "actual-mcp-server:3600"
               - "garmin-mcp:8000"
               - "home-assistant-mcp:8086"
+              - "nextcloud-mcp:8000"
 
           mcpServers:
             web-fetch:
@@ -157,6 +158,21 @@
             home-assistant-mcp:
               type: streamable-http
               url: http://home-assistant-mcp:8086/mcp
+              requiresOAuth: false
+              timeout: 600000
+
+            nextcloud-mcp:
+              type: streamable-http
+              url: http://nextcloud-mcp:8000/mcp
+              headers:
+                Authorization: "Basic {% raw %}{{NEXTCLOUD_CREDENTIALS}}{% endraw %}"
+              customUserVars:
+                NEXTCLOUD_CREDENTIALS:
+                  title: Nextcloud credentials
+                  description: >-
+                    Create an app password under
+                    <a href='https://nextcloud.{{ common_tld }}/settings/user/security' target='_blank'>Nextcloud security settings</a>,
+                    then enter the base64 encoding of <code>username:app-password</code>.
               requiresOAuth: false
               timeout: 600000
 
