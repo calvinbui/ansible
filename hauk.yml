@@ -37,6 +37,15 @@
       no_log: true
       diff: false
 
+    - name: Copy Apache remote IP config
+      ansible.builtin.template:
+        src: "{{ files_directory }}/remoteip.conf.j2"
+        dest: "{{ config_directory }}/remoteip.conf"
+        owner: "{{ common_user }}"
+        group: "{{ common_group }}"
+        mode: "0644"
+      notify: Restart
+
     - name: Create container
       ansible.builtin.include_role:
         name: podman_container
@@ -44,6 +53,7 @@
         image: docker.io/bilde2910/hauk:v1.7.0
         volumes:
           - "{{ config_directory }}:/etc/hauk"
+          - "{{ config_directory }}/remoteip.conf:/etc/apache2/conf-enabled/remoteip.conf:ro"
         traefik:
           - port: 80
         homepage:

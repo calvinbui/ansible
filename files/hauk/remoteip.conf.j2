@@ -1,0 +1,6 @@
+LoadModule remoteip_module /usr/lib/apache2/modules/mod_remoteip.so
+
+RemoteIPHeader X-Forwarded-For
+RemoteIPInternalProxy {{ traefik_ip }}
+
+LogFormat "%a %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" combined
