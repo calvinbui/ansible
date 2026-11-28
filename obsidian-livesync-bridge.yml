@@ -1,0 +1,102 @@
+---
+
+# Mirrors the Self-hosted LiveSync CouchDB vault to plain Markdown files
+# in /apps/obsidian-livesync-bridge/vault, in both directions.
+
+- hosts: homeserver
+
+  vars:
+    application: obsidian-livesync-bridge
+
+    container_network: "{{ networks.pub }}"
+
+  handlers:
+    - name: Restart
+      containers.podman.podman_container:
+        name: "{{ application }}"
+        force_restart: true
+
+  tasks:
+    - name: Create config folder
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "1993"
+        group: "1993"
+        mode: "0771"
+      loop:
+        - "{{ config_directory }}"
+        - "{{ config_directory }}/dat"
+        - "{{ config_directory }}/vault"
+        - "{{ config_directory }}/location_data"
+
+    - name: Clone
+      ansible.builtin.git:
+        repo: "https://github.com/vrtmrz/livesync-bridge.git"
+        dest: "{{ config_directory }}/repo"
+        update: true
+      register: _livesync_bridge_repo_updated
+
+    - name: Build image
+      containers.podman.podman_image:
+        name: "{{ application }}"
+        path: "{{ config_directory }}/repo"
+        state: build
+        force: "{{ true if _livesync_bridge_repo_updated.changed else false }}"
+
+    - name: Create config
+      ansible.builtin.copy:
+        content: "{{ _config | ansible.builtin.to_nice_json }}"
+        dest: "{{ config_directory }}/dat/config.json"
+        owner: "1993"
+        group: "1993"
+        mode: "0600"
+      vars:
+        _config:
+          peers:
+            - type: couchdb
+              name: couchdb
+              group: vault
+              url: "http://obsidian-livesync:5984"
+              database: obsidian-livesync
+              username: obsidian-livesync
+              password: "{{ obsidian_livesync_couchdb_password }}"
+              passphrase: &livesync_passphrase !vault |
+                $ANSIBLE_VAULT;1.1;AES256
+                64303338343338373262616134613132363134643961393033666539343631653132643361663539
+                6264643063343036653139646536666663366564386634350a356232303333366536343265616436
+                62623537343166633266613635313461636537303665666233393839313234633337343733636231
+                6133366562663531380a643531636435396433346534623233303932636366646630336632626330
+                61353130393937373363643161303532613834656464613865396232366136343134
+              obfuscatePassphrase: *livesync_passphrase
+              idDerivationKey: !vault |
+                $ANSIBLE_VAULT;1.1;AES256
+                34666231346639303465643361633534333235313763383562326364626665643863363065323132
+                3031353735626462643632336165613962366634333635340a356432616532366262646532656338
+                33643062393462326533633266663265303865393265626664363062373139646235663837333532
+                3034343261663135350a313332353262626562396433306166373235326138613661626663323739
+                36633933356332356533303139616239633966333337616636346137666566326537366562373238
+                39393235363134616530393639636465666537386237363765643361306634393437663538303436
+                63326636343736333962396636653865366338343862373665306137383263663264386630373564
+                30323366616164343036
+              baseDir: ""
+              useRemoteTweaks: true
+            - type: storage
+              name: storage
+              group: vault
+              baseDir: "./data/"
+              scanOfflineChanges: true
+      no_log: true
+      notify: Restart
+
+    - name: Create container
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        image: "localhost/{{ application }}:latest"
+        volumes:
+          - "{{ config_directory }}/dat:/app/dat:ro"
+          - "{{ config_directory }}/vault:/app/data"
+          - "{{ config_directory }}/location_data:/deno-dir/location_data"
+        labels:
+          - com.centurylinklabs.watchtower.enable=false
