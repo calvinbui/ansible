@@ -135,7 +135,7 @@ services:
         name: SMLIGHT SLZB-MR5U
         icon: /icons/smlight.png
         description: Zigbee Coordinator
-        url: "http://slzb-mr5u.{{ common_local_tld }}"
+        url: "http://slzb-mr5u.{{ common_local_tld }}/login"
         weight: 150
         monitor: true
       -
