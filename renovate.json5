@@ -623,6 +623,15 @@
       versioningTemplate: "pep440",
     },
 
+    /* obsidian-mcp mcpvault */
+    {
+      customType: "regex",
+      managerFilePatterns: ['/^obsidian-mcp\\.ya?ml$/'],
+      matchStrings: ['@bitbonsai/mcpvault@(?<currentValue>\\d+\\.\\d+\\.\\d+)'],
+      depNameTemplate: "@bitbonsai/mcpvault",
+      datasourceTemplate: "npm",
+    },
+
     /* librechat postgres */
     {
       customType: "regex",
