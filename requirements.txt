@@ -16,3 +16,6 @@ netaddr==1.3.0
 
 # community.dns.lookup
 dnspython==2.9.2
+
+# community.routeros
+librouteros==4.2.2

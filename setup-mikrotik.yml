@@ -1,0 +1,69 @@
+---
+
+# RouterOS has no Python, so the API certificate is created over SSH and everything else uses the RouterOS API
+# If the switch doesn't have your SSH key yet, use `-k` to log in with the admin password
+
+- hosts: mikrotik
+
+  gather_facts: false
+  become: false
+
+  module_defaults:
+    group/community.routeros.api: "{{ community_routeros_module_defaults }}"
+
+  tasks:
+    # api-ssl needs a certificate before the API modules can connect
+    - name: Create API certificate
+      ansible.builtin.raw: >-
+        :local changed false;
+        :if ([:len [/certificate find where name="self-signed" and private-key]] = 0) do={
+        /certificate remove [find where name="self-signed"];
+        /certificate add name=self-signed common-name={{ inventory_hostname }} subject-alt-name=DNS:{{ inventory_hostname }} key-size=prime256v1 days-valid=3650 key-usage=digital-signature,key-cert-sign,tls-server;
+        /certificate sign self-signed;
+        :set changed true };
+        :if ([/ip service get api-ssl certificate] != "self-signed") do={
+        /ip service set api-ssl certificate=self-signed;
+        :set changed true };
+        :put $changed
+      register: _command_result
+      changed_when: _command_result.stdout_lines | last | trim == 'true'
+      failed_when: _command_result.rc != 0 or _command_result.stdout_lines | last | trim not in ['true', 'false']
+
+    - name: Configure API services
+      community.routeros.api_modify:
+        path: ip service
+        data:
+          - name: api
+            disabled: true
+          - name: api-ssl
+            certificate: self-signed
+            disabled: false
+      delegate_to: localhost
+
+    - name: Fetch SSH keys from GitHub API
+      ansible.builtin.uri:
+        url: "https://api.github.com/user/keys"
+        headers:
+          Authorization: "Bearer {{ github_api_token }}"
+          Accept: "application/vnd.github+json"
+      register: _github_keys_result
+      delegate_to: localhost
+      run_once: true
+      check_mode: false
+      no_log: true
+      diff: false
+      tags:
+        - ssh_keys
+
+    - name: Set authorized keys from GitHub
+      community.routeros.api_modify:
+        path: user ssh-keys
+        data:
+          - user: "{{ ansible_user }}"
+            key: "{{ (_github_keys_result.json | ansible.builtin.selectattr('id', 'equalto', item.id) | ansible.builtin.list | first).key }} github:{{ item.comment }}"
+      loop: "{{ github_ssh_key_ids }}"
+      loop_control:
+        label: "{{ item.comment }}"
+      delegate_to: localhost
+      tags:
+        - ssh_keys
