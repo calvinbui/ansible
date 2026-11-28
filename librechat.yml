@@ -129,6 +129,7 @@
               - "garmin-mcp:8000"
               - "home-assistant-mcp:8086"
               - "nextcloud-mcp:8000"
+              - "obsidian-mcp:8000"
 
           mcpServers:
             web-fetch:
@@ -173,6 +174,16 @@
                     Create an app password under
                     <a href='https://nextcloud.{{ common_tld }}/settings/user/security' target='_blank'>Nextcloud security settings</a>,
                     then enter the base64 encoding of <code>username:app-password</code>.
+              requiresOAuth: false
+              timeout: 600000
+
+            obsidian-mcp:
+              title: Obsidian
+              description: Read and search Calvin's Obsidian notes
+              type: streamable-http
+              url: http://obsidian-mcp:8000/mcp
+              headers:
+                Authorization: "Bearer ${MCP_BEARER_TOKEN_OBSIDIAN_MCP}"
               requiresOAuth: false
               timeout: 600000
 
@@ -281,6 +292,7 @@
           ANTHROPIC_MODELS: "{{ ai_models.values() | ansible.builtin.map(attribute='name') | ansible.builtin.join(',') }}"
 
           MCP_BEARER_TOKEN_ACTUAL_MCP_SERVER: "{{ mcp_tokens.actual_mcp_server }}"
+          MCP_BEARER_TOKEN_OBSIDIAN_MCP: "{{ mcp_tokens.obsidian_mcp }}"
 
           SEARCH: "true"
           MEILI_NO_ANALYTICS: "true"
