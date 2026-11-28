@@ -1,0 +1,47 @@
+---
+
+# MCPVault over Streamable HTTP for the plain-file copy of the Obsidian vault
+# that obsidian-livesync-bridge.yml maintains.
+
+- hosts: homeserver
+
+  vars:
+    application: obsidian-mcp
+
+    container_network: "{{ networks.pub }}"
+
+  tasks:
+    - name: Create config folder
+      ansible.builtin.file:
+        path: "{{ config_directory }}/npm-cache"
+        state: directory
+        owner: "{{ common_user }}"
+        group: "{{ common_group }}"
+        mode: "0771"
+
+    - name: Create MCP server
+      ansible.builtin.include_role:
+        name: podman_container
+      vars:
+        image: ghcr.io/supercorp-ai/supergateway:4.3.0
+        command:
+          - --stdio
+          # Read-only until edits from AI are wanted; they sync to every device
+          - npx --yes @bitbonsai/mcpvault@0.18.4 /vault --read-only
+          - --outputTransport
+          - streamableHttp
+          - --stateful
+          - --port
+          - "8000"
+          - --healthEndpoint
+          - /healthz
+        env:
+          SUPERGATEWAY_API_KEY: "{{ mcp_tokens.obsidian_mcp }}"
+          npm_config_cache: /npm-cache
+        volumes:
+          - "{{ common_directory }}/obsidian-livesync-bridge/vault:/vault:ro"
+          - "{{ config_directory }}/npm-cache:/npm-cache"
+        blackbox:
+          protocol: http
+          host: "{{ application }}.{{ common_local_tld }}:8000"
+          path: /healthz
